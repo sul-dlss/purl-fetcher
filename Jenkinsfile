@@ -4,6 +4,7 @@ pipeline {
   environment {
     SIDEKIQ_PRO_SECRET = credentials("sidekiq_pro_secret")
     SLACK_WEBHOOK_URL = credentials("access_slack_webhook")
+    PROJECT = 'sul-dlss/purl-fetcher'
   }
 
   stages {
@@ -36,13 +37,13 @@ pipeline {
       post {
         success {
           sh '''#!/bin/bash -l
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"purl-fetcher: The deploy to stage was successful"}' $SLACK_WEBHOOK_URL
+            curl -X POST -H 'Content-type: application/json' --data "{\\"text\\":\\"[$PROJECT] The deploy to stage was successful [https://github.com/$PROJECT/compare/$GIT_PREVIOUS_SUCCESSFUL_COMMIT..$GIT_COMMIT]\\"}" $SLACK_WEBHOOK_URL
           '''
         }
 
         failure {
           sh '''#!/bin/bash -l
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"purl-fetcher: The deploy to stage was unsuccessful"}' $SLACK_WEBHOOK_URL
+            curl -X POST -H 'Content-type: application/json' --data "{\\"text\\":\\"[$PROJECT] The deploy to stage was unsuccessful [https://github.com/$PROJECT/compare/$GIT_PREVIOUS_SUCCESSFUL_COMMIT..$GIT_COMMIT]\\"}" $SLACK_WEBHOOK_URL
           '''
         }
       }
@@ -78,13 +79,13 @@ pipeline {
       post {
         success {
           sh '''#!/bin/bash -l
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"purl-fetcher: The deploy to prod was successful"}' $SLACK_WEBHOOK_URL
+            curl -X POST -H 'Content-type: application/json' --data "{\\"text\\":\\"[$PROJECT] The $TAG_NAME deploy to prod was successful [https://github.com/$PROJECT/compare/$GIT_PREVIOUS_SUCCESSFUL_COMMIT..$TAG_NAME]\\"}" $SLACK_WEBHOOK_URL
           '''
         }
 
         failure {
           sh '''#!/bin/bash -l
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"purl-fetcher: The deploy to prod was unsuccessful"}' $SLACK_WEBHOOK_URL
+            curl -X POST -H 'Content-type: application/json' --data "{\\"text\\":\\"[$PROJECT] The $TAG_NAME deploy to prod was unsuccessful [https://github.com/$PROJECT/compare/$GIT_PREVIOUS_SUCCESSFUL_COMMIT..$TAG_NAME]\\"}" $SLACK_WEBHOOK_URL
           '''
         }
       }

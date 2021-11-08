@@ -103,18 +103,6 @@ class Purl < ApplicationRecord
     save!
   end
 
-  # class level method to create or update a purl model object given a path to a purl directory
-  # @param [String] `path` path to a PURL directory
-  # @return [Boolean] success or failure
-  def self.save_from_public_xml(path)
-    public_xml = PurlParser.new(path)
-
-    return false unless public_xml.exists?
-
-    purl = find_or_initialize_by(druid: public_xml.druid) # either create a new druid record or get the existing one
-    purl.update_from_public_xml!
-  end
-
   ##
   # Specify an instance's `deleted_at` attribute which denotes when an object's
   # public xml is gone

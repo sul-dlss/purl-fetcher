@@ -80,7 +80,7 @@ class Purl < ApplicationRecord
 
     return false unless public_xml.exists?
 
-    self.druid = public_xml.druid
+    self.druid = public_xml.canonical_druid
     self.title = public_xml.title
     self.object_type = public_xml.object_type
     self.catkey = public_xml.catkey

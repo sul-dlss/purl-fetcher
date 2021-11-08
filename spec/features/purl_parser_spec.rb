@@ -10,7 +10,7 @@ describe PurlParser do
     end
 
     it 'gets the druid from publicMetadata' do
-      expect(purl.druid).to match('druid:bb050dj7711')
+      expect(purl.canonical_druid).to match('druid:bb050dj7711')
     end
 
     it 'gets true and false data from the public xml regarding release status' do

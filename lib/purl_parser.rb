@@ -40,7 +40,7 @@ class PurlParser
   #
   # @return [String] The druid in the form of druid:pid
   #
-  def druid
+  def canonical_druid
     public_xml.at_xpath('//publicObject').attr('id')
   end
 

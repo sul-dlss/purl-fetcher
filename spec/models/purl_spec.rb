@@ -54,6 +54,17 @@ describe Purl, type: :model do
         expect { purl_object.update_from_public_xml! }.to raise_exception(ActiveRecord::RecordInvalid)
       end
     end
+
+    context 'public xml association' do
+      before do
+        purl_object.update(druid: 'druid:bb050dj7711')
+        purl_object.update_from_public_xml!
+      end
+
+      it 'stores the public xml in the database' do
+        expect(purl_object.public_xml&.data).to be_present.and include '<publicObject id="druid:bb050dj7711"'
+      end
+    end
   end
 
   describe '.membership' do

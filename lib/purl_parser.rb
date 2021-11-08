@@ -11,6 +11,7 @@ class PurlParser
   rescue => e
     Honeybadger.notify(e)
     UpdatingLogger.error("For #{path} could not read public XML.  #{e.message}")
+    nil
   end
 
   def exists?

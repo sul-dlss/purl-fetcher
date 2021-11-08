@@ -1,6 +1,9 @@
 class Purl < ApplicationRecord
   has_and_belongs_to_many :collections
   has_many :release_tags, dependent: :destroy
+  has_one :public_xml, dependent: :destroy
+
+  accepts_nested_attributes_for :public_xml, update_only: true
   paginates_per 100
   max_paginates_per 10_000
   default_scope -> { order(:updated_at) }
@@ -94,7 +97,8 @@ class Purl < ApplicationRecord
       object_type: public_xml.object_type,
       catkey: public_xml.catkey,
       published_at: public_xml.published_at,
-      deleted_at: nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
+      deleted_at: nil, # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
+      public_xml_attributes: { data: public_xml.public_xml.to_s }
     )
 
     ##

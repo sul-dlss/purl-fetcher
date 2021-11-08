@@ -76,7 +76,7 @@ class Purl < ApplicationRecord
   ##
   # Updates a Purl using information from the public xml document
   def update_from_public_xml!
-    public_xml = PurlParser.new(path)
+    public_xml = PurlParser.new(druid)
 
     return false unless public_xml.exists?
 
@@ -121,16 +121,4 @@ class Purl < ApplicationRecord
     purl.collections.delete_all
     purl.save
   end
-
-  private
-
-    ##
-    # Path to the location of public xml document
-    # @return [String]
-    def path
-      DruidTools::PurlDruid.new(
-        druid,
-        Settings.PURL_DOCUMENT_PATH
-      ).path
-    end
 end

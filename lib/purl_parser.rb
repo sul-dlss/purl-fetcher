@@ -1,24 +1,20 @@
 # class used to represent a purl, used to parse information
 class PurlParser
+  attr_reader :druid
 
-  attr_reader :path, :public_xml # the public XML as a nokogiri doc (will be nil if the public file was not found)
+  def initialize(druid)
+    @druid = druid
+  end
 
-  # Given a path to a directory that contains a public xml file, read in the full XML and set the public_xml accessor as a nokogiri document
-  # @param path [String] The path to the directory that contains the public file
-  #
-  def initialize(path)
-    @path = path
-    @public_path = Pathname(path) + 'public'
-    begin
-      @public_xml ||= Nokogiri::XML(@public_path.open)
-    rescue => e
-      Honeybadger.notify(e)
-      UpdatingLogger.error("For #{path} could not read public XML.  #{e.message}")
-    end
+  def public_xml
+    @public_xml ||= Nokogiri::XML((Pathname(path) + 'public').open)
+  rescue => e
+    Honeybadger.notify(e)
+    UpdatingLogger.error("For #{path} could not read public XML.  #{e.message}")
   end
 
   def exists?
-    @public_xml
+    public_xml.present?
   end
 
   # Extract the release information from public_xml (load the public XML first)
@@ -80,5 +76,17 @@ class PurlParser
   # @return [Time]
   def published_at
     Time.parse(public_xml.at_xpath('//publicObject').attr('published').to_s).in_time_zone
+  end
+
+  private
+
+  ##
+  # Path to the location of public xml document
+  # @return [String]
+  def path
+    DruidTools::PurlDruid.new(
+      druid,
+      Settings.PURL_DOCUMENT_PATH
+    ).path
   end
 end

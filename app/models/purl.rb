@@ -61,6 +61,15 @@ class Purl < ApplicationRecord
     release_tags.where(release_type: false).map(&:name)
   end
 
+  # add the release tags, and reuse tags if already associated with this PURL
+  def refresh_release_tags(releases)
+    [true, false].each do |type|
+      releases[type.to_s.to_sym].sort.uniq.each do |release|
+        release_tags << ReleaseTag.for(self, release, type)
+      end
+    end
+  end
+
   ##
   # Delete all of the collection assocations, and then add back ones from a
   # known valid list
@@ -77,13 +86,16 @@ class Purl < ApplicationRecord
   # Updates a Purl using information from the public xml document
   def update_from_public_xml!
     public_xml = PurlParser.new(druid)
-
     return false unless public_xml.exists?
 
-    self.druid = public_xml.canonical_druid
-    self.title = public_xml.title
-    self.object_type = public_xml.object_type
-    self.catkey = public_xml.catkey
+    assign_attributes(
+      druid: public_xml.canonical_druid,
+      title: public_xml.title,
+      object_type: public_xml.object_type,
+      catkey: public_xml.catkey,
+      published_at: public_xml.published_at,
+      deleted_at: nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
+    )
 
     ##
     # Delete all of the collection assocations, and then add back ones in the
@@ -91,14 +103,7 @@ class Purl < ApplicationRecord
     refresh_collections(public_xml.collections)
 
     # add the release tags, and reuse tags if already associated with this PURL
-    [true, false].each do |type|
-      public_xml.releases[type.to_s.to_sym].sort.uniq.each do |release|
-        release_tags << ReleaseTag.for(self, release, type)
-      end
-    end
-
-    self.published_at = public_xml.published_at
-    self.deleted_at = nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
+    refresh_release_tags(public_xml.releases)
 
     save!
   end
@@ -119,6 +124,7 @@ class Purl < ApplicationRecord
     purl.deleted_at = deleted_at.nil? ? Time.current : deleted_at
     purl.release_tags.delete_all
     purl.collections.delete_all
+    purl.public_xml&.delete
     purl.save
   end
 end

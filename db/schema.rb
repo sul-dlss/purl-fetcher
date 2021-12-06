@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_19_200244) do
+ActiveRecord::Schema.define(version: 2021_11_08_224213) do
 
   create_table "collections", force: :cascade do |t|
     t.string "druid", null: false
@@ -35,6 +35,14 @@ ActiveRecord::Schema.define(version: 2020_03_19_200244) do
     t.datetime "updated_at", null: false
     t.index ["process_id"], name: "index_listener_logs_on_process_id"
     t.index ["started_at"], name: "index_listener_logs_on_started_at"
+  end
+
+  create_table "public_xmls", force: :cascade do |t|
+    t.integer "purl_id"
+    t.binary "data"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["purl_id"], name: "index_public_xmls_on_purl_id"
   end
 
   create_table "purls", force: :cascade do |t|

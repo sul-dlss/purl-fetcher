@@ -54,6 +54,17 @@ describe Purl, type: :model do
         expect { purl_object.update_from_public_xml! }.to raise_exception(ActiveRecord::RecordInvalid)
       end
     end
+
+    context 'public xml association' do
+      before do
+        purl_object.update(druid: 'druid:bb050dj7711')
+        purl_object.update_from_public_xml!
+      end
+
+      it 'stores the public xml in the database' do
+        expect(purl_object.public_xml&.data).to be_present.and include '<publicObject id="druid:bb050dj7711"'
+      end
+    end
   end
 
   describe '.membership' do
@@ -157,20 +168,6 @@ describe Purl, type: :model do
       purl = described_class.find(1)
       expect{ described_class.mark_deleted(purl.druid) }
         .to change { purl.collections.count }.from(1).to(0)
-    end
-  end
-
-  describe '.save_from_public_xml' do
-    let(:purl_path) { DruidTools::PurlDruid.new(druid, purl_fixture_path).path }
-
-    it 'does not create duplication Collection or relationships' do
-      n = 2
-      expect do
-        n.times do
-          described_class.save_from_public_xml(purl_path)
-        end
-      end.to change{ Collection.all.count }.by(n)
-      expect(described_class.find_by_druid(druid).collections.count).to eq n
     end
   end
 end

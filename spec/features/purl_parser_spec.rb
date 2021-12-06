@@ -2,15 +2,14 @@ require 'rails_helper'
 
 describe PurlParser do
   describe('bb050dj7711') do
-    let(:sample_doc_path) { DruidTools::PurlDruid.new('bb050dj7711', purl_fixture_path).path }
-    let(:purl) { described_class.new(sample_doc_path) }
+    let(:purl) { described_class.new('bb050dj7711') }
 
     it 'gets the title from the mods file' do
       expect(purl.title).to eq("This is Pete's New Test title for this object.")
     end
 
     it 'gets the druid from publicMetadata' do
-      expect(purl.druid).to match('druid:bb050dj7711')
+      expect(purl.canonical_druid).to match('druid:bb050dj7711')
     end
 
     it 'gets true and false data from the public xml regarding release status' do
@@ -31,8 +30,7 @@ describe PurlParser do
   end
 
   describe('ct961sj2730') do
-    let(:sample_doc_path) { DruidTools::PurlDruid.new('ct961sj2730', purl_fixture_path).path }
-    let(:purl) { described_class.new(sample_doc_path) }
+    let(:purl) { described_class.new('ct961sj2730') }
 
     it 'gets the cat key when one is present' do
       expect(purl.catkey).to match('10357851')
@@ -44,8 +42,7 @@ describe PurlParser do
   end
 
   describe('bb050dj0000') do
-    let(:sample_doc_path) { DruidTools::PurlDruid.new('bb050dj0000', purl_fixture_path).path }
-    let(:purl) { described_class.new(sample_doc_path) }
+    let(:purl) { described_class.new('bb050dj0000') }
 
     it 'does not find the public xml' do
       expect(purl.exists?).to be_falsey
@@ -53,11 +50,8 @@ describe PurlParser do
   end
 
   describe '#published_at' do
-    let(:sample_doc_path) do
-      DruidTools::PurlDruid.new('bb050dj7711', purl_fixture_path).path
-    end
+    subject { described_class.new('bb050dj7711') }
 
-    subject { described_class.new(sample_doc_path) }
     it 'gets the published_at metadata directly from the public XML' do
       expect(subject.published_at).to be_an Time
       expect(subject.published_at.zone).to eq('UTC') # this is the local timezone for our Rails instances
@@ -67,8 +61,7 @@ describe PurlParser do
   end
 
   describe('nc687px4289') do
-    let(:sample_doc_path) { DruidTools::PurlDruid.new('nc687px4289', purl_fixture_path).path }
-    let(:purl) { described_class.new(sample_doc_path) }
+    let(:purl) { described_class.new('nc687px4289') }
 
     it 'uses the first title' do
       expect(purl.public_xml.xpath('//*[name()="dc:title"]').size).to eq 2 # multiple titles

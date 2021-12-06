@@ -1,6 +1,9 @@
 class Purl < ApplicationRecord
   has_and_belongs_to_many :collections
   has_many :release_tags, dependent: :destroy
+  has_one :public_xml, dependent: :destroy
+
+  accepts_nested_attributes_for :public_xml, update_only: true
   paginates_per 100
   max_paginates_per 10_000
   default_scope -> { order(:updated_at) }
@@ -61,6 +64,15 @@ class Purl < ApplicationRecord
     release_tags.where(release_type: false).map(&:name)
   end
 
+  # add the release tags, and reuse tags if already associated with this PURL
+  def refresh_release_tags(releases)
+    [true, false].each do |type|
+      releases[type.to_s.to_sym].sort.uniq.each do |release|
+        release_tags << ReleaseTag.for(self, release, type)
+      end
+    end
+  end
+
   ##
   # Delete all of the collection assocations, and then add back ones from a
   # known valid list
@@ -76,14 +88,18 @@ class Purl < ApplicationRecord
   ##
   # Updates a Purl using information from the public xml document
   def update_from_public_xml!
-    public_xml = PurlParser.new(path)
-
+    public_xml = PurlParser.new(druid)
     return false unless public_xml.exists?
 
-    self.druid = public_xml.druid
-    self.title = public_xml.title
-    self.object_type = public_xml.object_type
-    self.catkey = public_xml.catkey
+    assign_attributes(
+      druid: public_xml.canonical_druid,
+      title: public_xml.title,
+      object_type: public_xml.object_type,
+      catkey: public_xml.catkey,
+      published_at: public_xml.published_at,
+      deleted_at: nil, # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
+      public_xml_attributes: { data: public_xml.public_xml.to_s }
+    )
 
     ##
     # Delete all of the collection assocations, and then add back ones in the
@@ -91,28 +107,9 @@ class Purl < ApplicationRecord
     refresh_collections(public_xml.collections)
 
     # add the release tags, and reuse tags if already associated with this PURL
-    [true, false].each do |type|
-      public_xml.releases[type.to_s.to_sym].sort.uniq.each do |release|
-        release_tags << ReleaseTag.for(self, release, type)
-      end
-    end
-
-    self.published_at = public_xml.published_at
-    self.deleted_at = nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
+    refresh_release_tags(public_xml.releases)
 
     save!
-  end
-
-  # class level method to create or update a purl model object given a path to a purl directory
-  # @param [String] `path` path to a PURL directory
-  # @return [Boolean] success or failure
-  def self.save_from_public_xml(path)
-    public_xml = PurlParser.new(path)
-
-    return false unless public_xml.exists?
-
-    purl = find_or_initialize_by(druid: public_xml.druid) # either create a new druid record or get the existing one
-    purl.update_from_public_xml!
   end
 
   ##
@@ -131,18 +128,7 @@ class Purl < ApplicationRecord
     purl.deleted_at = deleted_at.nil? ? Time.current : deleted_at
     purl.release_tags.delete_all
     purl.collections.delete_all
+    purl.public_xml&.delete
     purl.save
   end
-
-  private
-
-    ##
-    # Path to the location of public xml document
-    # @return [String]
-    def path
-      DruidTools::PurlDruid.new(
-        druid,
-        Settings.PURL_DOCUMENT_PATH
-      ).path
-    end
 end

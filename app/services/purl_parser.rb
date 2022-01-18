@@ -8,7 +8,7 @@ class PurlParser
 
   def public_xml
     @public_xml ||= Nokogiri::XML((Pathname(path) + 'public').open)
-  rescue => e
+  rescue StandardError => e
     Honeybadger.notify(e)
     nil
   end

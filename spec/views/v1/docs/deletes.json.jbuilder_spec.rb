@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/docs/deletes.json.jbuilder' do
+describe 'v1/docs/deletes.json' do
   before do
     assign(
       :deletes,

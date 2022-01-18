@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/collections/show.json.jbuilder' do
+describe 'v1/collections/show.json' do
   before do
     assign(:collection, Purl.find(5))
   end

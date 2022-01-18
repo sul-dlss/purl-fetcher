@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/collections/index.json.jbuilder' do
+describe 'v1/collections/index.json' do
   before do
     assign(
       :collections,

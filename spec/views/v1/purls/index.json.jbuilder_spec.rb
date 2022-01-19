@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/purls/index.json.jbuilder' do
+describe 'v1/purls/index.json' do
   before do
     assign(:purls, Kaminari.paginate_array(Purl.all).page(1))
   end

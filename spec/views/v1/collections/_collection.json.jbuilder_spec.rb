@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/collections/_collection.json.jbuilder' do
+describe 'v1/collections/_collection.json' do
   it 'renders appropriate fields' do
     render partial: 'v1/collections/collection', locals: { collection: Purl.find_by(druid: 'druid:ee111ff2222') }
     expect(JSON.parse(rendered)).to include(

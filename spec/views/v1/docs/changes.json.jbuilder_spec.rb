@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/docs/changes.json.jbuilder' do
+describe 'v1/docs/changes.json' do
   before do
     assign(:changes, Purl.all.page(1))
     assign(:first_modified, Time.zone.now - 1.day)

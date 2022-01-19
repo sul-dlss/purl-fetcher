@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/purls/_purl.json.jbuilder' do
+describe 'v1/purls/_purl.json' do
   it 'renders appropriate fields' do
     render partial: 'v1/purls/purl', locals: { purl: Purl.find(1) }
     expect(JSON.parse(rendered)).to include(

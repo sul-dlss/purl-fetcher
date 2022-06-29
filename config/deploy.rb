@@ -19,9 +19,4 @@ set :keep_releases, 5
 set :honeybadger_env, "#{fetch(:stage)}"
 
 after 'deploy:published', 'deploy:restart'
-
-if ENV['CI']
-  # Some version mismatch(?) is causing ruby's net-ssh to error with:
-  # > Net::SSH::Exception (could not verify server signature)
-  set :ssh_options, verify_host_key: :never
-end
+  

@@ -29,13 +29,13 @@ module V1
     private
 
       def date_params
-        @first_modified = if params[:first_modified]
+        @first_modified = if params[:first_modified].present?
                             Time.zone.parse(params[:first_modified])
                           else
                             Time.zone.at(0)
                           end
 
-        @last_modified = if params[:last_modified]
+        @last_modified = if params[:last_modified].present?
                            Time.zone.parse(params[:last_modified])
                          else
                            Time.zone.now

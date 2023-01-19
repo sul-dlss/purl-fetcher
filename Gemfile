@@ -75,8 +75,6 @@ group :development, :test do
   gem 'rubocop-rspec', require: false
   # Use sqlite3 as the database for Active Record
   gem "sqlite3", "~> 1.4"
-
-  gem 'yard'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

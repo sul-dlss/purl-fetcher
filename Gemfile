@@ -43,7 +43,7 @@ gem 'honeybadger'
 gem 'config'
 
 group :test do
-  gem 'rspec-rails', '~> 4.0'
+  gem 'rspec-rails', '~> 6.0'
   gem 'capybara'
   gem 'simplecov', require: false
   gem 'rails-controller-testing'

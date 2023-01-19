@@ -1,14 +1,14 @@
 <h1>PURL Fetcher</h1>
 
 <h2>Total</h2>
-<table>
+<table class="table table-striped">
   <tr><td>Published</td><td><%= number_with_delimiter @metrics.published %></td></tr>
   <tr><td>Changes</td><td><%= number_with_delimiter @metrics.changes %></td></tr>
   <tr><td>Deleted</td><td><%= number_with_delimiter @metrics.deleted %></td></tr>
 </table>
 
 <h2>Histogram</h2>
-<table>
+<table class="table table-striped">
   <thead>
     <tr>
       <% @metrics.histogram.keys.each do |key| %>
@@ -28,7 +28,7 @@
 <h2>Release tags</h2>
 <% names = @metrics.release_tags.keys.map(&:first).uniq %>
 <% release_types = @metrics.release_tags.keys.map(&:last).uniq %>
-<table>
+<table class="table table-striped">
   <thead>
     <tr>
       <th>Name</th>
@@ -58,7 +58,7 @@
 </dl>
 
 <h3>Histogram</h3>
-<table>
+<table class="table table-striped">
   <thead>
     <tr>
       <% @metrics.searchworks[:histogram].keys.each do |key| %>

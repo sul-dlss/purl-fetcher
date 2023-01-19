@@ -24,7 +24,6 @@ gem "stimulus-rails"
 gem "jbuilder"
 
 gem 'rake', '~> 13'
-gem 'sassc-rails'
 
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '>= 1.1.0', require: false

@@ -24,7 +24,7 @@ RSpec.describe V1::DocsController do
 
     it 'is filterable by target' do
       get :changes, params: { target: 'SearchWorks' }, format: :json
-      expect(assigns(:changes).map(&:druid)).to match_array ['druid:bb111cc2222']
+      expect(assigns(:changes).map(&:druid)).to contain_exactly('druid:bb111cc2222')
     end
   end
 
@@ -57,7 +57,7 @@ RSpec.describe V1::DocsController do
 
     it 'is filterable by target' do
       get :deletes, params: { target: 'SearchWorks' }, format: :json
-      expect(assigns(:deletes).map(&:druid)).to match_array ['druid:cc111dd2222']
+      expect(assigns(:deletes).map(&:druid)).to contain_exactly('druid:cc111dd2222')
     end
   end
 end

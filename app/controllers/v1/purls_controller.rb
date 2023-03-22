@@ -27,7 +27,7 @@ module V1
               rescue ActiveRecord::RecordNotUnique
                 retry
               end
-      @purl.update_from_public_xml!
+      PurlXmlUpdater.new(@purl).update
       respond_to do |format|
         format.json { render json: true }
       end

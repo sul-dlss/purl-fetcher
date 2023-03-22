@@ -7,13 +7,13 @@ Rails.application.routes.draw do
       get 'changes'
     end
 
-    resources :purls, defaults: { format: :json}, only: [:index, :show, :update, :destroy], param: :druid do
+    resources :purls, defaults: { format: :json }, only: [:index, :show, :destroy], param: :druid do
       member do
         post '/', action: 'update'
       end
     end
 
-    resources :collections, defaults: { format: :json}, only: [:index, :show], param: :druid  do
+    resources :collections, defaults: { format: :json }, only: [:index, :show], param: :druid  do
       member do
         get 'purls'
       end

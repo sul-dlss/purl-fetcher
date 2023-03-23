@@ -128,10 +128,6 @@ RSpec/LetBeforeExamples:
   Exclude:
     - 'spec/models/purl_spec.rb'
 
-# Offense count: 32
-RSpec/MultipleExpectations:
-  Max: 6
-
 # Offense count: 9
 # Configuration parameters: IgnoreSharedExamples.
 RSpec/NamedSubject:

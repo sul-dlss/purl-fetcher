@@ -17,6 +17,7 @@ AllCops:
     - 'spec/rails_helper.rb'
     - 'vendor/**/*'
     - 'tmp/**/*'
+  SuggestExtensions: false
 
 Rails:
   Enabled: true
@@ -31,7 +32,7 @@ Layout/EmptyLineBetweenDefs:
 
 # Configuration parameters: AllowURI, URISchemes.
 Layout/LineLength:
-  Max: 200
+  Max: 132
   Exclude:
     - 'spec/features/v1/docs_controller_spec.rb'
 
@@ -43,3 +44,6 @@ Style/StringLiterals:
 
 Style/Documentation:
   Enabled: false
+
+RSpec/MultipleExpectations:
+  Max: 7

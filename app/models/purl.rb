@@ -86,33 +86,6 @@ class Purl < ApplicationRecord
   end
 
   ##
-  # Updates a Purl using information from the public xml document
-  def update_from_public_xml!
-    public_xml = PurlParser.new(druid)
-    return false unless public_xml.exists?
-
-    assign_attributes(
-      druid: public_xml.canonical_druid,
-      title: public_xml.title,
-      object_type: public_xml.object_type,
-      catkey: public_xml.catkey,
-      published_at: public_xml.published_at,
-      deleted_at: nil, # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
-      public_xml_attributes: { data: public_xml.public_xml.to_s }
-    )
-
-    ##
-    # Delete all of the collection assocations, and then add back ones in the
-    # public xml
-    refresh_collections(public_xml.collections)
-
-    # add the release tags, and reuse tags if already associated with this PURL
-    refresh_release_tags(public_xml.releases)
-
-    save!
-  end
-
-  ##
   # Specify an instance's `deleted_at` attribute which denotes when an object's
   # public xml is gone
   # @param [String] druid

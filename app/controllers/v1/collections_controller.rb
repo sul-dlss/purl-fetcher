@@ -13,6 +13,8 @@ module V1
     ##
     # API call to get information about a specific collection
     #
+    # Used by exhibits to get the members of a colletion via
+    # https://github.com/sul-dlss/purl_fetcher-client/blob/main/lib/purl_fetcher/client/public_xml_record.rb#L146
     def show
       @collection = Purl.find_by_druid!(druid_param)
     end

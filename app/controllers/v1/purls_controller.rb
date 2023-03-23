@@ -2,6 +2,7 @@ module V1
   class PurlsController < ApplicationController
     ##
     # Returns all Purls with filtering options
+    # Polled by searchworks-traject-indexer to pull the list of purls to index
     def index
       @purls = Purl.all
                    .includes(:collections, :release_tags)
@@ -21,6 +22,7 @@ module V1
 
     ##
     # Update a Purl from its public xml
+    # Used by dor-services-app to alert us of a pubish event
     def update
       @purl = begin
                 Purl.find_or_create_by(druid: druid_param)

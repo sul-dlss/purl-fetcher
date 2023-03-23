@@ -33,11 +33,21 @@ Layout/EmptyLineBetweenDefs:
 # Configuration parameters: AllowURI, URISchemes.
 Layout/LineLength:
   Max: 132
+  AllowURI: true
   Exclude:
     - 'spec/features/v1/docs_controller_spec.rb'
 
+Lint/BooleanSymbol:
+  Enabled: false # We have a few uses of `:true` and `:false` as hash keys here.
+
 Metrics/AbcSize:
   Max: 30
+
+RSpec/MultipleExpectations:
+  Max: 7
+
+RSpec/NestedGroups:
+  Max: 4
 
 Style/StringLiterals:
   Enabled: false
@@ -45,5 +55,3 @@ Style/StringLiterals:
 Style/Documentation:
   Enabled: false
 
-RSpec/MultipleExpectations:
-  Max: 7

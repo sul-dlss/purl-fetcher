@@ -84,27 +84,70 @@ RSpec.describe V1::PurlsController do
   end
 
   describe 'POST update' do
-    it 'creates a new purl entry' do
-      expect do
-        post '/purls/druid:ab012cd3456'
-      end.to change(Purl, :count).by(1)
-    end
-
-    it 'normalizes the druid parameter' do
-      expect { post '/purls/ab012cd3456' }.to change(Purl, :count).by(1)
-      expect(Purl.last.druid).to eq 'druid:ab012cd3456'
-    end
-
-    context 'with an existing item' do
-      let(:purl_object) { create(:purl, druid: 'druid:bb050dj7711') }
-
-      before do
-        purl_object.update(druid: 'druid:bb050dj7711')
+    context 'with cocina json' do
+      let(:headers) { { 'Content-Type' => 'application/json' } }
+      let(:data) do
+        build(:dro, title: "The Information Paradox for Black Holes",
+                    collection_ids: ['druid:xb432gf1111'])
+          .new(administrative: {
+                 hasAdminPolicy: "druid:hv992ry2431",
+                 releaseTags: [
+                   { to: 'Searchworks', release: true },
+                   { to: 'Earthworks', release: false }
+                 ]
+               })
+          .to_json
       end
 
-      it 'updates the purl with new data' do
-        post '/purls/druid:bb050dj7711'
-        expect(purl_object.reload.title).to eq "This is Pete's New Test title for this object."
+      context 'with a new item' do
+        let(:druid) { 'druid:ab012cd3456' }
+
+        it 'creates a new purl entry' do
+          expect do
+            post "/purls/#{druid}", params: data, headers: headers
+          end.to change(Purl, :count).by(1)
+        end
+      end
+
+      context 'with an existing item' do
+        let(:purl_object) { create(:purl) }
+        let(:druid) { purl_object.druid }
+
+        it 'updates the purl with new data' do
+          post "/purls/#{druid}", params: data, headers: headers
+          purl_object.reload
+          expect(purl_object.title).to eq "The Information Paradox for Black Holes"
+          expect(purl_object.true_targets).to eq ["Searchworks", "SearchWorksPreview", "ContentSearch"]
+          expect(purl_object.false_targets).to eq ['Earthworks']
+          expect(purl_object.collections.size).to eq 1
+          expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
+        end
+      end
+    end
+
+    context 'without cocina json' do
+      it 'creates a new purl entry' do
+        expect do
+          post '/purls/druid:ab012cd3456'
+        end.to change(Purl, :count).by(1)
+      end
+
+      it 'normalizes the druid parameter' do
+        expect { post '/purls/ab012cd3456' }.to change(Purl, :count).by(1)
+        expect(Purl.last.druid).to eq 'druid:ab012cd3456'
+      end
+
+      context 'with an existing item' do
+        let(:purl_object) { create(:purl, druid: 'druid:bb050dj7711') }
+
+        before do
+          purl_object.update(druid: 'druid:bb050dj7711')
+        end
+
+        it 'updates the purl with new data' do
+          post '/purls/druid:bb050dj7711'
+          expect(purl_object.reload.title).to eq "This is Pete's New Test title for this object."
+        end
       end
     end
   end

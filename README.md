@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/sul-dlss/purl-fetcher/badge.svg?branch=master)](https://coveralls.io/github/sul-dlss/purl-fetcher?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/sul-dlss/purl-fetcher/badge.svg?branch=main)](https://coveralls.io/github/sul-dlss/purl-fetcher?branch=main)
 
 
 # purl-fetcher

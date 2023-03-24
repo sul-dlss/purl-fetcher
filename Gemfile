@@ -31,16 +31,15 @@ gem 'bootsnap', '>= 1.1.0', require: false
 gem 'druid-tools'
 gem 'kaminari' # for pagination
 
-gem 'okcomputer' # for monitoring
 gem 'honeybadger'
+gem 'okcomputer' # for monitoring
 
 gem 'config'
 
 group :test do
-  gem 'rspec-rails', '~> 6.0'
   gem 'capybara'
+  gem 'rspec-rails', '~> 6.0'
   gem 'simplecov', require: false
-  gem 'rails-controller-testing'
 end
 
 group :development do
@@ -54,16 +53,16 @@ group :production do
 end
 
 group :deployment do
-  gem 'dlss-capistrano'
   gem 'capistrano-bundler'
   gem 'capistrano-passenger'
   gem 'capistrano-rails'
   gem 'capistrano-rvm'
+  gem 'dlss-capistrano'
 end
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri mingw x64_mingw ]
+  gem "debug", platforms: %i[mri mingw x64_mingw]
   gem 'factory_bot_rails'
   gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
@@ -74,4 +73,4 @@ group :development, :test do
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]

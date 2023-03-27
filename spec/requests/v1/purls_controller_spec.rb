@@ -87,8 +87,8 @@ RSpec.describe V1::PurlsController do
     context 'with cocina json' do
       let(:headers) { { 'Content-Type' => 'application/json' } }
       let(:data) do
-        build(:dro, title: "The Information Paradox for Black Holes",
-                    collection_ids: ['druid:xb432gf1111'])
+        build(:dro_with_metadata, title: "The Information Paradox for Black Holes",
+                                  collection_ids: ['druid:xb432gf1111'])
           .new(administrative: {
                  hasAdminPolicy: "druid:hv992ry2431",
                  releaseTags: [

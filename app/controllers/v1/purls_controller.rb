@@ -20,17 +20,22 @@ module V1
     end
 
     ##
-    # Update a Purl from its public xml
+    # Update the database purl record from the passed in cocina
     def update
       @purl = begin
                 Purl.find_or_create_by(druid: druid_param)
               rescue ActiveRecord::RecordNotUnique
                 retry
               end
-      PurlXmlUpdater.new(@purl).update
-      respond_to do |format|
-        format.json { render json: true }
+      if params[:type]
+        PurlCocinaUpdater.new(@purl, cocina_object).update
+      else
+        # This path is a fallback used until dor-services-app is providing the data we need
+        Honeybadger.notify("Cocina JSON was not provided. Falling back to xml", context: { druid: druid_param })
+        PurlXmlUpdater.new(@purl).update
       end
+
+      render json: true
     end
 
     def destroy
@@ -38,6 +43,10 @@ module V1
     end
 
     private
+
+      def cocina_object
+        Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format).to_unsafe_h)
+      end
 
       def filter_params
         object_type_param

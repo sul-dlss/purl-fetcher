@@ -85,13 +85,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
   Exclude:
     - 'spec/models/release_tag_spec.rb'
 
-# Offense count: 4
-# Cop supports --auto-correct.
-Lint/BooleanSymbol:
-  Exclude:
-    - 'app/services/purl_parser.rb'
-    - 'spec/features/purl_parser_spec.rb'
-
 # Offense count: 10
 # Configuration parameters: CountComments, CountAsOne, ExcludedMethods, IgnoredMethods.
 # IgnoredMethods: refine

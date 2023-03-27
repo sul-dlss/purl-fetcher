@@ -6,6 +6,7 @@ require 'rspec/rails'
 require 'net/http'
 require 'capybara/rspec'
 require 'capybara/rails'
+require 'cocina/rspec'
 require 'json'
 # Add additional requires below this line. Rails is not loaded until this point!
 

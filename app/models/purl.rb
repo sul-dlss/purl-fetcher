@@ -48,8 +48,9 @@ class Purl < ApplicationRecord
   end
 
   ##
-  # Return true targets with always values only if the object is not deleted in
-  # purl mount
+  # Release tags where the value is true or is one of the default targets. If the object has been deleted, it retuns blank.
+  # This is consumed by
+  # https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L26 # rubocop:disable Layout:LineLength
   # @return [Array]
   def true_targets
     return [] unless deleted_at.nil?
@@ -58,7 +59,8 @@ class Purl < ApplicationRecord
   end
 
   ##
-  # Convenience method for accessing false targets
+  # Release tags with the value false.
+  # This is consumed by https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L49
   # @return [Array]
   def false_targets
     release_tags.where(release_type: false).map(&:name)

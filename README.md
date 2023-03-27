@@ -21,9 +21,14 @@ rake db:migrate RAILS_ENV=test
 ```
 
 ## Running the application
-
+### Web
 ```bash
-rails server
+bin/rails server
+```
+
+### Background workers
+```bash
+bundle exec racecar PurlUpdatesConsumer
 ```
 
 ## Running tests

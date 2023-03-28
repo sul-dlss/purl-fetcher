@@ -13,7 +13,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :collections, only: [:index, :show], param: :druid  do
+    resources :collections, only: [], param: :druid  do
       member do
         get 'purls'
       end

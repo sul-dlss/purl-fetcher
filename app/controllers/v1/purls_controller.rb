@@ -27,7 +27,9 @@ module V1
               rescue ActiveRecord::RecordNotUnique
                 retry
               end
+
       if params[:type]
+        # Racecar.produce_sync(value: cocina_object.to_json, key: druid_param, topic: "purl-update")
         PurlCocinaUpdater.new(@purl, cocina_object).update
       else
         # This path is a fallback used until dor-services-app is providing the data we need

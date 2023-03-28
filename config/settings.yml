@@ -4,4 +4,3 @@
 ALWAYS_SEND_TRUE_TARGET:
   - SearchWorksPreview
   - ContentSearch
-PURL_DOCUMENT_PATH: /purl/document_cache

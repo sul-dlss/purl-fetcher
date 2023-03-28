@@ -28,13 +28,7 @@ module V1
                 retry
               end
 
-      if params[:type]
-        Racecar.produce_sync(value: cocina_object.to_json, key: druid_param, topic: "purl-update")
-      else
-        # This path is a fallback used until dor-services-app is providing the data we need
-        Honeybadger.notify("Cocina JSON was not provided. Falling back to xml", context: { druid: druid_param })
-        PurlXmlUpdater.new(@purl).update
-      end
+      Racecar.produce_sync(value: cocina_object.to_json, key: druid_param, topic: "purl-update")
 
       render json: true, status: :accepted
     end

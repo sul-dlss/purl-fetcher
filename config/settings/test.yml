@@ -1,1 +1,0 @@
-PURL_DOCUMENT_PATH: "<%=Rails.root%>/spec/purl-test-fixtures/document_cache"

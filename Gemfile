@@ -57,7 +57,7 @@ group :deployment do
   gem 'capistrano-passenger'
   gem 'capistrano-rails'
   gem 'capistrano-rvm'
-  gem 'dlss-capistrano'
+  gem 'dlss-capistrano', '~> 4.4'
 end
 
 group :development, :test do

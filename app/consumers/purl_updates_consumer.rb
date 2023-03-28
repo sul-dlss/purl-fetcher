@@ -1,10 +1,11 @@
 class PurlUpdatesConsumer < Racecar::Consumer
   subscribes_to "purl-update"
 
-  # Currently this is a no-op until we are able to set up a systemd script to run racecar
-  def process(_message)
-    # json = JSON.parse(message.value)}
-    # purl = Purl.find_or_create_by(druid: json.fetch('druid'))
-    # PurlXmlUpdater.new(purl).update
+  # Update the Purl database record with Cocina data passed in the message
+  def process(message)
+    json = JSON.parse(message.value)
+    cocina_object = Cocina::Models.build(json)
+    purl = Purl.find_by!(druid: cocina_object.externalIdentifier)
+    PurlCocinaUpdater.new(purl, cocina_object).update
   end
 end

@@ -49,7 +49,7 @@ module V1
       def cocina_object
         # TODO: Remove the :created, :modified, :lock exclusions when
         # https://github.com/sul-dlss/cocina-models/commit/5d97fbd1e65554a8870a14449776ed68c3d5eb26 is released
-        Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format, :created, :modifed, :lock).to_unsafe_h)
+        Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format, :created, :modified, :lock).to_unsafe_h)
       end
 
       def filter_params

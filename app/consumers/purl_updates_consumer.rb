@@ -7,5 +7,7 @@ class PurlUpdatesConsumer < Racecar::Consumer
     cocina_object = Cocina::Models.build(json)
     purl = Purl.find_by!(druid: cocina_object.externalIdentifier)
     PurlCocinaUpdater.new(purl, cocina_object).update
+
+    Racecar.produce_sync(value: purl.to_json, key: cocina_object.externalIdentifier, topic: Settings.indexer_topic)
   end
 end

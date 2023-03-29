@@ -19,6 +19,7 @@ RSpec.describe PurlUpdatesConsumer do
   end
 
   before do
+    allow(Racecar).to receive(:produce_sync)
     described_class.new.process(message)
   end
 
@@ -29,5 +30,7 @@ RSpec.describe PurlUpdatesConsumer do
     expect(purl_object.false_targets).to eq ['Earthworks']
     expect(purl_object.collections.size).to eq 1
     expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
+    expect(Racecar).to have_received(:produce_sync)
+      .with(key: purl_object.druid, topic: 'testing_topic', value: String)
   end
 end

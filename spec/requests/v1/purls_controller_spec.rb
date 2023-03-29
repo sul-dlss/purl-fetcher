@@ -162,12 +162,15 @@ RSpec.describe V1::PurlsController do
     let(:purl_object) { create(:purl) }
 
     before do
+      allow(Racecar).to receive(:produce_sync)
       purl_object.update(druid: 'druid:bb050dj7711')
     end
 
     it 'marks the purl as deleted' do
       delete '/purls/bb050dj7711'
       expect(purl_object.reload).to have_attributes(deleted_at: (a_value > Time.current - 5.seconds))
+      expect(Racecar).to have_received(:produce_sync)
+        .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
     end
   end
 end

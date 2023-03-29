@@ -5,3 +5,6 @@ ALWAYS_SEND_TRUE_TARGET:
   - SearchWorksPreview
   - ContentSearch
 PURL_DOCUMENT_PATH: /purl/document_cache
+
+# Can be purl_fetcher_stage or purl_fetcher_prod
+indexer_topic: testing_topic

@@ -41,6 +41,7 @@ module V1
 
     def destroy
       Purl.mark_deleted(druid_param)
+      Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
 
     private

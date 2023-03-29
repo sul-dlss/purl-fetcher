@@ -10,6 +10,10 @@ end
 
 set :deploy_to, "/opt/app/lyberadmin/purl-fetcher"
 
+# Manage sneakers via systemd (from dlss-capistrano gem)
+set :racecar_systemd_role, :worker
+set :racecar_systemd_use_hooks, true
+
 # Default value for :linked_files is []
 set :linked_files, %w{config/secrets.yml config/database.yml config/honeybadger.yml config/newrelic.yml}
 

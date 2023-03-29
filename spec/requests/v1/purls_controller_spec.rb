@@ -85,9 +85,13 @@ RSpec.describe V1::PurlsController do
 
   describe 'POST update' do
     context 'with cocina json' do
+      before do
+        allow(Racecar).to receive(:produce_sync)
+      end
+
       let(:headers) { { 'Content-Type' => 'application/json' } }
-      let(:data) do
-        build(:dro_with_metadata, title: "The Information Paradox for Black Holes",
+      let(:cocina_object) do
+        build(:dro_with_metadata, id: druid, title: "The Information Paradox for Black Holes",
                                   collection_ids: ['druid:xb432gf1111'])
           .new(administrative: {
                  hasAdminPolicy: "druid:hv992ry2431",
@@ -96,16 +100,20 @@ RSpec.describe V1::PurlsController do
                    { to: 'Earthworks', release: false }
                  ]
                })
-          .to_json
       end
+      let(:data) { cocina_object.to_json }
+      let(:expected_message_value) { Cocina::Models.without_metadata(cocina_object).to_json }
 
       context 'with a new item' do
-        let(:druid) { 'druid:ab012cd3456' }
+        let(:druid) { 'druid:zz222yy2222' }
 
         it 'creates a new purl entry' do
           expect do
             post "/purls/#{druid}", params: data, headers: headers
           end.to change(Purl, :count).by(1)
+          expect(response).to have_http_status(:accepted)
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: String, topic: 'purl-update', value: expected_message_value)
         end
       end
 
@@ -115,12 +123,10 @@ RSpec.describe V1::PurlsController do
 
         it 'updates the purl with new data' do
           post "/purls/#{druid}", params: data, headers: headers
-          purl_object.reload
-          expect(purl_object.title).to eq "The Information Paradox for Black Holes"
-          expect(purl_object.true_targets).to eq ["Searchworks", "SearchWorksPreview", "ContentSearch"]
-          expect(purl_object.false_targets).to eq ['Earthworks']
-          expect(purl_object.collections.size).to eq 1
-          expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: druid, topic: 'purl-update', value: expected_message_value)
+
+          expect(response).to have_http_status(:accepted)
         end
       end
     end

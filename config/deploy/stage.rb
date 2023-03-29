@@ -1,4 +1,4 @@
-server "purl-fetcher-stage.stanford.edu", user: 'lyberadmin', roles: %w{web db app}
+server "purl-fetcher-stage.stanford.edu", user: 'lyberadmin', roles: %w{web db app worker}
 
 set :bundle_without, %w(test deployment development).join(' ')
 

@@ -1,2 +1,1 @@
 PURL_DOCUMENT_PATH: "<%=Rails.root%>/spec/purl-test-fixtures/document_cache"
-LISTENER_PATH: "<%=Rails.root%>/spec/purl-test-fixtures/recent_changes"

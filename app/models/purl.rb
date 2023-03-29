@@ -47,6 +47,27 @@ class Purl < ApplicationRecord
     results
   end
 
+  def as_public_json
+    data = if deleted?
+      as_json(only: %i[druid])
+    else
+      as_json(only: %i[druid object_type title catkey], methods: %i[true_targets false_targets]).tap do |d|
+        d[:collections] = collections.pluck(:druid)
+      end
+    end
+
+    data[:updated_at] = updated_at&.iso8601
+    data[:published_at] = published_at&.iso8601
+    data[:deleted_at] = deleted_at&.iso8601
+    data[:latest_change] = (deleted_at || published_at)&.iso8601
+
+    data.reject { |_, v| v.blank? }
+  end
+
+  def deleted?
+    deleted_at.present?
+  end
+
   ##
   # Release tags where the value is true or is one of the default targets. If the object has been deleted, it retuns blank.
   # This is consumed by
@@ -105,5 +126,6 @@ class Purl < ApplicationRecord
     purl.collections.delete_all
     purl.public_xml&.delete
     purl.save
+    purl
   end
 end

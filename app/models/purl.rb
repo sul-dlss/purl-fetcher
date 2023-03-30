@@ -2,6 +2,7 @@ class Purl < ApplicationRecord
   has_and_belongs_to_many :collections
   has_many :release_tags, dependent: :destroy
   has_one :public_xml, dependent: :destroy
+  has_many :virtual_object_constituents, dependent: :destroy
 
   accepts_nested_attributes_for :public_xml, update_only: true
   paginates_per 100

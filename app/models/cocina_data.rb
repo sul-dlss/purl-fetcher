@@ -45,6 +45,15 @@ class CocinaData
     cocina_object.dro? ? cocina_object.structural.isMemberOf : []
   end
 
+  # Find virtual objects in argo via:
+  # https://argo-stage.stanford.edu/catalog?f%5Bhas_constituents_ssim%5D%5B%5D=has_constituents
+  # @return [Array<String>] The members of this virtual object
+  def virtual_object_constituents
+    return [] unless cocina_object.dro? && cocina_object.structural.hasMemberOrders.present?
+
+    cocina_object.structural.hasMemberOrders.first.members
+  end
+
   private
 
   # from https://github.com/sul-dlss/dor-services-app/blob/f51bbcea710b7612f251a3922c5164ec69ba39aa/app/services/publish/public_xml_service.rb#L99

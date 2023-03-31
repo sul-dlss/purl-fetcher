@@ -4,3 +4,6 @@
 ALWAYS_SEND_TRUE_TARGET:
   - SearchWorksPreview
   - ContentSearch
+
+# Can be purl_fetcher_stage or purl_fetcher_prod
+indexer_topic: testing_topic

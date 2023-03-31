@@ -17,9 +17,13 @@ RSpec.describe PurlUpdatesConsumer do
            })
       .to_json
   end
+  let(:consumer) { described_class.new }
 
   before do
-    described_class.new.process(message)
+    allow(consumer).to receive(:produce)
+    allow(consumer).to receive(:deliver!)
+
+    consumer.process(message)
   end
 
   it "updates the purl record with the provided data" do
@@ -29,5 +33,8 @@ RSpec.describe PurlUpdatesConsumer do
     expect(purl_object.false_targets).to eq ['Earthworks']
     expect(purl_object.collections.size).to eq 1
     expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
+    expect(consumer).to have_received(:produce)
+      .with(String, key: purl_object.druid, topic: 'testing_topic')
+    expect(consumer).to have_received(:deliver!)
   end
 end

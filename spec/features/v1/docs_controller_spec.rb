@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe(V1::DocsController, type: :request, integration: true) do
+describe(V1::DocsController, integration: true, type: :request) do
   let(:pagination_response) do
     {
       current_page: 1,

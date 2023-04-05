@@ -27,7 +27,7 @@ RSpec.describe V1::DocsController do
     it 'is filterable by target' do
       get '/docs/changes', params: { target: 'SearchWorks' }
       data = JSON.parse(response.body, symbolize_names: true)
-      expect(data[:changes].map { |item| item[:druid] }).to contain_exactly('druid:bb111cc2222')
+      expect(data[:changes].pluck(:druid)).to contain_exactly('druid:bb111cc2222')
     end
   end
 
@@ -63,7 +63,7 @@ RSpec.describe V1::DocsController do
     it 'is filterable by target' do
       get '/docs/deletes', params: { target: 'SearchWorks' }
       data = JSON.parse(response.body, symbolize_names: true)
-      expect(data[:deletes].map { |item| item[:druid] }).to contain_exactly('druid:cc111dd2222')
+      expect(data[:deletes].pluck(:druid)).to contain_exactly('druid:cc111dd2222')
     end
   end
 end

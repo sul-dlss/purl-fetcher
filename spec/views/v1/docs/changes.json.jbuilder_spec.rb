@@ -3,7 +3,7 @@ require 'rails_helper'
 describe 'v1/docs/changes.json' do
   before do
     assign(:changes, Purl.all.page(1))
-    assign(:first_modified, Time.zone.now - 1.day)
+    assign(:first_modified, 1.day.ago)
     assign(:last_modified, Time.zone.now)
   end
 

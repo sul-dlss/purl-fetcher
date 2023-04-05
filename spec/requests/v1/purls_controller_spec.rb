@@ -73,7 +73,7 @@ RSpec.describe V1::PurlsController do
   describe 'GET show' do
     it 'looks up a Purl by its druid' do
       get '/purls/druid:dd111ee2222'
-      expect(response.status).to eq 200
+      expect(response).to have_http_status :ok
       data = JSON.parse(response.body, symbolize_names: true)
       expect(data[:druid]).to eq 'druid:dd111ee2222'
     end
@@ -168,7 +168,7 @@ RSpec.describe V1::PurlsController do
 
     it 'marks the purl as deleted' do
       delete '/purls/bb050dj7711'
-      expect(purl_object.reload).to have_attributes(deleted_at: (a_value > Time.current - 5.seconds))
+      expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
       expect(Racecar).to have_received(:produce_sync)
         .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
     end

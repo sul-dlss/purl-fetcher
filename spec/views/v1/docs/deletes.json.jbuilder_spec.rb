@@ -6,7 +6,7 @@ describe 'v1/docs/deletes.json' do
       :deletes,
       Purl.where(deleted_at: Time.zone.at(0).iso8601..Time.zone.now.iso8601).page(1)
     )
-    assign(:first_modified, Time.zone.now - 1.day)
+    assign(:first_modified, 1.day.ago)
     assign(:last_modified, Time.zone.now)
   end
 

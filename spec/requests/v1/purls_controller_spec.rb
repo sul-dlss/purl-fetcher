@@ -130,32 +130,6 @@ RSpec.describe V1::PurlsController do
         end
       end
     end
-
-    context 'without cocina json' do
-      it 'creates a new purl entry' do
-        expect do
-          post '/purls/druid:ab012cd3456'
-        end.to change(Purl, :count).by(1)
-      end
-
-      it 'normalizes the druid parameter' do
-        expect { post '/purls/ab012cd3456' }.to change(Purl, :count).by(1)
-        expect(Purl.last.druid).to eq 'druid:ab012cd3456'
-      end
-
-      context 'with an existing item' do
-        let(:purl_object) { create(:purl, druid: 'druid:bb050dj7711') }
-
-        before do
-          purl_object.update(druid: 'druid:bb050dj7711')
-        end
-
-        it 'updates the purl with new data' do
-          post '/purls/druid:bb050dj7711'
-          expect(purl_object.reload.title).to eq "This is Pete's New Test title for this object."
-        end
-      end
-    end
   end
 
   describe 'DELETE delete' do

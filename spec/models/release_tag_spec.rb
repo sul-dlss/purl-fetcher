@@ -5,7 +5,7 @@ describe ReleaseTag do
 
   context 'reads data correctly' do
     it '.release_tags' do
-      tags = Hash[purl.release_tags.collect { |tag| [ tag.name, tag.release_type ] }]
+      tags = purl.release_tags.to_h { |tag| [ tag.name, tag.release_type ] }
       expect(tags).to include('Revs' => true, 'SearchWorks' => true)
     end
   end

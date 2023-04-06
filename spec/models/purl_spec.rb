@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Purl, type: :model do
+RSpec.describe Purl do
   describe '#true_targets' do
     context 'when not deleted' do
       subject { create(:purl) }

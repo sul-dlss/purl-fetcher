@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'v1/docs/stats', type: :view do
+describe 'v1/docs/stats' do
   before do
     assign(
       :metrics,
@@ -9,6 +9,6 @@ describe 'v1/docs/stats', type: :view do
   end
 
   it 'renders' do
-    render
+    expect { render }.not_to raise_error
   end
 end

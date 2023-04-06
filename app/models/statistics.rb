@@ -36,14 +36,14 @@ class Statistics
   private
 
   def collect_histogram_data(target)
-    %i[beginning_of_day beginning_of_week beginning_of_month beginning_of_year].map do |time|
+    %i[beginning_of_day beginning_of_week beginning_of_month beginning_of_year].to_h do |time|
       [
         time,
         target
           .where(updated_at: Time.zone.now.public_send(time)..Time.zone.now)
           .count
       ]
-    end.to_h
+    end
   end
 
   def released_to_searchworks

@@ -9,7 +9,7 @@ class PurlCocinaUpdater
 
   attr_reader :active_record, :cocina_data
 
-  delegate :collections, :releases, to: :cocina_data
+  delegate :collections, :releases, :virtual_object_constituents, to: :cocina_data
 
   def attributes
     {
@@ -29,6 +29,11 @@ class PurlCocinaUpdater
     # Delete all of the collection assocations, and then add back ones in the
     # public xml
     active_record.refresh_collections(collections)
+
+    active_record.virtual_object_constituents = []
+    virtual_object_constituents.each.with_index do |member, i|
+      active_record.virtual_object_constituents.build(has_member: member, ordinal: i)
+    end
 
     # add the release tags, and reuse tags if already associated with this PURL
     active_record.refresh_release_tags(releases)

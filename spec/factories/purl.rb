@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :purl do
-    sequence :druid do |n|
-      "druid:zz#{n.to_s * 3}yy#{n.to_s * 4}"
+    sequence :druid do
+      "druid:zz#{format('%03d', rand(1000))}yy#{format('%04d', rand(10_000))}"
     end
   end
 end

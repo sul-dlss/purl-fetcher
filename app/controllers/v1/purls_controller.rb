@@ -9,7 +9,7 @@ module V1
                 retry
               end
 
-      Racecar.produce_sync(value: cocina_object.to_json, key: druid_param, topic: "purl-updates")
+      Racecar.produce_sync(value: cocina_object.to_json, key: druid_param, topic: "purl-update")
 
       render json: true, status: :accepted
     end

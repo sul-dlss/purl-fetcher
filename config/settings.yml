@@ -7,3 +7,4 @@ ALWAYS_SEND_TRUE_TARGET:
 
 # Can be purl_fetcher_stage or purl_fetcher_prod
 indexer_topic: testing_topic
+publish_topic: purl-updates

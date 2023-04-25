@@ -1,5 +1,5 @@
 class PurlUpdatesConsumer < Racecar::Consumer
-  subscribes_to "purl-update"
+  subscribes_to Settings.publish_topic
 
   # Update the Purl database record with Cocina data passed in the message
   def process(message)

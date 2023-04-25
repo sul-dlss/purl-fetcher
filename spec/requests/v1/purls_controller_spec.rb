@@ -31,7 +31,7 @@ RSpec.describe V1::PurlsController do
           end.to change(Purl, :count).by(1)
           expect(response).to have_http_status(:accepted)
           expect(Racecar).to have_received(:produce_sync)
-            .with(key: String, topic: 'purl-update', value: expected_message_value)
+            .with(key: String, topic: 'purl-updates', value: expected_message_value)
         end
       end
 
@@ -42,7 +42,7 @@ RSpec.describe V1::PurlsController do
         it 'updates the purl with new data' do
           post "/purls/#{druid}", params: data, headers: headers
           expect(Racecar).to have_received(:produce_sync)
-            .with(key: druid, topic: 'purl-update', value: expected_message_value)
+            .with(key: druid, topic: 'purl-updates', value: expected_message_value)
 
           expect(response).to have_http_status(:accepted)
         end

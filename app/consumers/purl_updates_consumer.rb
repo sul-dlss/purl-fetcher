@@ -12,5 +12,8 @@ class PurlUpdatesConsumer < Racecar::Consumer
             key: cocina_object.externalIdentifier,
             topic: Settings.indexer_topic)
     deliver!
+  rescue StandardError => e
+    Honeybadger.notify(e)
+    raise e
   end
 end

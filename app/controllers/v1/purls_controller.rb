@@ -3,6 +3,9 @@ module V1
     ##
     # Update the database purl record from the passed in cocina
     def update
+      # We can't store 4 byte UTF-8 characters in the database yet, so prevent errors and tell the sender.
+      return render(plain: '4 byte UTF-8 characters are not acceptable.', status: :unprocessable_entity) if title_has_utf8mb4?
+
       @purl = begin
                 Purl.find_or_create_by(druid: druid_param)
               rescue ActiveRecord::RecordNotUnique
@@ -20,6 +23,10 @@ module V1
     end
 
     private
+
+      def title_has_utf8mb4?
+        params[:description][:title].to_s.match?(/[\u{10000}-\u{10FFFF}]/)
+      end
 
       def cocina_object
         # TODO: Remove the :created, :modified, :lock exclusions when

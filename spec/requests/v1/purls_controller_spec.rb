@@ -8,8 +8,9 @@ RSpec.describe V1::PurlsController do
       end
 
       let(:headers) { { 'Content-Type' => 'application/json' } }
+      let(:title) { "The Information Paradox for Black Holes" }
       let(:cocina_object) do
-        build(:dro_with_metadata, id: druid, title: "The Information Paradox for Black Holes",
+        build(:dro_with_metadata, id: druid, title: title,
                                   collection_ids: ['druid:xb432gf1111'])
           .new(administrative: {
                  hasAdminPolicy: "druid:hv992ry2431",
@@ -32,6 +33,19 @@ RSpec.describe V1::PurlsController do
           expect(response).to have_http_status(:accepted)
           expect(Racecar).to have_received(:produce_sync)
             .with(key: String, topic: 'purl-updates', value: expected_message_value)
+        end
+      end
+
+      context 'with a 4byte utf-8 character in the title' do
+        let(:druid) { 'druid:zz222yy2222' }
+        let(:title) { "𒀒 is an odd symbol" }
+
+        it 'creates a new purl entry' do
+          expect do
+            post "/purls/#{druid}", params: data, headers: headers
+          end.not_to change(Purl, :count)
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(Racecar).not_to have_received(:produce_sync)
         end
       end
 

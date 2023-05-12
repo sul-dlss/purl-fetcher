@@ -418,3 +418,15 @@ Rails/WhereNot: # new in 2.8
   Enabled: true
 Rails/WhereNotWithMultipleConditions: # new in 2.17
   Enabled: true
+Lint/DuplicateMatchPattern: # new in 1.50
+  Enabled: true
+RSpec/BeEmpty: # new in 2.20
+  Enabled: true
+RSpec/ContainExactly: # new in 2.19
+  Enabled: true
+RSpec/IndexedLet: # new in 2.20
+  Enabled: true
+RSpec/MatchArray: # new in 2.19
+  Enabled: true
+Rails/ThreeStateBooleanColumn: # new in 2.19
+  Enabled: true

@@ -8,10 +8,7 @@ class PurlUpdatesConsumer < Racecar::Consumer
     purl = Purl.find_by!(druid: cocina_object.externalIdentifier)
     PurlCocinaUpdater.new(purl, cocina_object).update
 
-    produce(purl.as_public_json.to_json,
-            key: cocina_object.externalIdentifier,
-            topic: Settings.indexer_topic)
-    deliver!
+    purl.produce_indexer_log_message
   rescue StandardError => e
     Honeybadger.notify(e)
     raise e

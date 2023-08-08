@@ -20,8 +20,7 @@ RSpec.describe PurlUpdatesConsumer do
   let(:consumer) { described_class.new }
 
   before do
-    allow(consumer).to receive(:produce)
-    allow(consumer).to receive(:deliver!)
+    allow(Racecar).to receive(:produce_sync)
   end
 
   context 'without errors' do
@@ -36,9 +35,8 @@ RSpec.describe PurlUpdatesConsumer do
       expect(purl_object.false_targets).to eq ['Earthworks']
       expect(purl_object.collections.size).to eq 1
       expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
-      expect(consumer).to have_received(:produce)
-        .with(String, key: purl_object.druid, topic: 'testing_topic')
-      expect(consumer).to have_received(:deliver!)
+      expect(Racecar).to have_received(:produce_sync)
+        .with(value: String, key: purl_object.druid, topic: 'testing_topic')
     end
   end
 

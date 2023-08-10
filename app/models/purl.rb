@@ -47,6 +47,11 @@ class Purl < ApplicationRecord
     results
   end
 
+  # Sends a message to the indexer_topic, which will cause this object to be reindexed
+  def produce_indexer_log_message
+    Racecar.produce_sync(value: as_public_json.to_json, topic: Settings.indexer_topic, key: druid)
+  end
+
   def as_public_json
     data = if deleted?
              as_json(only: %i[druid])

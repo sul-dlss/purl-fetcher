@@ -416,6 +416,23 @@ Name | Located In | Description | Required | Schema | Default
 
 ## Administration
 
+### Reindexing
+You can create Kafka messages that will cause all the Purls to be reindexed by doing:
+```ruby
+Purl.unscoped.find_in_batches.with_index do |group, batch|
+  puts "Processing group ##{batch}"
+  group.each(&:produce_indexer_log_message)
+end
+```
+
+Or only for searchworks:
+```ruby
+ReleaseTag.where(name: 'Searchworks').find_in_batches.with_index do |group, batch|
+  puts "Processing group ##{batch}"
+  group.each { |rt| rt.purl.produce_indexer_log_message }
+end
+```
+
 ### Reporting
 
 The API's internals use an [ActiveRecord data model](http://guides.rubyonrails.org/active_record_querying.html) to manage various information

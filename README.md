@@ -427,9 +427,11 @@ end
 
 Or only for searchworks:
 ```ruby
-ReleaseTag.where(name: 'Searchworks').find_in_batches.with_index do |group, batch|
+Purl.target('Searchworks').find_in_batches.with_index do |group, batch|
   puts "Processing group ##{batch}"
-  group.each { |rt| rt.purl.produce_indexer_log_message }
+  Racecar.wait_for_delivery do
+    group.each { |purl| purl.produce_indexer_log_message(async: true) }
+  end
 end
 ```
 

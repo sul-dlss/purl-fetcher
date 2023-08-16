@@ -48,8 +48,12 @@ class Purl < ApplicationRecord
   end
 
   # Sends a message to the indexer_topic, which will cause this object to be reindexed
-  def produce_indexer_log_message
-    Racecar.produce_sync(value: as_public_json.to_json, topic: Settings.indexer_topic, key: druid)
+  def produce_indexer_log_message(async: false)
+    if async
+      Racecar.produce_async(value: as_public_json.to_json, topic: Settings.indexer_topic, key: druid)
+    else
+      Racecar.produce_sync(value: as_public_json.to_json, topic: Settings.indexer_topic, key: druid)
+    end
   end
 
   def as_public_json

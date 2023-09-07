@@ -13,7 +13,7 @@ class CocinaData
 
   # @return [String] The catkey. An empty string is returned if there is no catkey
   def catkey
-    catalog_record_ids('symphony').first || ''
+    catalog_record_ids('folio').first || catalog_record_ids('symphony').first || ''
   end
 
   # DSA adds the release tags from all collections this object is a member of.

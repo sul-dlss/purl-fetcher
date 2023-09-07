@@ -11,6 +11,7 @@ class PurlCocinaUpdater
 
   delegate :collections, :releases, to: :cocina_data
 
+  # rubocop:disable Metrics/MethodLength
   def attributes
     title = cocina_data.title
     if title.match?(/[\u{10000}-\u{10FFFF}]/)
@@ -24,9 +25,11 @@ class PurlCocinaUpdater
       object_type: cocina_data.object_type,
       catkey: cocina_data.catkey,
       published_at: Time.current,
+      public_xml_attributes: { data: cocina_data.cocina_object&.to_json, data_type: 'cocina' },
       deleted_at: nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
     }
   end
+  # rubocop:enable Metrics/MethodLength
 
   def update
     active_record.attributes = attributes

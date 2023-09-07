@@ -70,6 +70,7 @@ ActiveRecord::Schema.define(version: 2022_01_03_184105) do
     t.binary "data"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "data_type"
     t.index ["purl_id"], name: "index_public_xmls_on_purl_id"
   end
 

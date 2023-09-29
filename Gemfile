@@ -77,4 +77,3 @@ gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 gem 'cocina-models'
 
 gem "racecar", "~> 2.9.0.beta1"
-gem 'ffi', '~> 1.15.5' # Avoid https://github.com/ffi/ffi/issues/1050 in 1.16.1

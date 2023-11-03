@@ -5,6 +5,7 @@ class PurlCocinaUpdater
   def initialize(active_record, cocina_object)
     @active_record = active_record
     @cocina_data = CocinaData.new(cocina_object)
+    Honeybadger.context({ cocina_object: cocina_object.to_h })
   end
 
   attr_reader :active_record, :cocina_data

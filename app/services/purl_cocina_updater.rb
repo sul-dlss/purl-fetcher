@@ -15,7 +15,7 @@ class PurlCocinaUpdater
   # rubocop:disable Metrics/MethodLength
   def attributes
     title = cocina_data.title
-    if title.match?(/[\u{10000}-\u{10FFFF}]/)
+    if title&.match?(/[\u{10000}-\u{10FFFF}]/)
       Honeybadger.notify('Unable to record title for item because it contains UTF8mb4 characters',
                          context: { title: title, druid: cocina_data.canonical_druid })
       title = nil

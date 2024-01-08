@@ -23,7 +23,7 @@ describe ReleaseTag do
     end
 
     describe '.for' do
-      it 'will overwrite prior tags' do
+      it 'overwrites prior tags' do
         tag = described_class.for(purl, 'Revs', false)
         expect(tag.release_type).to be_falsey     # sets type
         expect(tag.new_record?).to be_falsey      # reuses
@@ -31,7 +31,7 @@ describe ReleaseTag do
         expect { tag.save! }.not_to raise_error   # saves ok
       end
 
-      it 'will create new tags' do
+      it 'creates new tags' do
         expect(described_class.find_by(purl_id: purl.id, name: 'SomethingWonderful')).to be_nil
         expect(described_class.for(purl, 'SomethingWonderful', false)).to be_an described_class
       end

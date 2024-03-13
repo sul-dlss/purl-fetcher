@@ -18,10 +18,12 @@ RSpec.describe V1::PurlsController do
                    { to: 'Searchworks', release: true },
                    { to: 'Earthworks', release: false }
                  ]
-               })
+               },
+               created: Time.now.utc.iso8601,
+               modified: Time.now.utc.iso8601)
       end
       let(:data) { cocina_object.to_json }
-      let(:expected_message_value) { Cocina::Models.without_metadata(cocina_object).to_json }
+      let(:expected_message_value) { Cocina::Models.build(cocina_object).to_json }
 
       context 'with a new item' do
         let(:druid) { 'druid:zz222yy2222' }

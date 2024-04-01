@@ -15,8 +15,8 @@ RSpec.describe V1::PurlsController do
           .new(administrative: {
                  hasAdminPolicy: "druid:hv992ry2431",
                  releaseTags: [
-                   { to: 'Searchworks', release: true },
-                   { to: 'Earthworks', release: false }
+                   { to: 'Searchworks', release: true, what: 'self' },
+                   { to: 'Earthworks', release: false, what: 'self' }
                  ]
                })
       end

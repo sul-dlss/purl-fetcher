@@ -24,14 +24,12 @@ module V1
 
     private
 
-      def title_has_utf8mb4?
-        params[:description][:title].to_s.match?(/[\u{10000}-\u{10FFFF}]/)
-      end
+    def title_has_utf8mb4?
+      params[:description][:title].to_s.match?(/[\u{10000}-\u{10FFFF}]/)
+    end
 
-      def cocina_object
-        # TODO: Remove the :created, :modified, :lock exclusions when
-        # https://github.com/sul-dlss/cocina-models/commit/5d97fbd1e65554a8870a14449776ed68c3d5eb26 is released
-        Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format, :created, :modified, :lock).to_unsafe_h)
-      end
+    def cocina_object
+      Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format).to_unsafe_h)
+    end
   end
 end

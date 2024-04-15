@@ -10,11 +10,11 @@ class ReleaseTag < ApplicationRecord
   # @param [Boolean] `release_type`
   # @return [ReleaseTag] finds or creates a ReleaseTag record for the given tuple
   def self.for(purl, name, release_type)
-    tag = ReleaseTag.find_by(name: name, purl_id: purl.id)
+    tag = ReleaseTag.find_by(name:, purl_id: purl.id)
     if tag.present?
       tag.release_type = release_type
     else
-      tag = ReleaseTag.create(name: name, purl_id: purl.id, release_type: release_type)
+      tag = ReleaseTag.create(name:, purl_id: purl.id, release_type:)
     end
     tag
   end

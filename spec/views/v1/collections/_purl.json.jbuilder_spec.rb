@@ -15,7 +15,7 @@ RSpec.describe 'v1/collections/_purl.json' do
   it 'ignores the catkey if it is blank' do
     purl = Purl.find(1)
     purl.catkey = ''
-    render partial: 'v1/collections/purl', locals: { purl: purl }
+    render partial: 'v1/collections/purl', locals: { purl: }
     expect(JSON.parse(rendered)).not_to include('catkey')
   end
 

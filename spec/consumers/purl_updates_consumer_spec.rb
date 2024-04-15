@@ -6,7 +6,7 @@ RSpec.describe PurlUpdatesConsumer do
   let(:title) { "The Information Paradox for Black Holes" }
   let(:message_value) do
     build(:dro, id: purl_object.druid,
-                title: title,
+                title:,
                 collection_ids: ['druid:xb432gf1111'])
       .new(administrative: {
              hasAdminPolicy: "druid:hv992ry2431",

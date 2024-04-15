@@ -60,21 +60,15 @@ RSpec.describe Purl do
   describe '.status' do
     context 'when passed "deleted"' do
       it 'returns objects that have been deleted' do
-        objects = described_class.status('status' => 'deleted')
+        objects = described_class.status('deleted')
         expect(objects.count).to eq 3
       end
     end
 
     context 'when passed "collection"' do
       it 'returns objects that are still public' do
-        objects = described_class.status('status' => 'public')
+        objects = described_class.status('public')
         expect(objects.count).to eq 5
-      end
-    end
-
-    context 'anything else' do
-      it 'returns everything' do
-        expect(described_class.status('yolo').count).to eq described_class.all.count
       end
     end
   end

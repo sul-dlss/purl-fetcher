@@ -9,7 +9,7 @@ module V1
     # API call to get a full list of all purls modified between two times
     def changes
       @changes = Purl.published
-                     .where(deleted_at: nil)
+                     .status('public')
                      .where(updated_at: @first_modified..@last_modified)
                      .target(params[:target])
                      .includes(:collections, :release_tags)
@@ -20,7 +20,7 @@ module V1
     # API call to get a full list of all purl deletes between two times
     def deletes
       @deletes = Purl.where(updated_at: @first_modified..@last_modified)
-                     .where.not(deleted_at: nil)
+                     .status('deleted')
                      .target(params[:target])
                      .page(page_params[:page])
                      .per(per_page_params[:per_page])

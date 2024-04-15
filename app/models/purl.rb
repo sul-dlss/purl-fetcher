@@ -30,9 +30,9 @@ class Purl < ApplicationRecord
   }
 
   scope :target, lambda { |target|
-    return unless target['target'].present?
+    return unless target.present?
 
-    includes(:release_tags).where(release_tags: { name: target['target'] })
+    includes(:release_tags).where(release_tags: { name: target })
   }
 
   scope :published, -> { where.not(published_at: nil) }

@@ -11,7 +11,7 @@ module V1
       @changes = Purl.published
                      .where(deleted_at: nil)
                      .where(updated_at: @first_modified..@last_modified)
-                     .target('target' => params[:target])
+                     .target(params[:target])
                      .includes(:collections, :release_tags)
                      .page(page_params[:page])
                      .per(per_page_params[:per_page])
@@ -21,7 +21,7 @@ module V1
     def deletes
       @deletes = Purl.where(updated_at: @first_modified..@last_modified)
                      .where.not(deleted_at: nil)
-                     .target('target' => params[:target])
+                     .target(params[:target])
                      .page(page_params[:page])
                      .per(per_page_params[:per_page])
     end

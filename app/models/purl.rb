@@ -21,7 +21,7 @@ class Purl < ApplicationRecord
   }
 
   scope :status, lambda { |status|
-    case status['status']
+    case status
     when 'deleted'
       where.not deleted_at: nil
     when 'public'

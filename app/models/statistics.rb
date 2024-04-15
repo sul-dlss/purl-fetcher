@@ -4,12 +4,12 @@ class Statistics
   end
 
   def deleted
-    Purl.status('status' => 'deleted').count
+    Purl.status('deleted').count
   end
 
   def changes
     Purl.published
-        .where(deleted_at: nil)
+        .status('public')
         .count
   end
 
@@ -18,7 +18,7 @@ class Statistics
   end
 
   def histogram
-    collect_histogram_data(Purl.published.where(deleted_at: nil))
+    collect_histogram_data(Purl.published.status('public'))
   end
 
   def release_tags
@@ -48,7 +48,7 @@ class Statistics
 
   def released_to_searchworks
     @released_to_searchworks ||= Purl.published
-                                     .where(deleted_at: nil)
+                                     .status('public')
                                      .target('Searchworks')
                                      .where('release_tags.release_type=?', true)
   end

@@ -52,7 +52,7 @@ RSpec.describe V1::DocsController do
           '2' => 'druid:cc111dd2222',
           '3' => 'druid:ee111ff2222'
         }.each_pair do |page, druid|
-          get '/docs/deletes', params: { per_page: 1, page: page }
+          get '/docs/deletes', params: { per_page: 1, page: }
           data = JSON.parse(response.body, symbolize_names: true)
           expect(data.dig(:deletes, 0, :druid)).to eq druid
           expect(data[:deletes].count).to eq 1

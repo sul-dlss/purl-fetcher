@@ -10,7 +10,7 @@ RSpec.describe V1::PurlsController do
       let(:headers) { { 'Content-Type' => 'application/json' } }
       let(:title) { "The Information Paradox for Black Holes" }
       let(:cocina_object) do
-        build(:dro_with_metadata, id: druid, title: title,
+        build(:dro_with_metadata, id: druid, title:,
                                   collection_ids: ['druid:xb432gf1111'])
           .new(administrative: {
                  hasAdminPolicy: "druid:hv992ry2431",
@@ -30,7 +30,7 @@ RSpec.describe V1::PurlsController do
 
         it 'creates a new purl entry' do
           expect do
-            post "/purls/#{druid}", params: data, headers: headers
+            post "/purls/#{druid}", params: data, headers:
           end.to change(Purl, :count).by(1)
           expect(response).to have_http_status(:accepted)
           expect(Racecar).to have_received(:produce_sync)
@@ -44,7 +44,7 @@ RSpec.describe V1::PurlsController do
 
         it 'creates a new purl entry' do
           expect do
-            post "/purls/#{druid}", params: data, headers: headers
+            post "/purls/#{druid}", params: data, headers:
           end.not_to change(Purl, :count)
           expect(response).to have_http_status(:unprocessable_entity)
           expect(Racecar).not_to have_received(:produce_sync)
@@ -56,7 +56,7 @@ RSpec.describe V1::PurlsController do
         let(:druid) { purl_object.druid }
 
         it 'updates the purl with new data' do
-          post "/purls/#{druid}", params: data, headers: headers
+          post("/purls/#{druid}", params: data, headers:)
           expect(Racecar).to have_received(:produce_sync)
             .with(key: druid, topic: 'purl-updates', value: expected_message_value)
 

@@ -97,7 +97,7 @@ RSpec.describe Purl do
 
   describe '.mark_deleted' do
     it 'always starts without deleted_at time' do
-      purl = described_class.create(druid: druid)
+      purl = described_class.create(druid:)
       expect(purl.deleted_at?).to be_falsey
     end
 
@@ -110,7 +110,7 @@ RSpec.describe Purl do
     it 'marks a record as deleted with a given timestamp' do
       deleted_at_time = Time.current
       expect(described_class.mark_deleted(druid, deleted_at_time)).to be_truthy
-      purl = described_class.find_by(druid: druid)
+      purl = described_class.find_by(druid:)
       expect(purl.deleted_at.iso8601).to eq deleted_at_time.iso8601 # favorable compare which removes milliseconds
     end
 

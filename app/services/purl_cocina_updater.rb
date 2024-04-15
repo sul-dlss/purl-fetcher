@@ -17,12 +17,12 @@ class PurlCocinaUpdater
     title = cocina_data.title
     if title&.match?(/[\u{10000}-\u{10FFFF}]/)
       Honeybadger.notify('Unable to record title for item because it contains UTF8mb4 characters',
-                         context: { title: title, druid: cocina_data.canonical_druid })
+                         context: { title:, druid: cocina_data.canonical_druid })
       title = nil
     end
     {
       druid: cocina_data.canonical_druid,
-      title: title,
+      title:,
       object_type: cocina_data.object_type,
       catkey: cocina_data.catkey,
       published_at: Time.current,

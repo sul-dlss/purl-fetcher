@@ -82,21 +82,15 @@ RSpec.describe Purl do
   describe '.target' do
     context 'when passed a valid target' do
       it 'returns objects that have that target' do
-        objects = described_class.target('target' => 'SearchWorks')
+        objects = described_class.target('SearchWorks')
         expect(objects.count).to eq 2
       end
     end
 
     context 'when passed an invalid target' do
       it 'returns nothing' do
-        objects = described_class.target('target' => 'SuperCoolStuff')
+        objects = described_class.target('SuperCoolStuff')
         expect(objects.count).to eq 0
-      end
-    end
-
-    context 'anything else' do
-      it 'returns everything' do
-        expect(described_class.target('yolo').count).to eq described_class.all.count
       end
     end
   end

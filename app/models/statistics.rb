@@ -49,7 +49,7 @@ class Statistics
   def released_to_searchworks
     @released_to_searchworks ||= Purl.published
                                      .where(deleted_at: nil)
-                                     .target('target' => 'Searchworks')
+                                     .target('Searchworks')
                                      .where('release_tags.release_type=?', true)
   end
 end

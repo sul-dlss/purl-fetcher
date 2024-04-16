@@ -1,6 +1,19 @@
 require 'rails_helper'
 
 RSpec.describe V1::PurlsController do
+  describe 'GET show' do
+    let!(:release_tag) { create(:release_tag, :sitemap) }
+    let(:purl_object) { release_tag.purl }
+    let(:druid) { purl_object.druid }
+
+    it 'displays the purl data' do
+      get "/purls/#{druid}"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include("true_targets" => ["PURL sitemap", "SearchWorksPreview", "ContentSearch"])
+    end
+  end
+
   describe 'POST update' do
     context 'with cocina json' do
       before do

@@ -1,5 +1,11 @@
 module V1
   class PurlsController < ApplicationController
+    # Show the public json for the object. Used by purl to know if this object should be indexed by crawlers.
+    def show
+      purl = Purl.find_by(druid: druid_param)
+      render json: purl.as_public_json
+    end
+
     ##
     # Update the database purl record from the passed in cocina
     def update

@@ -9,7 +9,7 @@ Rails.application.routes.draw do
 
     resources :released, only: :show
 
-    resources :purls, only: [:destroy], param: :druid do
+    resources :purls, only: [:destroy, :show], param: :druid do
       member do
         post '/', action: 'update'
       end

@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe V1::ReleasedController do
   describe '#show' do
-    let!(:release_tag) { create(:release_tag, name: "PURL sitemap") }
+    let!(:release_tag) { create(:release_tag, :sitemap) }
     let(:purl) { release_tag.purl }
 
     it 'returns list of druids' do

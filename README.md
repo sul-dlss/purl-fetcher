@@ -95,7 +95,37 @@ rake rubocop
 
 ### Purls
 
-#### `/purls/:druid`
+#### GET `/purls/:druid`
+
+`GET /purls/:druid`
+
+##### Summary
+
+Display a single purl
+
+##### Description
+
+The GET `/purls/:druid` endpoint provides the ability to display a PURL document. This endpoint is used by [purl](https://github.com/sul-dlss/purl/) to know if an item should be in the sitemap
+
+##### Parameters
+
+| Name      | Located In | Description                                | Required | Schema                          | Default |
+| --------- | ---------- | ------------------------------------------ | -------- | ------------------------------- | ------- |
+| `druid`   | url        | Druid of a specific PURL                   | Yes      | string eg(`druid:cc1111dd2222`) | null    |
+| `version` | header     | Version of the API request eg(`version=1`) | No       | integer                         | 1       |
+
+##### Example Response
+
+```json
+{
+  "druid": "druid:dd111ee2222",
+  "latest_change": "2014-01-01T00:00:00Z",
+  "true_targets": ["PURL sitemap"],
+  "collections": ["druid:oo000oo0001"]
+}
+```
+
+#### POST `/purls/:druid`
 
 `POST /purls/:druid`
 

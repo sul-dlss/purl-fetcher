@@ -7,6 +7,8 @@ Rails.application.routes.draw do
       get 'changes'
     end
 
+    resources :released, only: :show
+
     resources :purls, only: [:destroy], param: :druid do
       member do
         post '/', action: 'update'

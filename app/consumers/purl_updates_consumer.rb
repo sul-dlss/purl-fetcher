@@ -10,6 +10,7 @@ class PurlUpdatesConsumer < Racecar::Consumer
       cocina_object = Cocina::Models.build(json['cocina'])
       actions = json['actions']
     else
+      Honeybadger.notify("In dead code path. We should remove this once we stop seeing this code called.")
       cocina_object = Cocina::Models.build(json)
       actions = { 'index' => [], 'delete' => [] }.tap do |releases|
         cocina_object.administrative.releaseTags.each do |tag|

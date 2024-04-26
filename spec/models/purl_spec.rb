@@ -52,7 +52,7 @@ RSpec.describe Purl do
 
     context 'anything else' do
       it 'returns everything' do
-        expect(described_class.membership('yolo').count).to eq described_class.all.count
+        expect(described_class.membership('yolo').count).to eq described_class.count
       end
     end
   end

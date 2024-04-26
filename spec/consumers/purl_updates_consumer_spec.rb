@@ -5,6 +5,12 @@ RSpec.describe PurlUpdatesConsumer do
   let!(:purl_object) { create(:purl) }
   let(:title) { "The Information Paradox for Black Holes" }
   let(:message_value) do
+    {
+      cocina:,
+      actions:
+    }.to_json
+  end
+  let(:cocina) do
     build(:dro, id: purl_object.druid,
                 title:,
                 collection_ids: ['druid:xb432gf1111'])
@@ -15,7 +21,12 @@ RSpec.describe PurlUpdatesConsumer do
                { to: 'Earthworks', release: false, what: 'self' }
              ]
            })
-      .to_json
+  end
+  let(:actions) do
+    {
+      index: ['Searchworks'],
+      delete: ['Earthworks']
+    }
   end
   let(:consumer) { described_class.new }
 
@@ -35,7 +46,7 @@ RSpec.describe PurlUpdatesConsumer do
       expect(purl_object.false_targets).to eq ['Earthworks']
       expect(purl_object.collections.size).to eq 1
       expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
-      expect(purl_object.public_json.data).to eq message_value
+      expect(purl_object.public_json.data).to eq cocina.to_json
       expect(Racecar).to have_received(:produce_sync)
         .with(value: String, key: purl_object.druid, topic: 'testing_topic')
     end

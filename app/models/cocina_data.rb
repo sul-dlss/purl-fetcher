@@ -16,18 +16,6 @@ class CocinaData
     catalog_record_ids('folio').first || catalog_record_ids('symphony').first || ''
   end
 
-  # DSA adds the release tags from all collections this object is a member of.
-  # What code consumes the release tags here.
-  # https://github.com/sul-dlss/dor-services-app/blob/main/app/services/publish/metadata_transfer_service.rb#L22
-  # @return [Hash] A hash of all trues and falses in the form of {:true => ['Target1', 'Target2'], :false => ['Target3', 'Target4']}
-  def releases
-    { true: [], false: [] }.tap do |releases|
-      cocina_object.administrative.releaseTags.each do |tag|
-        releases[tag.release ? :true : :false] << tag.to
-      end
-    end
-  end
-
   # @return [String] The title of the object
   def title
     Cocina::Models::Builders::TitleBuilder.build(cocina_object.description.title)

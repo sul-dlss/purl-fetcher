@@ -65,11 +65,7 @@ Then, you can use the `POST /purls/:druid` endpoint to add the object to the dat
 curl -X POST -H "Content-Type: application/json" -d @bb112zx3193.json http://localhost:3000/purls/bb112zx3193
 ```
 
-After the object has been added, it will show up in the list of changes:
-
-```bash
-curl http://localhost:3000/docs/changes
-```
+After the object has been added, it will be added to the Kafka topic for indexing.
 
 ## Testing
 
@@ -148,121 +144,6 @@ The POST `/purls/:druid` endpoint provides the ability to create or update a PUR
 
 ```json
 true
-```
-
-### Docs
-
-#### `/docs/changes`
-
-`GET /docs/changes`
-
-##### Summary
-
-Purl Document Changes
-
-##### Description
-
-The `/docs/changes` endpoint provides information about public PURL documents that have been changed, their release tag information and also collection association. This endpoint can be queried using [purl_fetcher-client](https://github.com/sul-dlss/purl_fetcher-client).
-
-##### Parameters
-
-| Name             | Located In | Description                                | Required | Schema              | Default                |
-| ---------------- | ---------- | ------------------------------------------ | -------- | ------------------- | ---------------------- |
-| `first_modified` | query      | Limit response by a beginning datetime     | No       | datetime in iso8601 | earliest possible date |
-| `last_modified`  | query      | Limit response by an ending datetime       | No       | datetime in iso8601 | current time           |
-| `page`           | query      | request a specific page of results         | No       | integer             | 1                      |
-| `per_page`       | query      | Limit the number of results per page       | No       | integer (1 - 10000) | 100                    |
-| `target`         | query      | Release tag to filter on                   | No       | string              | nil                    |
-| `version`        | header     | Version of the API request eg(`version=1`) | No       | integer             | 1                      |
-
-##### Example Response
-
-```json
-{
-  "changes": [
-    {
-      "druid": "druid:dd111ee2222",
-      "latest_change": "2014-01-01T00:00:00Z",
-      "true_targets": ["SearchWorksPreview"],
-      "collections": ["druid:oo000oo0001"]
-    },
-    {
-      "druid": "druid:bb111cc2222",
-      "latest_change": "2015-01-01T00:00:00Z",
-      "true_targets": ["SearchWorks", "Revs", "SearchWorksPreview"],
-      "collections": ["druid:oo000oo0001", "druid:oo000oo0002"]
-    },
-    {
-      "druid": "druid:aa111bb2222",
-      "latest_change": "2016-06-06T00:00:00Z",
-      "true_targets": ["SearchWorksPreview"]
-    }
-  ],
-  "pages": {
-    "current_page": 1,
-    "next_page": null,
-    "prev_page": null,
-    "total_pages": 1,
-    "per_page": 100,
-    "offset_value": 0,
-    "first_page?": true,
-    "last_page?": true
-  }
-}
-```
-
-#### `/docs/deletes`
-
-`GET /docs/deletes`
-
-##### Summary
-
-Purl Document Deletes
-
-##### Description
-
-The `/docs/deletes` endpoint provides information about public PURL documents that have been deleted. This endpoint can be queried using [purl_fetcher-client](https://github.com/sul-dlss/purl_fetcher-client).
-
-##### Parameters
-
-| Name             | Located In | Description                                | Required | Schema              | Default                |
-| ---------------- | ---------- | ------------------------------------------ | -------- | ------------------- | ---------------------- |
-| `first_modified` | query      | Limit response by a beginning datetime     | No       | datetime in iso8601 | earliest possible date |
-| `last_modified`  | query      | Limit response by an ending datetime       | No       | datetime in iso8601 | current time           |
-| `page`           | query      | request a specific page of results         | No       | integer             | 1                      |
-| `per_page`       | query      | Limit the number of results per page       | No       | integer (1 - 10000) | 100                    |
-| `target`         | query      | Release tag to filter on                   | No       | string              | nil                    |
-| `version`        | header     | Version of the API request eg(`version=1`) | No       | integer             | 1                      |
-
-##### Example Response
-
-```json
-{
-  "deletes": [
-    {
-      "druid": "druid:ee111ff2222",
-      "latest_change": "2014-01-01T00:00:00Z"
-    },
-    {
-      "druid": "druid:ff111gg2222",
-      "latest_change": "2014-01-01T00:00:00Z"
-    },
-    {
-      "druid": "druid:cc111dd2222",
-      "latest_change": "2016-01-02T00:00:00Z"
-    }
-  ],
-  "pages": {
-    "current_page": 1,
-    "next_page": null,
-    "prev_page": null,
-    "total_pages": 1,
-    "per_page": 100,
-    "offset_value": 0,
-    "first_page?": true,
-    "last_page?": true
-  }
-}
 ```
 
 ### Collections
@@ -347,10 +228,9 @@ The `/collections/:druid/purls` endpoint a listing of Purls for a specific colle
 
 ##### Parameters
 
-| Name       | Located In | Description                                | Required | Schema                          | Default |
-| ---------- | ---------- | ------------------------------------------ | -------- | ------------------------------- | ------- |
-| `tag`    | url        | Tag to search for             | Yes      | string eg(`PURL%20sitemap`) | null    |
-
+| Name  | Located In | Description       | Required | Schema                      | Default |
+| ----- | ---------- | ----------------- | -------- | --------------------------- | ------- |
+| `tag` | url        | Tag to search for | Yes      | string eg(`PURL%20sitemap`) | null    |
 
 ##### Summary
 

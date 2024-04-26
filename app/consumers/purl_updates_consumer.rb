@@ -4,9 +4,19 @@ class PurlUpdatesConsumer < Racecar::Consumer
   # Update the Purl database record with Cocina data passed in the message
   def process(message)
     json = JSON.parse(message.value)
-    Honeybadger.context({ json_keys: json.keys })
-    cocina_object = Cocina::Models.build(json['cocina'])
-    actions = json['actions']
+    cocina_object = nil
+    actions = nil
+    if json.key?('cocina')
+      cocina_object = Cocina::Models.build(json['cocina'])
+      actions = json['actions']
+    else
+      cocina_object = Cocina::Models.build(json)
+      actions = { index: [], delete: [] }.tap do |releases|
+        cocina_object.administrative.releaseTags.each do |tag|
+          releases[tag.release ? :index : :delete] << tag.to
+        end
+      end
+    end
     purl = Purl.find_by!(druid: cocina_object.externalIdentifier)
     PurlCocinaUpdater.new(purl, cocina_object, actions).update
 

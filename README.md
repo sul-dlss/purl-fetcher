@@ -222,9 +222,7 @@ The `/collections/:druid/purls` endpoint a listing of Purls for a specific colle
 
 ### Released items
 
-#### `/released/:tag`
-
-`GET /released/:tag`
+#### GET `/released/:tag`
 
 ##### Parameters
 
@@ -255,6 +253,28 @@ This is used by the PURL application to generate a sitemap
     }
 ]
 ```
+
+#### POST `/released/:druid`
+
+##### Parameters
+
+| Name      | Located In | Description                                                                                                                                           | Required | Schema                         | Default |
+| --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------ | ------- |
+| `druid`   | url        | object identifier                                                                                                                                     | Yes      | string eg(`druid:bc123df4567`) | null    |
+| `actions` | body       | list of actions to take on the object. This object should contain two keys, "index" and "delete", each value is an array of properties to release to. | Yes      | object                         | null    |
+
+##### Summary
+
+Set the release tags for an item
+
+##### Description
+
+This tells purl-fetcher to update the cache of release tags and puts messages on the appropriate Kafka streams.
+
+##### Example Response
+
+`204 Accepted`
+`true`
 
 ## Administration
 

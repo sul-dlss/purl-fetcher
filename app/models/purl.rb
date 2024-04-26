@@ -97,10 +97,10 @@ class Purl < ApplicationRecord
   end
 
   # add the release tags, and reuse tags if already associated with this PURL
-  def refresh_release_tags(releases)
-    [true, false].each do |type|
-      releases[type.to_s.to_sym].sort.uniq.each do |release|
-        release_tags << ReleaseTag.for(self, release, type)
+  def refresh_release_tags(actions)
+    ['index', 'delete'].each do |type|
+      actions[type].sort.uniq.each do |property|
+        release_tags << ReleaseTag.for(self, property, type)
       end
     end
   end

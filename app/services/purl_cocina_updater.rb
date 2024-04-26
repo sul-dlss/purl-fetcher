@@ -2,15 +2,17 @@
 class PurlCocinaUpdater
   # @param [Purl] active_record
   # @param [Cocina::Models::Collection, Cocina::Models::DRO] cocina_object
-  def initialize(active_record, cocina_object)
+  # @param [Hash] actions the actions to take on the index
+  def initialize(active_record, cocina_object, actions)
     @active_record = active_record
+    @actions = actions
     @cocina_data = CocinaData.new(cocina_object)
     Honeybadger.context({ cocina_object: cocina_object.to_h })
   end
 
-  attr_reader :active_record, :cocina_data
+  attr_reader :active_record, :cocina_data, :actions
 
-  delegate :collections, :releases, to: :cocina_data
+  delegate :collections, to: :cocina_data
 
   # rubocop:disable Metrics/MethodLength
   def attributes
@@ -41,7 +43,7 @@ class PurlCocinaUpdater
     active_record.refresh_collections(collections)
 
     # add the release tags, and reuse tags if already associated with this PURL
-    active_record.refresh_release_tags(releases)
+    active_record.refresh_release_tags(actions)
 
     active_record.save!
   end

@@ -36,7 +36,15 @@ RSpec.describe V1::PurlsController do
                modified: Time.now.utc.iso8601)
       end
       let(:data) { cocina_object.to_json }
-      let(:expected_message_value) { Cocina::Models.build(cocina_object).to_json }
+      let(:expected_message_value) do
+        {
+          cocina: Cocina::Models.build(cocina_object),
+          actions: {
+            index: ['Searchworks'],
+            delete: ['Earthworks']
+          }
+        }.to_json
+      end
 
       context 'with a new item' do
         let(:druid) { 'druid:zz222yy2222' }

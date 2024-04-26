@@ -18,7 +18,15 @@ module V1
                 retry
               end
 
-      Racecar.produce_sync(value: cocina_object.to_json, key: druid_param, topic: "purl-updates")
+      # Get the actions from the release tags on the cocina model. In the near future,
+      # the releaseTags will be removed from Cocina.
+      actions = { index: [], delete: [] }.tap do |releases|
+        cocina_object.administrative.releaseTags.each do |tag|
+            releases[tag.release ? :index : :delete] << tag.to
+        end
+      end
+
+      Racecar.produce_sync(value: { cocina: cocina_object, actions: }.to_json, key: druid_param, topic: "purl-updates")
 
       render json: true, status: :accepted
     end

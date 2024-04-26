@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2023_09_07_214045) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_26_192808) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -64,13 +64,13 @@ ActiveRecord::Schema[7.1].define(version: 2023_09_07_214045) do
     t.index ["started_at"], name: "index_listener_logs_on_started_at"
   end
 
-  create_table "public_xmls", force: :cascade do |t|
+  create_table "public_jsons", force: :cascade do |t|
     t.integer "purl_id"
     t.binary "data", limit: 16777216
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "data_type"
-    t.index ["purl_id"], name: "index_public_xmls_on_purl_id"
+    t.index ["purl_id"], name: "index_public_jsons_on_purl_id"
   end
 
   create_table "purls", force: :cascade do |t|

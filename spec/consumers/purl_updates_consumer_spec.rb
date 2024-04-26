@@ -35,7 +35,7 @@ RSpec.describe PurlUpdatesConsumer do
       expect(purl_object.false_targets).to eq ['Earthworks']
       expect(purl_object.collections.size).to eq 1
       expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
-      expect(purl_object.public_xml.data).to eq message_value
+      expect(purl_object.public_json.data).to eq message_value
       expect(Racecar).to have_received(:produce_sync)
         .with(value: String, key: purl_object.druid, topic: 'testing_topic')
     end

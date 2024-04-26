@@ -1,9 +1,9 @@
 class Purl < ApplicationRecord
   has_and_belongs_to_many :collections
   has_many :release_tags, dependent: :destroy
-  has_one :public_xml, dependent: :destroy
+  has_one :public_json, dependent: :destroy
 
-  accepts_nested_attributes_for :public_xml, update_only: true
+  accepts_nested_attributes_for :public_json, update_only: true
   paginates_per 100
   max_paginates_per 10_000
   default_scope -> { order(:updated_at) }
@@ -133,7 +133,7 @@ class Purl < ApplicationRecord
     purl.deleted_at = deleted_at.nil? ? Time.current : deleted_at
     purl.release_tags.delete_all
     purl.collections.delete_all
-    purl.public_xml&.delete
+    purl.public_json&.delete
     purl.save
     purl
   end

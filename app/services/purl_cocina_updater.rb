@@ -26,7 +26,7 @@ class PurlCocinaUpdater
       object_type: cocina_data.object_type,
       catkey: cocina_data.catkey,
       published_at: Time.current,
-      public_xml_attributes: { data: cocina_data.cocina_object&.to_json, data_type: 'cocina' },
+      public_json_attributes: { data: cocina_data.cocina_object&.to_json, data_type: 'cocina' },
       deleted_at: nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
     }
   end

@@ -1,4 +1,4 @@
-class PublicXml < ApplicationRecord
+class PublicJson < ApplicationRecord
   belongs_to :purl
 
   def data=(data)

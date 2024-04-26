@@ -11,9 +11,9 @@ class PurlUpdatesConsumer < Racecar::Consumer
       actions = json['actions']
     else
       cocina_object = Cocina::Models.build(json)
-      actions = { index: [], delete: [] }.tap do |releases|
+      actions = { 'index' => [], 'delete' => [] }.tap do |releases|
         cocina_object.administrative.releaseTags.each do |tag|
-          releases[tag.release ? :index : :delete] << tag.to
+          releases[tag.release ? 'index' : 'delete'] << tag.to
         end
       end
     end

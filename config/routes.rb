@@ -16,4 +16,10 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  scope 'v1' do
+    # We don't need all of the activestorage routes, just these:
+    put  '/disk/:encoded_token' => 'active_storage/disk#update', as: :update_rails_disk_service
+    post '/direct_uploads' => 'v1/direct_uploads#create', as: :rails_direct_upload
+  end
 end

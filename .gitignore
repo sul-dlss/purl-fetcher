@@ -16,17 +16,13 @@
 /tmp
 /run/*.pid
 /db/*.sqlite3*
-/log/purl_finder*
+# Ignore storage (uploaded files in development and any SQLite databases).
+/storage/*
 
-/public/*.gz
 /public/assets
-/public/sitemap.xml
 
 /node_modules
 yarn.lock
-
-nohup.out
-REVISION
 
 coverage/*
 coverage

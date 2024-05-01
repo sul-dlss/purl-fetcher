@@ -1,4 +1,4 @@
-class Purl < ApplicationRecord
+class Purl < ApplicationRecord # rubocop:disable Metrics/ClassLength
   has_and_belongs_to_many :collections
   has_many :release_tags, dependent: :destroy
   has_one :public_json, dependent: :destroy
@@ -47,6 +47,13 @@ class Purl < ApplicationRecord
     results
   end
 
+  def cocina_hash
+    data = public_json&.data
+    return unless data
+
+    JSON.parse(data)
+  end
+
   # Sends a message to the indexer_topic, which will cause this object to be reindexed
   def produce_indexer_log_message(async: false)
     if async
@@ -56,6 +63,7 @@ class Purl < ApplicationRecord
     end
   end
 
+  # Produce the Kafka messages that are consumed by Traject::KafkaPurlFetcherReader in searchworks_traject_indexer.
   def as_public_json
     data = if deleted?
              as_json(only: %i[druid])

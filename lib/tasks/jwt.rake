@@ -5,5 +5,5 @@ task generate_token: :environment do
   print 'Account name: '
   name = $stdin.gets.chomp
   payload = { sub: name }
-  puts "Your token:\n#{JWT.encode(payload, Settings.dor.hmac_secret, 'HS256')}"
+  puts "Your token:\n#{JWT.encode(payload, Settings.hmac_secret, 'HS256')}"
 end

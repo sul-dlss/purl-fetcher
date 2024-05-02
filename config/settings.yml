@@ -1,7 +1,7 @@
 ##
 # Value (index service) that should always be provided in the `/docs/changes`
 # true_targets response
-ALWAYS_SEND_TRUE_TARGET:
+always_send_true_targets:
   - SearchWorksPreview
   - ContentSearch
 

@@ -26,5 +26,7 @@ set :keep_releases, 5
 # honeybadger_env otherwise defaults to rails_env
 set :honeybadger_env, "#{fetch(:stage)}"
 
+set :whenever_environment, fetch(:rails_env)
+set :whenever_roles, [:cron]
+
 after 'deploy:published', 'deploy:restart'
-  

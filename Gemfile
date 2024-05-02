@@ -65,3 +65,5 @@ end
 gem 'cocina-models'
 
 gem "racecar"
+
+gem 'whenever', require: false

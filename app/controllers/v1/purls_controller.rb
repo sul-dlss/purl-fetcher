@@ -1,5 +1,9 @@
 module V1
   class PurlsController < ApplicationController
+    include Authenticated
+
+    before_action :check_auth_token, only: %i[update destroy]
+
     # Show the public json for the object. Used by purl to know if this object should be indexed by crawlers.
     def show
       purl = Purl.find_by(druid: druid_param)

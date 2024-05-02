@@ -7,3 +7,5 @@ always_send_true_targets:
 
 # indexer_topic is one of purl_fetcher_stage or purl_fetcher_prod.
 indexer_topic: testing_topic
+
+hmac_secret: ~

@@ -1,5 +1,9 @@
 module V1
   class ReleasedController < ApplicationController
+    include Authenticated
+
+    before_action :check_auth_token, only: %i[update]
+
     def show
       release_tag = params[:id]
       purls = Purl.published

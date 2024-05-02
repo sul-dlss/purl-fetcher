@@ -3,7 +3,6 @@ Rails.application.routes.draw do
 
   scope module: :v1, constraints: ApiConstraint.new(version: 1), defaults: { format: :json } do
     resources :released, only: :show
-    resources :released, only: :update, param: :druid
 
     resources :purls, only: [:destroy, :show], param: :druid do
       member do
@@ -19,8 +18,12 @@ Rails.application.routes.draw do
   end
 
   scope 'v1' do
-    # We don't need all of the activestorage routes, just these:
+    # We don't need all of the activestorage routes, just this one:
     put  '/disk/:encoded_token' => 'active_storage/disk#update', as: :update_rails_disk_service
-    post '/direct_uploads' => 'v1/direct_uploads#create', as: :rails_direct_upload
+  end
+
+  scope 'v1', module: :v1 do
+    resources :direct_uploads, only: :create, as: :rails_direct_upload
+    resources :released, only: :update, param: :druid
   end
 end

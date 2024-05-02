@@ -67,3 +67,5 @@ gem 'cocina-models'
 gem "racecar"
 
 gem 'whenever', require: false
+
+gem 'jwt' # json web token

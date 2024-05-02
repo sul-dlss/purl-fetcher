@@ -9,7 +9,7 @@ RSpec.describe 'Direct upload' do
   let(:byte_size) { data.length }
   let(:content_type) { 'text/plain' }
   let(:json) { JSON.dump({ blob: { filename:, byte_size:, checksum:, content_type: } }) }
-  let(:headers) { { 'Content-Type' => 'application/json' } }
+  let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
 
   context 'when uploading a file' do
     it 'returns 204' do
@@ -28,6 +28,14 @@ RSpec.describe 'Direct upload' do
       put(direct_upload_uri.path, params: data, headers: { 'Content-Type' => content_type })
 
       expect(response).to have_http_status(:no_content) # Status: 204
+    end
+  end
+
+  context 'when no authorization token is provided' do
+    it 'returns 401' do
+      post('/v1/direct_uploads', params: json, headers: headers.except('Authorization'))
+
+      expect(response).to have_http_status(:unauthorized)
     end
   end
 end

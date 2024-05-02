@@ -16,7 +16,7 @@ RSpec.describe V1::ReleasedController do
       allow(Racecar).to receive(:produce_sync)
     end
 
-    let(:headers) { { 'Content-Type' => 'application/json' } }
+    let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
     let(:data) { { actions: { 'index' => ['Searchworks'], 'delete' => ['Earthworks'] } }.to_json }
 
     context 'with an unknown item' do
@@ -49,6 +49,14 @@ RSpec.describe V1::ReleasedController do
 
         expect(Racecar).to have_received(:produce_sync)
           .with(key: druid, topic: 'purl-updates', value: expected_message_value)
+      end
+    end
+
+    context 'when no authorization token is provided' do
+      it 'returns 401' do
+        put("/released/druid:zz222yy2222", params: data, headers: headers.except('Authorization'))
+
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

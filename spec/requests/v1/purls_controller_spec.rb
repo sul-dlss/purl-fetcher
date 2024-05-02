@@ -15,27 +15,29 @@ RSpec.describe V1::PurlsController do
   end
 
   describe 'POST update' do
+    let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
+    let(:title) { "The Information Paradox for Black Holes" }
+    let(:cocina_object) do
+      build(:dro_with_metadata, id: druid, title:,
+                                collection_ids: ['druid:xb432gf1111'])
+        .new(administrative: {
+               hasAdminPolicy: "druid:hv992ry2431",
+               releaseTags: [
+                 { to: 'Searchworks', release: true, what: 'self' },
+                 { to: 'Earthworks', release: false, what: 'self' }
+               ]
+             },
+             created: Time.now.utc.iso8601,
+             modified: Time.now.utc.iso8601)
+    end
+    let(:data) { cocina_object.to_json }
+    let(:druid) { 'druid:zz222yy2222' }
+
     context 'with cocina json' do
       before do
         allow(Racecar).to receive(:produce_sync)
       end
 
-      let(:headers) { { 'Content-Type' => 'application/json' } }
-      let(:title) { "The Information Paradox for Black Holes" }
-      let(:cocina_object) do
-        build(:dro_with_metadata, id: druid, title:,
-                                  collection_ids: ['druid:xb432gf1111'])
-          .new(administrative: {
-                 hasAdminPolicy: "druid:hv992ry2431",
-                 releaseTags: [
-                   { to: 'Searchworks', release: true, what: 'self' },
-                   { to: 'Earthworks', release: false, what: 'self' }
-                 ]
-               },
-               created: Time.now.utc.iso8601,
-               modified: Time.now.utc.iso8601)
-      end
-      let(:data) { cocina_object.to_json }
       let(:expected_message_value) do
         {
           cocina: Cocina::Models.build(cocina_object),
@@ -47,8 +49,6 @@ RSpec.describe V1::PurlsController do
       end
 
       context 'with a new item' do
-        let(:druid) { 'druid:zz222yy2222' }
-
         it 'creates a new purl entry' do
           expect do
             post "/purls/#{druid}", params: data, headers:
@@ -60,7 +60,6 @@ RSpec.describe V1::PurlsController do
       end
 
       context 'with a 4byte utf-8 character in the title' do
-        let(:druid) { 'druid:zz222yy2222' }
         let(:title) { "𒀒 is an odd symbol" }
 
         it 'creates a new purl entry' do
@@ -85,10 +84,19 @@ RSpec.describe V1::PurlsController do
         end
       end
     end
+
+    context 'when no authorization token is provided' do
+      it 'returns 401' do
+        post "/purls/#{druid}", params: data, headers: headers.except('Authorization')
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 
   describe 'DELETE delete' do
     let(:purl_object) { create(:purl) }
+    let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
 
     before do
       allow(Racecar).to receive(:produce_sync)
@@ -96,10 +104,18 @@ RSpec.describe V1::PurlsController do
     end
 
     it 'marks the purl as deleted' do
-      delete '/purls/bb050dj7711'
+      delete('/purls/bb050dj7711', headers:)
       expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
       expect(Racecar).to have_received(:produce_sync)
         .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
+    end
+
+    context 'when no authorization token is provided' do
+      it 'returns 401' do
+        delete('/purls/bb050dj7711', headers: headers.except('Authorization'))
+
+        expect(response).to have_http_status(:unauthorized)
+      end
     end
   end
 end

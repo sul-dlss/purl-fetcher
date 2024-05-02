@@ -23,7 +23,7 @@ RSpec.describe V1::ReleasedController do
       let(:druid) { 'druid:zz222yy2222' }
 
       it 'is not found' do
-        put("/released/#{druid}", params: data, headers:)
+        put("/v1/released/#{druid}", params: data, headers:)
         expect(response).to have_http_status(:not_found)
         expect(Racecar).not_to have_received(:produce_sync)
       end
@@ -44,7 +44,7 @@ RSpec.describe V1::ReleasedController do
       end
 
       it 'updates the purl with new data' do
-        put("/released/#{druid}", params: data, headers:)
+        put("/v1/released/#{druid}", params: data, headers:)
         expect(response).to have_http_status(:accepted)
 
         expect(Racecar).to have_received(:produce_sync)

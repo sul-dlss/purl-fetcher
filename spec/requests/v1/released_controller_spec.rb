@@ -54,7 +54,7 @@ RSpec.describe V1::ReleasedController do
 
     context 'when no authorization token is provided' do
       it 'returns 401' do
-        put("/released/druid:zz222yy2222", params: data, headers: headers.except('Authorization'))
+        put("/v1/released/druid:zz222yy2222", params: data, headers: headers.except('Authorization'))
 
         expect(response).to have_http_status(:unauthorized)
       end

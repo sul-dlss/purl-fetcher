@@ -8,6 +8,10 @@ module Authenticated
   # Ensure a valid token is present, or renders "401: Not Authorized"
   def check_auth_token
     token = decoded_auth_token
+
+    # Temporarily disable in production to allow updated client and keys to be rolled out.
+    return if Rails.env.production?
+
     return render json: { error: 'Not Authorized' }, status: :unauthorized unless token
 
     Honeybadger.context(invoked_by: token[:sub])

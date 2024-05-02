@@ -1,4 +1,4 @@
-server "purl-fetcher-prod.stanford.edu", user: 'lyberadmin', roles: %w{web db app worker}
+server "purl-fetcher-prod.stanford.edu", user: 'lyberadmin', roles: %w{web db app worker cron}
 
 set :bundle_without, %w(test deployment development).join(' ')
 

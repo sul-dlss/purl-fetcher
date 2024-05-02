@@ -93,7 +93,7 @@ class Purl < ApplicationRecord # rubocop:disable Metrics/ClassLength
   def true_targets
     return [] unless deleted_at.nil?
 
-    release_tags.where(release_type: true).map(&:name) | Settings.ALWAYS_SEND_TRUE_TARGET.to_a
+    release_tags.where(release_type: true).map(&:name) | Settings.always_send_true_targets
   end
 
   ##

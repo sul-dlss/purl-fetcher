@@ -20,6 +20,6 @@
 # Learn more: http://github.com/javan/whenever
 
 # Purging ActiveStorage attachments during development to avoid filling storage.
-every 7.days do
-  runner "ActiveStorage::Blob.all.each {|blob| blob.purge}"
+every 1.days do
+  runner "ActiveStorage::Blob.find_by('created_at < ?', 1.week.ago).find_each {|blob| blob.purge}"
 end

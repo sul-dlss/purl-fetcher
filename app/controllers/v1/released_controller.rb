@@ -17,10 +17,11 @@ module V1
     def update
       purl = Purl.find_by!(druid: params[:druid])
       actions = params.require(:actions).permit(index: [], delete: [])
-      cocina = purl.cocina_hash
 
-      # TODO: in the future this can just refresh_release_tags and produce_indexer_log_message
-      Racecar.produce_sync(value: { cocina:, actions: }.to_json, key: druid_param, topic: "purl-updates")
+      # add the release tags, and reuse tags if already associated with this PURL
+      purl.refresh_release_tags(actions)
+      purl.save!
+      purl.produce_indexer_log_message
 
       render json: true, status: :accepted
     end

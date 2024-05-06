@@ -41,10 +41,7 @@ RSpec.describe V1::PurlsController do
       let(:expected_message_value) do
         {
           cocina: Cocina::Models.build(cocina_object),
-          actions: {
-            index: ['Searchworks'],
-            delete: ['Earthworks']
-          }
+          actions: nil
         }.to_json
       end
 

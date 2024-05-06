@@ -42,9 +42,6 @@ class PurlCocinaUpdater
     # public xml
     active_record.refresh_collections(collections)
 
-    # add the release tags, and reuse tags if already associated with this PURL
-    active_record.refresh_release_tags(actions)
-
     active_record.save!
   end
 end

@@ -9,3 +9,9 @@ always_send_true_targets:
 indexer_topic: testing_topic
 
 hmac_secret: ~
+
+# Mounted filesystems
+filesystems:
+  ocfl_root: '/stacks/ocfl'
+  purl_root: '/purl/document_cache'
+  stacks_root: '/stacks'

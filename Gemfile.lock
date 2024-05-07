@@ -162,6 +162,7 @@ GEM
       ed25519
     docile (1.4.0)
     drb (2.2.1)
+    druid-tools (3.0.0)
     dry-configurable (1.1.0)
       dry-core (~> 1.0, < 2)
       zeitwerk (~> 2.6)
@@ -281,7 +282,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.16.4-x86_64-linux)
       racc (~> 1.4)
-    ocfl (0.4.0)
+    ocfl (0.4.1)
       activesupport (>= 7.0)
       dry-monads (~> 1.6)
       dry-schema (~> 1.13)
@@ -466,6 +467,7 @@ DEPENDENCIES
   config
   debug
   dlss-capistrano (~> 4.4)
+  druid-tools
   factory_bot_rails
   honeybadger
   jbuilder
@@ -473,7 +475,7 @@ DEPENDENCIES
   kaminari
   mysql2
   newrelic_rpm
-  ocfl
+  ocfl (~> 0.4, >= 0.4.1)
   okcomputer
   puma (~> 6.0)
   racecar

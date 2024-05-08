@@ -12,6 +12,9 @@ hmac_secret: ~
 
 # Mounted filesystems
 filesystems:
-  ocfl_root: '/stacks/ocfl'
-  purl_root: '/purl/document_cache'
-  stacks_root: '/stacks'
+  ocfl_root: "/stacks/ocfl"
+  purl_root: "/purl/document_cache"
+  stacks_root: "/stacks"
+
+purl:
+  hostname: purl.stanford.edu

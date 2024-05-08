@@ -32,7 +32,7 @@ Layout/EmptyLineBetweenDefs:
 
 # Configuration parameters: AllowURI, URISchemes.
 Layout/LineLength:
-  Max: 132
+  Max: 200
   AllowURI: true
   Exclude:
     - "spec/features/v1/docs_controller_spec.rb"

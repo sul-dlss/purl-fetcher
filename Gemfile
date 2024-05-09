@@ -25,10 +25,10 @@ gem 'honeybadger'
 gem 'okcomputer' # for monitoring
 
 gem 'config'
+gem 'equivalent-xml'
 
 group :test do
   gem 'capybara'
-  gem 'equivalent-xml'
   gem 'rspec-rails', '~> 6.0'
   gem 'simplecov', require: false
 end

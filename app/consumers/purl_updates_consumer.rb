@@ -26,10 +26,11 @@ class PurlUpdatesConsumer < Racecar::Consumer
   def test_public_xml_generation(public_cocina)
     thumbnail_service = ThumbnailService.new(public_cocina)
     generated_xml = Publish::PublicXmlService.new(public_cocina:, thumbnail_service:).to_xml
-    path = "#{DruidTools::PurlDruid.new(public_cocina.externalIdentifier, Settings.filesystems.purl_root).path}/public"
-    existing_xml = File.read(path)
+    path = DruidTools::PurlDruid.new(public_cocina.externalIdentifier, Settings.filesystems.purl_root).path
+    existing_xml = File.read("#{path}/public")
+    File.write(Rails.root + "tmp/#{public_cocina.externalIdentifier}-public-generated.xml", generated_xml)
     Honeybadger.notify("Generated XML is not equivalent", context: { druid: public_cocina.externalIdentifier }) unless EquivalentXml.equivalent?(generated_xml, existing_xml)
   rescue StandardError => e
-    Honeybadger.notify(e, context: { druid: public_cocina.externalIdentifier })
+    Honeybadger.notify(e, context: { druid: public_cocina.externalIdentifier, path: })
   end
 end

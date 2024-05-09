@@ -12,7 +12,7 @@ class PurlCocinaUpdater
 
   attr_reader :active_record, :cocina_data, :actions
 
-  delegate :collections, to: :cocina_data
+  delegate :collections, :constituents, to: :cocina_data
 
   # rubocop:disable Metrics/MethodLength
   def attributes
@@ -38,9 +38,11 @@ class PurlCocinaUpdater
     active_record.attributes = attributes
 
     ##
-    # Delete all of the collection assocations, and then add back ones in the
-    # public xml
+    # Delete the assocations, and then add back ones in the Cocina
     active_record.refresh_collections(collections)
+    active_record.constituent_memberships = constituents.map.with_index do |druid, sort_order|
+      ConstituentMembership.new(child: Purl.find_or_create_by(druid:), sort_order:)
+    end
 
     # add the release tags, and reuse tags if already associated with this PURL
     active_record.refresh_release_tags(actions)

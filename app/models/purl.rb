@@ -1,12 +1,14 @@
 class Purl < ApplicationRecord # rubocop:disable Metrics/ClassLength
   has_and_belongs_to_many :collections
+  has_many :constituent_memberships, inverse_of: :parent, dependent: :destroy
+  has_many :constituents, -> { order 'constituent_memberships.sort_order' },
+           through: :constituent_memberships, source: :child
   has_many :release_tags, dependent: :destroy
   has_one :public_json, dependent: :destroy
 
   accepts_nested_attributes_for :public_json, update_only: true
   paginates_per 100
   max_paginates_per 10_000
-  default_scope -> { order(:updated_at) }
   validates :druid, uniqueness: true
 
   scope :object_type, -> (object_type) { where object_type: }
@@ -123,6 +125,14 @@ class Purl < ApplicationRecord # rubocop:disable Metrics/ClassLength
       collection_to_add = Collection.find_or_create_by(druid: collection)
       collections << collection_to_add unless collections.include?(collection_to_add)
     end
+  end
+
+  ##
+  # Delete all of the collection assocations, and then add back ones from a
+  # known valid list
+  # @param [Array<String>] collections
+  def refresh_constituents(consitituent_druids)
+    self.collections = consitituent_druids.map { |druid| Purl.find_or_create_by(druid:) }
   end
 
   ##

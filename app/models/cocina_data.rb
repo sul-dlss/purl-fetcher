@@ -33,6 +33,13 @@ class CocinaData
     cocina_object.dro? ? cocina_object.structural.isMemberOf : []
   end
 
+  # @return [Array<String>] The constituent druids of this object (virtual object)
+  def constituents
+    return [] unless cocina_object.dro?
+
+    cocina_object.structural.hasMemberOrders.first&.members || []
+  end
+
   private
 
   # from https://github.com/sul-dlss/dor-services-app/blob/f51bbcea710b7612f251a3922c5164ec69ba39aa/app/services/publish/public_xml_service.rb#L99

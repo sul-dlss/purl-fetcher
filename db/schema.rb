@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_26_192808) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_09_152306) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -51,6 +51,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_26_192808) do
     t.integer "collection_id"
     t.index ["collection_id"], name: "index_collections_purls_on_collection_id"
     t.index ["purl_id"], name: "index_collections_purls_on_purl_id"
+  end
+
+  create_table "constituent_memberships", force: :cascade do |t|
+    t.integer "parent_id", null: false
+    t.integer "child_id", null: false
+    t.integer "sort_order", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["child_id"], name: "index_constituent_memberships_on_child_id"
+    t.index ["parent_id", "child_id"], name: "index_constituent_memberships_on_parent_id_and_child_id", unique: true
+    t.index ["parent_id"], name: "index_constituent_memberships_on_parent_id"
   end
 
   create_table "listener_logs", force: :cascade do |t|
@@ -103,4 +114,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_26_192808) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "constituent_memberships", "purls", column: "child_id"
+  add_foreign_key "constituent_memberships", "purls", column: "parent_id"
 end

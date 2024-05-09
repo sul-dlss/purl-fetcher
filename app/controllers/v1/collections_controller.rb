@@ -9,6 +9,7 @@ module V1
                    .where(collections: { druid: druid_param })
                    .page(page_params[:page])
                    .per(per_page_params[:per_page])
+                   .order(:updated_at)
     end
   end
 end

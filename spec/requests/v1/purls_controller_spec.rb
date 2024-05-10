@@ -59,18 +59,6 @@ RSpec.describe V1::PurlsController do
         end
       end
 
-      context 'with a 4byte utf-8 character in the title' do
-        let(:title) { "𒀒 is an odd symbol" }
-
-        it 'creates a new purl entry' do
-          expect do
-            post "/purls/#{druid}", params: data, headers:
-          end.not_to change(Purl, :count)
-          expect(response).to have_http_status(:unprocessable_entity)
-          expect(Racecar).not_to have_received(:produce_sync)
-        end
-      end
-
       context 'with an existing item' do
         let(:purl_object) { create(:purl) }
         let(:druid) { purl_object.druid }

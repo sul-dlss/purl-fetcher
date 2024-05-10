@@ -1,5 +1,7 @@
 # Updates the Purl database record using information from the public xml
 class PurlCocinaUpdater
+  UTF8_4BYTE_REGEX = /[\u{10000}-\u{10FFFF}]/
+
   # @param [Purl] active_record
   # @param [Cocina::Models::Collection, Cocina::Models::DRO] cocina_object
   # @param [Hash] actions the actions to take on the index
@@ -17,10 +19,10 @@ class PurlCocinaUpdater
   # rubocop:disable Metrics/MethodLength
   def attributes
     title = cocina_data.title
-    if title&.match?(/[\u{10000}-\u{10FFFF}]/)
+    if title&.match?(UTF8_4BYTE_REGEX)
       Honeybadger.notify('Unable to record title for item because it contains UTF8mb4 characters',
                          context: { title:, druid: cocina_data.canonical_druid })
-      title = nil
+      title = title.gsub(UTF8_4BYTE_REGEX, "?")
     end
     {
       druid: cocina_data.canonical_druid,

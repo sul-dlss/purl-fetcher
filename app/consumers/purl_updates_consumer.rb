@@ -11,7 +11,7 @@ class PurlUpdatesConsumer < Racecar::Consumer
 
     purl.produce_indexer_log_message
   rescue StandardError => e
-    Honeybadger.notify(e)
+    Honeybadger.notify(e, context: { json: })
     raise e
   end
 end

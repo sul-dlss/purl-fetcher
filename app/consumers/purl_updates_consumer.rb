@@ -5,7 +5,7 @@ class PurlUpdatesConsumer < Racecar::Consumer
   def process(message)
     json = JSON.parse(message.value)
 
-    raise Cocina::Models::ValidationError, 'Missing cocina data' unless json.key?('cocina')
+    raise Cocina::Models::ValidationError, 'Missing cocina data' if json['cocina'].blank?
 
     cocina_object = Cocina::Models.build(json['cocina'])
     actions = json['actions']

@@ -4,15 +4,13 @@ class PurlCocinaUpdater
 
   # @param [Purl] active_record
   # @param [Cocina::Models::Collection, Cocina::Models::DRO] cocina_object
-  # @param [Hash] actions the actions to take on the index
-  def initialize(active_record, cocina_object, actions)
+  def initialize(active_record, cocina_object)
     @active_record = active_record
-    @actions = actions
     @cocina_data = CocinaData.new(cocina_object)
     Honeybadger.context({ cocina_object: cocina_object.to_h })
   end
 
-  attr_reader :active_record, :cocina_data, :actions
+  attr_reader :active_record, :cocina_data
 
   delegate :collections, :constituents, to: :cocina_data
 

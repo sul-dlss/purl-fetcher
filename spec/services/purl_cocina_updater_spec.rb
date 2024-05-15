@@ -3,14 +3,13 @@
 require 'rails_helper'
 
 RSpec.describe PurlCocinaUpdater do
-  let(:updater) { described_class.new(purl, cocina, actions) }
+  let(:updater) { described_class.new(purl, cocina) }
 
   let(:purl) { create(:purl) }
   let(:cocina) do
     build(:dro, id: purl.druid,
                 collection_ids: ['druid:xb432gf1111'])
   end
-  let(:actions) { { 'index' => [], 'delete' => [] } }
 
   describe '#update' do
     before do

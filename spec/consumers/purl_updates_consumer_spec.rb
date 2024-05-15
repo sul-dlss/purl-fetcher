@@ -42,13 +42,9 @@ RSpec.describe PurlUpdatesConsumer do
     it "updates the purl record with the provided data" do
       purl_object.reload
       expect(purl_object.title).to eq "The Information Paradox for Black Holes"
-      expect(purl_object.true_targets).to eq ["Searchworks", "SearchWorksPreview", "ContentSearch"]
-      expect(purl_object.false_targets).to eq ['Earthworks']
       expect(purl_object.collections.size).to eq 1
       expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
       expect(purl_object.public_json.data).to eq cocina.to_json
-      expect(Racecar).to have_received(:produce_sync)
-        .with(value: String, key: purl_object.druid, topic: 'testing_topic')
     end
   end
 

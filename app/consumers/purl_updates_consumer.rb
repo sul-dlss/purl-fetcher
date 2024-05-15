@@ -8,8 +8,6 @@ class PurlUpdatesConsumer < Racecar::Consumer
     actions = json['actions']
     purl = Purl.find_by!(druid: cocina_object.externalIdentifier)
     PurlCocinaUpdater.new(purl, cocina_object, actions).update
-
-    purl.produce_indexer_log_message
   rescue StandardError => e
     Honeybadger.notify(e, context: { json: })
     raise e

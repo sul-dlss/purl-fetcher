@@ -46,9 +46,6 @@ class PurlCocinaUpdater
       ConstituentMembership.new(child: Purl.find_or_create_by(druid:), sort_order:)
     end
 
-    # add the release tags, and reuse tags if already associated with this PURL
-    active_record.refresh_release_tags(actions)
-
     active_record.save!
   end
 end

@@ -33,22 +33,13 @@ RSpec.describe V1::ReleasedController do
       let(:purl_object) { create(:purl) }
       let(:druid) { purl_object.druid }
       let(:cocina_object) { JSON.parse(purl_object.public_json.data) }
-      let(:expected_message_value) do
-        {
-          cocina: Cocina::Models.build(cocina_object),
-          actions: {
-            index: ['Searchworks'],
-            delete: ['Earthworks']
-          }
-        }.to_json
-      end
 
-      it 'updates the purl with new data' do
+      it 'puts a Kafka message on the queue for indexing' do
         put("/v1/released/#{druid}", params: data, headers:)
         expect(response).to have_http_status(:accepted)
 
         expect(Racecar).to have_received(:produce_sync)
-          .with(key: druid, topic: 'purl-updates', value: expected_message_value)
+          .with(key: druid, topic: 'testing_topic', value: purl_object.as_public_json.to_json)
       end
     end
 

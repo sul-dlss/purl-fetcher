@@ -57,7 +57,7 @@ RSpec.describe PurlUpdatesConsumer do
 
     it 'logs a message' do
       expect { consumer.process(message) }.not_to raise_error
-      expect(Honeybadger).to have_received(:notify)
+      expect(Honeybadger).to have_received(:notify).twice # Once for the equivalent xml experiment
     end
   end
 

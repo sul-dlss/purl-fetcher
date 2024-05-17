@@ -1,8 +1,10 @@
-class Purl < ApplicationRecord # rubocop:disable Metrics/ClassLength
+class Purl < ApplicationRecord
   has_and_belongs_to_many :collections
   has_many :constituent_memberships, inverse_of: :parent, dependent: :destroy
   has_many :constituents, -> { order 'constituent_memberships.sort_order' },
            through: :constituent_memberships, source: :child
+  has_many :parent_memberships, class_name: 'ConstituentMembership', inverse_of: :child, dependent: :destroy
+  has_many :parents, through: :parent_memberships, source: :parent
   has_many :release_tags, dependent: :destroy
   has_one :public_json, dependent: :destroy
 
@@ -90,7 +92,7 @@ class Purl < ApplicationRecord # rubocop:disable Metrics/ClassLength
   ##
   # Release tags where the value is true or is one of the default targets. If the object has been deleted, it retuns blank.
   # This is consumed by
-  # https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L26 # rubocop:disable Layout:LineLength
+  # https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L26
   # @return [Array]
   def true_targets
     return [] unless deleted_at.nil?

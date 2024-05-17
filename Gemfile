@@ -25,6 +25,7 @@ gem 'honeybadger'
 gem 'okcomputer' # for monitoring
 
 gem 'config'
+gem 'equivalent-xml'
 
 group :test do
   gem 'capybara'

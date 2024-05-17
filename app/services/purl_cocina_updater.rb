@@ -16,7 +16,6 @@ class PurlCocinaUpdater
 
   delegate :collections, :constituents, to: :cocina_data
 
-  # rubocop:disable Metrics/MethodLength
   def attributes
     title = cocina_data.title
     if title&.match?(UTF8_4BYTE_REGEX)
@@ -34,7 +33,6 @@ class PurlCocinaUpdater
       deleted_at: nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
     }
   end
-  # rubocop:enable Metrics/MethodLength
 
   def update
     active_record.attributes = attributes

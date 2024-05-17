@@ -25,5 +25,6 @@ Rails.application.routes.draw do
   scope 'v1', module: :v1 do
     resources :direct_uploads, only: :create, as: :rails_direct_upload
     resources :released, only: :update, param: :druid
+    resource :mods, only: :create
   end
 end

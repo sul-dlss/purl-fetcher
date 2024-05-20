@@ -12,6 +12,14 @@ RSpec.describe V1::PurlsController do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to include("true_targets" => ["PURL sitemap", "SearchWorksPreview", "ContentSearch"])
     end
+
+    context "when the druid doesn't exist" do
+      it 'returns a 404' do
+        get "/purls/zr240vm9599"
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
   end
 
   describe 'POST update' do

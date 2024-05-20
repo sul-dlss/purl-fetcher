@@ -1,5 +1,7 @@
 module V1
   class ModsController < ApplicationController
+    skip_forgery_protection # No need for forgery protection on an API
+
     # Given a POST body with cocina, transform it to MODS xml. Used by Argo to preview metadata
     def create
       public_cocina = Cocina::Models.build(params[:mods].to_unsafe_h)

@@ -8,9 +8,8 @@ class PurlUpdatesConsumer < Racecar::Consumer
     raise Cocina::Models::ValidationError, 'Missing cocina data' if json['cocina'].blank?
 
     cocina_object = Cocina::Models.build(json['cocina'])
-    actions = json['actions']
     purl = Purl.find_by!(druid: cocina_object.externalIdentifier)
-    PurlCocinaUpdater.new(purl, cocina_object, actions).update
+    PurlCocinaUpdater.new(purl, cocina_object).update
     purl.produce_indexer_log_message
 
     test_public_xml_generation(cocina_object)

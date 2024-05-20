@@ -10,7 +10,6 @@ class PurlUpdatesConsumer < Racecar::Consumer
     cocina_object = Cocina::Models.build(json['cocina'])
     purl = Purl.find_by!(druid: cocina_object.externalIdentifier)
     PurlCocinaUpdater.new(purl, cocina_object).update
-    purl.produce_indexer_log_message
 
     test_public_xml_generation(cocina_object)
   rescue Cocina::Models::ValidationError => e

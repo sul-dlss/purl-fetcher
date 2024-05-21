@@ -26,5 +26,6 @@ Rails.application.routes.draw do
     resources :direct_uploads, only: :create, as: :rails_direct_upload
     resources :released, only: :update, param: :druid
     resource :mods, only: :create
+    resources :resources, only: :create
   end
 end

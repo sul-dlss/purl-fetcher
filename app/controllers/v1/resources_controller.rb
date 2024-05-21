@@ -40,9 +40,7 @@ module V1
     # Write the cocina object to the Purl druid path as cocina.json
     # return [String] the path to the written cocina.json file
     def write_purl
-      cocina_json_path = File.join(purl_druid_path, 'cocina.json')
       FileUtils.mkdir_p(purl_druid_path) unless File.directory?(purl_druid_path)
-      File.write(cocina_json_path, cocina_object.to_json)
 
       purl = begin
         Purl.find_or_create_by(druid:)
@@ -50,9 +48,24 @@ module V1
         retry
       end
 
+      write_public_cocina
+      write_public_xml
+
       Racecar.produce_sync(value: { cocina: cocina_object, actions: nil }.to_json, key: druid, topic: "purl-updates")
 
       purl
+    end
+
+    def write_public_cocina
+      File.write(File.join(purl_druid_path, 'cocina.json'), cocina_object.to_json)
+    end
+
+    def write_public_xml
+      File.write(File.join(purl_druid_path, 'public.xml'), public_xml)
+    end
+
+    def public_xml
+      Publish::PublicXmlService.new(public_cocina: cocina_object, thumbnail_service: ThumbnailService.new(cocina_object)).to_xml
     end
 
     CREATE_PARAMS_EXCLUDE_FROM_COCINA = %i[action controller resource].freeze

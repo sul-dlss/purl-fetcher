@@ -12,7 +12,7 @@ module V1
     def create
       begin
         UpdateStacksFilesService.new(@cocina_object).write!
-        UpdatePurlMetadataService.new(@cocina_object).write!
+        UpdatePurlMetadataService.new(@cocina_object, @purl).write!
       rescue UpdateStacksFilesService::BlobError => e
         # Returning 500 because not clear whose fault it is.
         return render build_error('500', e, 'Error matching uploading files to file parameters.')
@@ -36,7 +36,7 @@ module V1
     end
 
     def load_purl
-      Purl.find_or_create_by(druid: @cocina_object.externalIdentifier)
+      @purl = Purl.find_or_create_by(druid: @cocina_object.externalIdentifier)
     rescue ActiveRecord::RecordNotUnique
       retry
     end

@@ -20,8 +20,8 @@ module V1
 
       # add the release tags, and reuse tags if already associated with this PURL
       purl.refresh_release_tags(actions)
+      UpdatePurlMetadataService.new(nil, purl).write!(only: [:meta])
       purl.save!
-      purl.produce_indexer_log_message
 
       render json: true, status: :accepted
     end

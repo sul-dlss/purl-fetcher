@@ -15,7 +15,7 @@ module V1
       begin
         shelve_files
         unshelve_removed_files
-        write_purl
+        UpdatePurlMetadataService.new(@cocina_object).write
       rescue BlobError => e
         # Returning 500 because not clear whose fault it is.
         return render build_error('500', e, 'Error matching uploading files to file parameters.')
@@ -26,39 +26,10 @@ module V1
 
     private
 
-    # return [String] the Purl path for the cocina object
-    def purl_druid_path
-      DruidTools::PurlDruid.new(@cocina_object.externalIdentifier, Settings.filesystems.purl_root).path
-    end
-
     # return [String] the Stacks path for the cocina object
     def stacks_druid_path
       DruidTools::PurlDruid.new(@cocina_object.externalIdentifier, Settings.filesystems.stacks_root).path
     end
-
-    # Write the cocina object to the Purl druid path as cocina.json
-    # return [String] the path to the written cocina.json file
-    def write_purl
-      FileUtils.mkdir_p(purl_druid_path) unless File.directory?(purl_druid_path)
-
-      write_public_cocina
-      write_public_xml
-
-      Racecar.produce_sync(value: { cocina: @cocina_object, actions: nil }.to_json, key: @cocina_object.externalIdentifier, topic: "purl-updates")
-    end
-
-    def write_public_cocina
-      File.write(File.join(purl_druid_path, 'cocina.json'), @cocina_object.to_json)
-    end
-
-    def write_public_xml
-      File.write(File.join(purl_druid_path, 'public.xml'), public_xml)
-    end
-
-    def public_xml
-      Publish::PublicXmlService.new(public_cocina: @cocina_object, thumbnail_service: ThumbnailService.new(@cocina_object)).to_xml
-    end
-
     CREATE_PARAMS_EXCLUDE_FROM_COCINA = %i[action controller resource].freeze
 
     def cocina_object_params

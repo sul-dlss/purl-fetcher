@@ -6,7 +6,7 @@ class UpdatePurlMetadataService
   end
 
   # Write the cocina object to the Purl druid path as cocina.json
-  def write
+  def write!
     FileUtils.mkdir_p(purl_druid_path) unless File.directory?(purl_druid_path)
 
     write_public_cocina

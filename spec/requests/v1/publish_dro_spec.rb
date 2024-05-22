@@ -72,6 +72,7 @@ RSpec.describe 'Publish a DRO' do
 
   context 'when file is not found in the cocina object' do
     before do
+      FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/')
       File.write('tmp/stacks/bc/123/df/4567/file3.txt', 'hello world')
     end
 

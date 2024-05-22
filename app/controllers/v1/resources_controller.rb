@@ -7,34 +7,33 @@ module V1
     class BlobError < StandardError; end
 
     before_action :check_auth_token, only: %i[create]
+    before_action :load_cocina_object
+    before_action :load_purl
 
     # POST /resource
     def create
       begin
-        @druid = cocina_object.externalIdentifier
         shelve_files
         unshelve_removed_files
-        location = write_purl
+        write_purl
       rescue BlobError => e
         # Returning 500 because not clear whose fault it is.
         return render build_error('500', e, 'Error matching uploading files to file parameters.')
       end
 
-      render json: true, location:, status: :created
+      render json: true, location: @purl, status: :created
     end
 
     private
 
-    attr_reader :druid
-
-    # return [String] the Purl path for the druid
+    # return [String] the Purl path for the cocina object
     def purl_druid_path
-      DruidTools::PurlDruid.new(druid, Settings.filesystems.purl_root).path
+      DruidTools::PurlDruid.new(@cocina_object.externalIdentifier, Settings.filesystems.purl_root).path
     end
 
-    # return [String] the Stacks path for the druid
+    # return [String] the Stacks path for the cocina object
     def stacks_druid_path
-      DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).path
+      DruidTools::PurlDruid.new(@cocina_object.externalIdentifier, Settings.filesystems.stacks_root).path
     end
 
     # Write the cocina object to the Purl druid path as cocina.json
@@ -42,22 +41,14 @@ module V1
     def write_purl
       FileUtils.mkdir_p(purl_druid_path) unless File.directory?(purl_druid_path)
 
-      purl = begin
-        Purl.find_or_create_by(druid:)
-      rescue ActiveRecord::RecordNotUnique
-        retry
-      end
-
       write_public_cocina
       write_public_xml
 
-      Racecar.produce_sync(value: { cocina: cocina_object, actions: nil }.to_json, key: druid, topic: "purl-updates")
-
-      purl
+      Racecar.produce_sync(value: { cocina: @cocina_object, actions: nil }.to_json, key: @cocina_object.externalIdentifier, topic: "purl-updates")
     end
 
     def write_public_cocina
-      File.write(File.join(purl_druid_path, 'cocina.json'), cocina_object.to_json)
+      File.write(File.join(purl_druid_path, 'cocina.json'), @cocina_object.to_json)
     end
 
     def write_public_xml
@@ -65,7 +56,7 @@ module V1
     end
 
     def public_xml
-      Publish::PublicXmlService.new(public_cocina: cocina_object, thumbnail_service: ThumbnailService.new(cocina_object)).to_xml
+      Publish::PublicXmlService.new(public_cocina: @cocina_object, thumbnail_service: ThumbnailService.new(@cocina_object)).to_xml
     end
 
     CREATE_PARAMS_EXCLUDE_FROM_COCINA = %i[action controller resource].freeze
@@ -75,19 +66,20 @@ module V1
     end
 
     # Build the cocina object from the params
-    def cocina_object
+    def load_cocina_object
       cocina_model_params = cocina_object_params.deep_dup
-      @cocina_object ||= Cocina::Models.build(cocina_model_params)
+      @cocina_object = Cocina::Models.build(cocina_model_params)
     end
 
-    # return [Array<Cocina::Models::FileSet>] the file sets in the cocina object
-    def file_sets
-      cocina_object.structural.contains
+    def load_purl
+      Purl.find_or_create_by(druid: @cocina_object.externalIdentifier)
+    rescue ActiveRecord::RecordNotUnique
+      retry
     end
 
     # Copy the files from ActiveStorage to the Stacks directory
     def shelve_files
-      file_sets.each do |fileset|
+      @cocina_object.structural.contains.each do |fileset|
         fileset.structural.contains.each do |file|
           next unless signed_id?(file.externalIdentifier)
 
@@ -121,7 +113,7 @@ module V1
 
     # return [Boolean] whether the file is in the cocina object baesd on filename
     def file_in_cocina?(file_on_disk)
-      cocina_object.structural.contains.map do |fileset|
+      @cocina_object.structural.contains.map do |fileset|
         fileset.structural.contains.select { |file| file.filename == file_on_disk }
       end.flatten.any?
     end

@@ -18,7 +18,7 @@ set :racecar_systemd_use_hooks, true
 set :linked_files, %w{config/secrets.yml config/database.yml config/honeybadger.yml config/newrelic.yml}
 
 # Default value for linked_dirs is []
-set :linked_dirs, %w{log run tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
+set :linked_dirs, %w{log run tmp/pids tmp/cache tmp/sockets vendor/bundle public/system storage}
 
 # Default value for keep_releases is 5
 set :keep_releases, 5

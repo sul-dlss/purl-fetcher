@@ -180,7 +180,7 @@ GEM
       concurrent-ruby (~> 1.0)
       dry-core (~> 1.0, < 2)
       zeitwerk (~> 2.6)
-    dry-schema (1.13.3)
+    dry-schema (1.13.4)
       concurrent-ruby (~> 1.0)
       dry-configurable (~> 1.0, >= 1.0.1)
       dry-core (~> 1.0, < 2)
@@ -256,7 +256,7 @@ GEM
     matrix (0.4.2)
     mini_mime (1.1.5)
     mini_portile2 (2.8.6)
-    minitest (5.23.0)
+    minitest (5.23.1)
     msgpack (1.7.2)
     multi_json (1.15.0)
     mutex_m (0.2.0)
@@ -283,7 +283,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.16.5-x86_64-linux)
       racc (~> 1.4)
-    ocfl (0.4.1)
+    ocfl (0.5.0)
       activesupport (>= 7.0)
       dry-monads (~> 1.6)
       dry-schema (~> 1.13)
@@ -477,7 +477,7 @@ DEPENDENCIES
   kaminari
   mysql2
   newrelic_rpm
-  ocfl (~> 0.4, >= 0.4.1)
+  ocfl (~> 0.5)
   okcomputer
   puma (~> 6.0)
   racecar

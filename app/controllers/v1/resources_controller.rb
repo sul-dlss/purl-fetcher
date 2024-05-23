@@ -36,7 +36,7 @@ module V1
     end
 
     def load_purl
-      Purl.find_or_create_by(druid: @cocina_object.externalIdentifier)
+      @purl = Purl.find_or_create_by(druid: @cocina_object.externalIdentifier)
     rescue ActiveRecord::RecordNotUnique
       retry
     end

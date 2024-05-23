@@ -58,6 +58,15 @@ class Purl < ApplicationRecord
     JSON.parse(data)
   end
 
+  def cocina_object=(cocina_object)
+    self.public_json = PublicJson.new(data: cocina_object.to_json, data_type: 'cocina')
+    @cocina_object = cocina_object
+  end
+
+  def cocina_object
+    @cocina_object ||= Cocina::Models.build(cocina_hash) if cocina_hash
+  end
+
   # Sends a message to the indexer_topic, which will cause this object to be reindexed
   def produce_indexer_log_message(async: false)
     if async
@@ -135,6 +144,16 @@ class Purl < ApplicationRecord
   # @param [Array<String>] collections
   def refresh_constituents(consitituent_druids)
     self.collections = consitituent_druids.map { |druid| Purl.find_or_create_by(druid:) }
+  end
+
+  # return [String] the Stacks path for the cocina object
+  def stacks_druid_path
+    DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).path
+  end
+
+  # return [String] the Purl path for the cocina object
+  def purl_druid_path
+    DruidTools::PurlDruid.new(druid, Settings.filesystems.purl_root).path
   end
 
   ##

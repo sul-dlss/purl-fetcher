@@ -1,10 +1,12 @@
 class UpdateStacksFilesService
   class BlobError < StandardError; end
 
-  attr_reader :cocina_object
+  attr_reader :purl
 
-  def initialize(cocina_object)
-    @cocina_object = cocina_object
+  delegate :cocina_object, :stacks_druid_path, to: :purl
+
+  def initialize(purl)
+    @purl = purl
   end
 
   def write!
@@ -14,7 +16,7 @@ class UpdateStacksFilesService
 
   # Copy the files from ActiveStorage to the Stacks directory
   def shelve_files
-    @cocina_object.structural.contains.each do |fileset|
+    cocina_object.structural.contains.each do |fileset|
       fileset.structural.contains.each do |file|
         next unless signed_id?(file.externalIdentifier)
 
@@ -48,7 +50,7 @@ class UpdateStacksFilesService
 
   # return [Boolean] whether the file is in the cocina object baesd on filename
   def file_in_cocina?(file_on_disk)
-    @cocina_object.structural.contains.map do |fileset|
+    cocina_object.structural.contains.map do |fileset|
       fileset.structural.contains.select { |file| file.filename == file_on_disk }
     end.flatten.any?
   end
@@ -56,10 +58,5 @@ class UpdateStacksFilesService
   # return [Boolean] whether the file_id is an ActiveStorage signed_id
   def signed_id?(file_id)
     ActiveStorage.verifier.valid_message?(file_id)
-  end
-
-  # return [String] the Stacks path for the cocina object
-  def stacks_druid_path
-    DruidTools::PurlDruid.new(@cocina_object.externalIdentifier, Settings.filesystems.stacks_root).path
   end
 end

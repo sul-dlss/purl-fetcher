@@ -18,3 +18,6 @@ filesystems:
 
 purl:
   hostname: purl.stanford.edu
+
+features:
+  write_meta_json: false

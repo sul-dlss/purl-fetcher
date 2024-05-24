@@ -4,6 +4,8 @@ module V1
 
     before_action :check_auth_token, only: %i[update]
 
+    # Query for all druids that have a certain release tag.
+    # This is used by the sitemap generator in PURL.
     def show
       release_tag = params[:id]
       purls = Purl.published
@@ -13,7 +15,8 @@ module V1
       render json: purls.map { |(druid, updated_at)| { druid:, updated_at: } }
     end
 
-    # TODO: this will eventually replace the releaseTag parsing in PurlsController#update
+    # This starts the release process.
+    # The object must be shelved and published before calling this API endpoint.
     def update
       purl = Purl.find_by!(druid: params[:druid])
       actions = params.require(:actions).permit(index: [], delete: [])

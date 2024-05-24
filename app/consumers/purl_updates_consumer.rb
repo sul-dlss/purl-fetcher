@@ -21,17 +21,10 @@ class PurlUpdatesConsumer < Racecar::Consumer
 
   # If we don't see any errors from this in a few weeks, we can write this to the filesystem'
   def test_public_xml_generation(public_cocina)
-    thumbnail_service = ThumbnailService.new(public_cocina)
-    generated_xml = Publish::PublicXmlService.new(public_cocina:, thumbnail_service:).to_xml
-    generated_ng = Nokogiri::XML(generated_xml)
-    path = DruidTools::PurlDruid.new(public_cocina.externalIdentifier, Settings.filesystems.purl_root).path
-    existing_xml = File.read("#{path}/public")
-    existing_ng = Nokogiri::XML(existing_xml)
-    generated_ng.root['published'] = existing_ng.root['published'] # Ensure dates align for diff
-    File.write(Rails.root + "tmp/#{public_cocina.externalIdentifier}-public-generated.xml", generated_xml)
-    Honeybadger.notify("Generated XML is not equivalent", context: { druid: public_cocina.externalIdentifier, settings: Settings.purl.hostname }) unless EquivalentXml.equivalent?(generated_ng,
-                                                                                                                                                                                   existing_ng)
+    output_path = Rails.root + "tmp/#{public_cocina.externalIdentifier}-public-generated.xml"
+    PublicXmlWriter.write(public_cocina, output_path)
+    GeneratedXmlTester.test(output_path, public_cocina.externalIdentifier)
   rescue StandardError => e
-    Honeybadger.notify(e, context: { druid: public_cocina.externalIdentifier, path: })
+    Honeybadger.notify(e, context: { druid: public_cocina.externalIdentifier, output_path: })
   end
 end

@@ -5,11 +5,14 @@ class OcflMigrator
   end
 
   # @param [String] druid
-  def initialize(druid:)
+  def initialize(druid:, overwrite: false)
     @druid = druid
+    @overwrite = overwrite
   end
 
   def migrate
+    return if !overwrite && File.exist?(ocfl_druid_path)
+
     builder.copy_recursive(stacks_druid_path)
     builder.copy_recursive(purl_druid_path)
     builder.save
@@ -17,7 +20,7 @@ class OcflMigrator
 
   private
 
-  attr_reader :druid
+  attr_reader :druid, :overwrite
 
   def builder
     @builder ||= OCFL::Object::DirectoryBuilder.new(object_root: ocfl_druid_path, id: druid)

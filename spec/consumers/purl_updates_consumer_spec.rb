@@ -45,6 +45,8 @@ RSpec.describe PurlUpdatesConsumer do
       expect(purl_object.collections.size).to eq 1
       expect(purl_object.collections.first.druid).to eq 'druid:xb432gf1111'
       expect(purl_object.public_json.data).to eq cocina.to_json
+      public_cocina_filepath = File.join(DruidTools::PurlDruid.new(purl_object.druid, Settings.filesystems.purl_root).path, 'cocina.json')
+      expect(JSON.parse(File.read(public_cocina_filepath))).to eq cocina.to_h.with_indifferent_access
     end
   end
 

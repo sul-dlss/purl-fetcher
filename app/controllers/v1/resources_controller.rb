@@ -10,9 +10,11 @@ module V1
 
     # POST /resource
     def create
+      PurlCocinaUpdater.new(@purl, @cocina_object).update
+
       begin
-        UpdateStacksFilesService.new(@cocina_object).write!
-        UpdatePurlMetadataService.new(@cocina_object).write!
+        UpdateStacksFilesService.new(@purl).write!
+        UpdatePurlMetadataService.new(@purl).write!
       rescue UpdateStacksFilesService::BlobError => e
         # Returning 500 because not clear whose fault it is.
         return render build_error('500', e, 'Error matching uploading files to file parameters.')

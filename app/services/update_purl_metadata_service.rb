@@ -1,8 +1,10 @@
 class UpdatePurlMetadataService
-  attr_reader :cocina_object
+  attr_reader :purl
 
-  def initialize(cocina_object)
-    @cocina_object = cocina_object
+  delegate :cocina_object, :druid, :purl_druid_path, to: :purl
+
+  def initialize(purl)
+    @purl = purl
   end
 
   # Write the cocina object to the Purl druid path as cocina.json
@@ -26,16 +28,7 @@ class UpdatePurlMetadataService
     File.write(File.join(purl_druid_path, 'public.xml'), public_xml)
   end
 
-  # return [String] the Purl path for the cocina object
-  def purl_druid_path
-    DruidTools::PurlDruid.new(@cocina_object.externalIdentifier, Settings.filesystems.purl_root).path
-  end
-
   def public_xml
     Publish::PublicXmlService.new(public_cocina: cocina_object, thumbnail_service: ThumbnailService.new(cocina_object)).to_xml
-  end
-
-  def druid
-    cocina_object.externalIdentifier
   end
 end

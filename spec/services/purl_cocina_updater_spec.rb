@@ -17,6 +17,11 @@ RSpec.describe PurlCocinaUpdater do
       purl.reload
     end
 
+    it "updates the stored data" do
+      expect(purl.cocina_object).to eq cocina
+      expect(purl.public_json.data).to eq cocina.to_json
+    end
+
     it "adds collection memberships" do
       expect(purl.collections.pluck(:druid)).to eq ["druid:xb432gf1111"]
       expect(purl.constituents).to be_empty

@@ -11,7 +11,8 @@ module V1
     end
 
     ##
-    # Update the database purl record from the passed in cocina
+    # Update the database purl record from the passed in cocina.
+    # This is a legacy API and will be replaced by ResourcesController#create
     def update
       @purl = begin
                 Purl.find_or_create_by(druid: druid_param)

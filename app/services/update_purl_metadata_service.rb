@@ -22,14 +22,10 @@ class UpdatePurlMetadataService
   end
 
   def write_public_cocina
-    File.write(File.join(purl_druid_path, 'cocina.json'), cocina_object.to_json)
+    PublicCocinaWriter.write(cocina_object, File.join(purl_druid_path, 'cocina.json'))
   end
 
   def write_public_xml
-    File.write(File.join(purl_druid_path, 'public.xml'), public_xml)
-  end
-
-  def public_xml
-    Publish::PublicXmlService.new(public_cocina: cocina_object, thumbnail_service: ThumbnailService.new(cocina_object)).to_xml
+    PublicXmlWriter.write(cocina_object, File.join(purl_druid_path, 'public.xml'))
   end
 end

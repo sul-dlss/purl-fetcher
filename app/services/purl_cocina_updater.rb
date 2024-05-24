@@ -2,6 +2,10 @@
 class PurlCocinaUpdater
   UTF8_4BYTE_REGEX = /[\u{10000}-\u{10FFFF}]/
 
+  def self.update(...)
+    new(...).update
+  end
+
   # @param [Purl] active_record
   # @param [Cocina::Models::Collection, Cocina::Models::DRO] cocina_object
   def initialize(active_record, cocina_object)

@@ -43,14 +43,7 @@ RSpec.describe V1::PurlsController do
 
     context 'with cocina json' do
       before do
-        allow(Racecar).to receive(:produce_sync)
-      end
-
-      let(:expected_message_value) do
-        {
-          cocina: Cocina::Models.build(cocina_object),
-          actions: nil
-        }.to_json
+        allow(PurlCocinaUpdater).to receive(:update)
       end
 
       context 'with a new item' do
@@ -59,8 +52,16 @@ RSpec.describe V1::PurlsController do
             post "/purls/#{druid}", params: data, headers:
           end.to change(Purl, :count).by(1)
           expect(response).to have_http_status(:accepted)
-          expect(Racecar).to have_received(:produce_sync)
-            .with(key: String, topic: 'purl-updates', value: expected_message_value)
+          expect(PurlCocinaUpdater).to have_received(:update)
+            .with(an_instance_of(Purl), an_instance_of(Cocina::Models::DRO))
+
+          purl_object = Purl.find_by!(druid:)
+
+          public_cocina_filepath = File.join(purl_object.purl_druid_path, 'cocina.json')
+          expect(JSON.parse(File.read(public_cocina_filepath))).to eq Cocina::Models.without_metadata(cocina_object).to_h.with_indifferent_access
+
+          public_xml_filepath = File.join(purl_object.purl_druid_path, 'public.xml')
+          expect(File.exist?(public_xml_filepath)).to be true
         end
       end
 
@@ -70,8 +71,8 @@ RSpec.describe V1::PurlsController do
 
         it 'updates the purl with new data' do
           post("/purls/#{druid}", params: data, headers:)
-          expect(Racecar).to have_received(:produce_sync)
-            .with(key: druid, topic: 'purl-updates', value: expected_message_value)
+          expect(PurlCocinaUpdater).to have_received(:update)
+            .with(an_instance_of(Purl), an_instance_of(Cocina::Models::DRO))
 
           expect(response).to have_http_status(:accepted)
         end

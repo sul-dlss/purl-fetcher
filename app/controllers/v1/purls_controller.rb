@@ -20,8 +20,8 @@ module V1
                 retry
               end
 
-      # This triggers PurlUpdatesConsumer to run asynchronously
-      Racecar.produce_sync(value: { cocina: cocina_object, actions: nil }.to_json, key: druid_param, topic: "purl-updates")
+      PurlCocinaUpdater.update(@purl, cocina_object)
+      write_public_files
 
       render json: true, status: :accepted
     end
@@ -34,7 +34,13 @@ module V1
     private
 
     def cocina_object
-      Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format).to_unsafe_h)
+      @cocina_object ||= Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format, *Cocina::Models::METADATA_KEYS).to_unsafe_h)
+    end
+
+    def write_public_files
+      FileUtils.mkdir_p(@purl.purl_druid_path) unless File.directory?(@purl.purl_druid_path)
+      PublicCocinaWriter.write(cocina_object, File.join(@purl.purl_druid_path, 'cocina.json'))
+      PublicXmlWriter.write(cocina_object, File.join(@purl.purl_druid_path, 'public.xml'))
     end
   end
 end

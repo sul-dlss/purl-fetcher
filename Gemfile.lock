@@ -469,7 +469,6 @@ DEPENDENCIES
   debug
   dlss-capistrano (~> 4.4)
   druid-tools
-  equivalent-xml
   factory_bot_rails
   honeybadger
   jbuilder

@@ -20,6 +20,7 @@ module V1
                 retry
               end
 
+      # This triggers PurlUpdatesConsumer to run asynchronously
       Racecar.produce_sync(value: { cocina: cocina_object, actions: nil }.to_json, key: druid_param, topic: "purl-updates")
 
       render json: true, status: :accepted

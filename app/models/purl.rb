@@ -67,6 +67,10 @@ class Purl < ApplicationRecord
     end
   end
 
+  def purl_druid_path
+    DruidTools::PurlDruid.new(druid, Settings.filesystems.purl_root).path
+  end
+
   # Produce the Kafka messages that are consumed by Traject::KafkaPurlFetcherReader in searchworks_traject_indexer.
   def as_public_json
     data = if deleted?

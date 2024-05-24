@@ -21,10 +21,7 @@ module V1
       purl = Purl.find_by!(druid: params[:druid])
       actions = params.require(:actions).permit(index: [], delete: [])
 
-      # add the release tags, and reuse tags if already associated with this PURL
-      purl.refresh_release_tags(actions)
-      purl.save!
-      purl.produce_indexer_log_message
+      ReleaseService.release(purl, actions)
 
       render json: true, status: :accepted
     end

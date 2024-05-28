@@ -8,32 +8,30 @@ module V1
     before_action :load_cocina_object
     before_action :load_purl
 
+    rescue_from UpdateStacksFilesService::BlobError do |e|
+      render build_error('500', e, 'Error matching uploading files to file parameters.')
+    end
+
+    rescue_from UpdateStacksFilesService::RequestError do |e|
+      render build_error('400', e, 'Bad request')
+    end
+
     # POST /resource
     def create
       PurlCocinaUpdater.new(@purl, @cocina_object).update
 
-      begin
-        UpdateStacksFilesService.new(@purl).write!
-        UpdatePurlMetadataService.new(@purl).write!
-      rescue UpdateStacksFilesService::BlobError => e
-        # Returning 500 because not clear whose fault it is.
-        return render build_error('500', e, 'Error matching uploading files to file parameters.')
-      end
+      # :file_uploads is a map of filenames to ActiveStorage signed ids
+      UpdateStacksFilesService.write!(@purl, file_uploads)
+      UpdatePurlMetadataService.new(@purl).write!
 
       render json: true, location: @purl, status: :created
     end
 
     private
 
-    CREATE_PARAMS_EXCLUDE_FROM_COCINA = %i[action controller resource].freeze
-
-    def cocina_object_params
-      params.except(*CREATE_PARAMS_EXCLUDE_FROM_COCINA).to_unsafe_h
-    end
-
     # Build the cocina object from the params
     def load_cocina_object
-      cocina_model_params = cocina_object_params.deep_dup
+      cocina_model_params = params.require(:resource).require(:object).to_unsafe_h
       @cocina_object = Cocina::Models.build(cocina_model_params)
     end
 
@@ -41,6 +39,10 @@ module V1
       @purl = Purl.find_or_create_by(druid: @cocina_object.externalIdentifier)
     rescue ActiveRecord::RecordNotUnique
       retry
+    end
+
+    def file_uploads
+      params.require(:resource).require(:file_uploads).to_unsafe_h
     end
 
     # JSON-API error response. See https://jsonapi.org/.
@@ -55,7 +57,7 @@ module V1
             }
           ]
         },
-        content_type: 'application/vnd.api+json',
+        content_type: 'application/json',
         status: error_code
       }
     end

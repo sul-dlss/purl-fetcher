@@ -59,7 +59,7 @@ RSpec.describe 'Publish a DRO' do
            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
       expect(response).to be_created
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public.xml')
+      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
       expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
     end
   end

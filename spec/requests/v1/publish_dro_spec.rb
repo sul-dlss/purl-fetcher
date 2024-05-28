@@ -7,7 +7,13 @@ RSpec.describe 'Publish a DRO' do
   let(:bare_druid) { 'bc123df4567' }
   let(:druid) { "druid:#{bare_druid}" }
   let(:dro) { build(:dro_with_metadata, id: druid).new(structural:) }
-  let(:request) { dro.to_json }
+  let(:request) do
+    {
+      object: dro.to_h,
+      file_uploads:
+    }.to_json
+  end
+  let(:file_uploads) { { 'file2.txt' => signed_id } }
   let(:contains) do
     [
       Cocina::Models::FileSet.new(
@@ -67,6 +73,34 @@ RSpec.describe 'Publish a DRO' do
            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
       expect(response).to have_http_status(:server_error)
       expect(JSON.parse(response.body)['errors'][0]['title']).to eq 'Error matching uploading files to file parameters.' # rubocop:disable Rails/ResponseParsedBody
+    end
+  end
+
+  context 'when invalid signed id' do
+    let(:signed_id) { 'not_a_signed_id' }
+
+    it 'returns 400' do
+      post '/v1/resources',
+           params: request,
+           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+      expect(response).to have_http_status(:bad_request)
+      response_json = response.parsed_body
+      expect(response_json['errors'][0]['title']).to eq 'Bad request'
+      expect(response_json['errors'][0]['detail']).to eq 'Invalid signed ids found'
+    end
+  end
+
+  context 'when file not found in structural' do
+    let(:file_uploads) { { 'xfile2.txt' => signed_id } }
+
+    it 'returns 400' do
+      post '/v1/resources',
+           params: request,
+           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+      expect(response).to have_http_status(:bad_request)
+      response_json = response.parsed_body
+      expect(response_json['errors'][0]['title']).to eq 'Bad request'
+      expect(response_json['errors'][0]['detail']).to eq 'Files in file_uploads not in cocina object'
     end
   end
 

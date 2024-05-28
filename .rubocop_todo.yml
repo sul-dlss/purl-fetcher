@@ -156,12 +156,6 @@ RSpec/MultipleExpectations:
     - 'spec/services/publish/public_desc_metadata_service_spec.rb'
 
 # Offense count: 12
-# Configuration parameters: AllowSubject, Max.
-RSpec/MultipleMemoizedHelpers:
-  Exclude:
-    - 'spec/services/cocina/to_xml/content_metadata_generator_spec.rb'
-
-# Offense count: 12
 # Configuration parameters: EnforcedStyle, IgnoreSharedExamples.
 # SupportedStyles: always, named_only
 RSpec/NamedSubject:

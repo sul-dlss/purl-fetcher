@@ -42,7 +42,7 @@ module V1
     end
 
     def file_uploads
-      params.require(:resource).require(:file_uploads).to_unsafe_h
+      params.require(:resource).permit![:file_uploads].to_h
     end
 
     # JSON-API error response. See https://jsonapi.org/.

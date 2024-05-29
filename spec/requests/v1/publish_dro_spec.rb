@@ -60,6 +60,20 @@ RSpec.describe 'Publish a DRO' do
     end
   end
 
+  context 'when no files' do
+    let(:file_uploads) { {} }
+    let(:contains) { [] }
+
+    it 'creates the cocina json file for the resource' do
+      post '/v1/resources',
+           params: request,
+           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+      expect(response).to be_created
+      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+    end
+  end
+
   context 'when blob not found for file' do
     let(:signed_id) { ActiveStorage.verifier.generate('thisisinvalid', purpose: :blob_id) }
 

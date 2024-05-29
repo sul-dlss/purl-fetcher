@@ -38,21 +38,14 @@ class UpdateStacksFilesService
 
   # Copy the files from ActiveStorage to the Stacks directory
   def shelve_files
+    FileUtils.mkdir_p(stacks_druid_path)
     file_uploads_map.each do |filename, signed_id|
       blob = blob_for_signed_id(signed_id, filename)
       blob_path = ActiveStorage::Blob.service.path_for(blob.key)
 
       shelving_path = File.join(stacks_druid_path, filename)
-      make_shelving_dir(shelving_path)
       FileUtils.cp(blob_path, shelving_path)
     end
-  end
-
-  def make_shelving_dir(shelving_path)
-    shelving_dir = File.dirname(shelving_path)
-    return if File.directory?(shelving_dir)
-
-    FileUtils.mkdir_p(shelving_dir)
   end
 
   # return [ActiveStorage::Blob] the blob for the signed id

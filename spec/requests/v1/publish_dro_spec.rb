@@ -48,10 +48,6 @@ RSpec.describe 'Publish a DRO' do
     ActiveStorage.verifier.generate(blob.id, purpose: :blob_id)
   end
 
-  before do
-    allow(Racecar).to receive(:produce_sync)
-  end
-
   context 'when a cocina object is received' do
     it 'creates the cocina json file for the resource' do
       post '/v1/resources',

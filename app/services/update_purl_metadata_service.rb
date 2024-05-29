@@ -13,12 +13,6 @@ class UpdatePurlMetadataService
 
     write_public_cocina
     write_public_xml
-    send_kafka_message
-  end
-
-  # This triggers PurlUpdatesConsumer to run asynchronously
-  def send_kafka_message
-    Racecar.produce_sync(value: { cocina: cocina_object, actions: nil }.to_json, key: druid, topic: "purl-updates")
   end
 
   def write_public_cocina

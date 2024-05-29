@@ -45,12 +45,6 @@ Then, in a separate terminal, start a development API server:
 bin/rails server
 ```
 
-Finally, in another terminal, you can run the Kafka consumer to process updates from the Kafka broker:
-
-```bash
-bundle exec racecar PurlUpdatesConsumer
-```
-
 ### Making requests
 
 You can make requests to the API using `curl` or a similar tool. To add an object to the database, you can first download its public Cocina JSON from production PURL:

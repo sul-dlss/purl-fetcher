@@ -10,8 +10,6 @@ class ReleaseService
   end
 
   def self.write_meta_json(purl)
-    return unless Settings.features.write_meta_json
-
     file_path = File.join(purl.purl_druid_path, 'meta.json')
     File.write(file_path, purl.as_public_json.to_json)
   end

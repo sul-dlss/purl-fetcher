@@ -36,7 +36,6 @@ RSpec.describe V1::ReleasedController do
       let(:meta_path) { Pathname.new(purl_druid_path) / 'meta.json' }
 
       before do
-        allow(Settings.features).to receive(:write_meta_json).and_return(true)
         FileUtils.rm_r(purl_druid_path) if File.directory?(purl_druid_path)
         FileUtils.mkdir_p(purl_druid_path)
       end

@@ -11,6 +11,14 @@ class ReleaseService
 
   def self.write_meta_json(purl)
     file_path = File.join(purl.purl_druid_path, 'meta.json')
-    File.write(file_path, purl.as_public_json.to_json)
+    File.write(file_path, meta_json(purl))
+  end
+
+  def self.meta_json(purl)
+    {
+      sitemap: purl.true_targets.include?('PURL sitemap'),
+      searchworks: purl.true_targets.include?('Searchworks'),
+      earthworks: purl.true_targets.include?('Earthworks')
+    }.to_json
   end
 end

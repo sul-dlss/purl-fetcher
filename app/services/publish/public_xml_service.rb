@@ -27,8 +27,6 @@ module Publish
 
       pub.add_child(DublinCoreService.new(desc_md_xml).ng_xml.root)
       pub.add_child(desc_metadata_service.ng_xml.root)
-      # If there are no release_tags, this prevents an empty <releaseData/> from being added
-      pub.add_child(release_xml.root) unless release_xml.xpath('//release').children.empty?
       # Note we cannot base this on if an individual object has release tags or not, because the collection may cause one to be generated for an item,
       # so we need to calculate it and then look at the final result.
 
@@ -43,21 +41,6 @@ module Publish
     private
 
     attr_reader :public_cocina
-
-    # Generate XML structure for inclusion to Purl. This data is read by purl-fetcher.
-    # @return [String] The XML release node as a string, with ReleaseDigest as the root document
-    def release_xml
-      @release_xml ||= begin
-        builder = Nokogiri::XML::Builder.new do |xml|
-          xml.releaseData do
-            public_cocina.administrative.releaseTags.each do |tag|
-              xml.release(tag.release, to: tag.to)
-            end
-          end
-        end
-        Nokogiri::XML(builder.to_xml)
-      end
-    end
 
     def constituents
       @constituents ||= VirtualObject.for(druid: public_cocina.externalIdentifier)

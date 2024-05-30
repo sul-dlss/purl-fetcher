@@ -43,8 +43,7 @@ class UpdateStacksFilesService
       blob_path = ActiveStorage::Blob.service.path_for(blob.key)
 
       shelving_path = File.join(stacks_druid_path, filename)
-      shelving_dir = File.dirname(shelving_path)
-      FileUtils.mkdir_p(shelving_dir) unless File.directory?(shelving_dir)
+      FileUtils.mkdir_p(File.dirname(shelving_path))
       FileUtils.cp(blob_path, shelving_path)
     end
   end

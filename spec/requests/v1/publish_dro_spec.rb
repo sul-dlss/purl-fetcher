@@ -13,7 +13,7 @@ RSpec.describe 'Publish a DRO' do
       file_uploads:
     }.to_json
   end
-  let(:file_uploads) { { 'file2.txt' => signed_id } }
+  let(:file_uploads) { { 'file2.txt' => signed_id, 'files/file2.txt' => signed_id } }
   let(:contains) do
     [
       Cocina::Models::FileSet.new(
@@ -28,6 +28,16 @@ RSpec.describe 'Publish a DRO' do
               type: Cocina::Models::ObjectType.file,
               label: 'the text file',
               filename: 'file2.txt',
+              version: 1,
+              hasMessageDigests: [
+                { type: 'md5', digest: Base64.decode64(blob.checksum).unpack1('H*') }
+              ]
+            ),
+            Cocina::Models::File.new(
+              externalIdentifier: signed_id,
+              type: Cocina::Models::ObjectType.file,
+              label: 'the hierarchical file',
+              filename: 'files/file2.txt',
               version: 1,
               hasMessageDigests: [
                 { type: 'md5', digest: Base64.decode64(blob.checksum).unpack1('H*') }
@@ -57,6 +67,7 @@ RSpec.describe 'Publish a DRO' do
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
       expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
+      expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
     end
   end
 

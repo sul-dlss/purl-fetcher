@@ -38,12 +38,13 @@ class UpdateStacksFilesService
 
   # Copy the files from ActiveStorage to the Stacks directory
   def shelve_files
-    FileUtils.mkdir_p(stacks_druid_path)
     file_uploads_map.each do |filename, signed_id|
       blob = blob_for_signed_id(signed_id, filename)
       blob_path = ActiveStorage::Blob.service.path_for(blob.key)
 
       shelving_path = File.join(stacks_druid_path, filename)
+      shelving_dir = File.dirname(shelving_path)
+      FileUtils.mkdir_p(shelving_dir) unless File.directory?(shelving_dir)
       FileUtils.cp(blob_path, shelving_path)
     end
   end
@@ -58,7 +59,8 @@ class UpdateStacksFilesService
 
   # Remove files from the Stacks directory that are not in the cocina object
   def unshelve_removed_files
-    Dir.glob("#{stacks_druid_path}/**/*") do |file_with_path|
+    files_with_path = Dir.glob("#{stacks_druid_path}/**/*").reject { |file_with_path| Dir.exist?(file_with_path) }
+    files_with_path.each do |file_with_path|
       file = file_with_path.delete_prefix("#{stacks_druid_path}/")
       next if cocina_filenames.include?(file)
 

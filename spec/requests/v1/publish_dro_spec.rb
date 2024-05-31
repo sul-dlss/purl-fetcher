@@ -57,6 +57,15 @@ RSpec.describe 'Publish a DRO' do
   let(:signed_id) do
     ActiveStorage.verifier.generate(blob.id, purpose: :blob_id)
   end
+  let(:ocfl_path) do
+    DruidTools::AccessDruid
+      .new(druid, Settings.filesystems.ocfl_root)
+      .path
+  end
+
+  before do
+    FileUtils.rm_rf(ocfl_path)
+  end
 
   context 'when a cocina object is received' do
     it 'creates the cocina json file for the resource' do
@@ -68,8 +77,44 @@ RSpec.describe 'Publish a DRO' do
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
       expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
       expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+
+      # Check the OCFL object
+      directory = OCFL::Object::Directory.new(object_root: ocfl_path)
+      expect(directory.exists?).to be true
+      expect(directory.head_version.file_names).to eq(['file2.txt', 'files/file2.txt', 'cocina.json', 'public.xml'])
     end
   end
+
+  # context 'when there are existing files that are not in the cocina' do
+  #   before do
+  #     File.write('tmp/stacks/bc/123/df/4567/file1.txt', 'hello world')
+  #     File.write('tmp/stacks/bc/123/df/4567/files/file1.txt', 'hello world')
+  #     builder = OCFL::Object::DirectoryBuilder.new(object_root: ocfl_path, id: druid)
+  #     builder.create_object_directory
+  #     version = builder.version
+  #     version.copy_file('tmp/stacks/bc/123/df/4567/file1.txt', destination_path: 'file1.txt')
+  #     version.copy_file('tmp/stacks/bc/123/df/4567/files/file1.txt', destination_path: 'files/file1.txt')
+  #     version.save
+  #     directory = OCFL::Object::Directory.new(object_root: ocfl_path)
+  #     expect(directory.head_version.file_names).to eq(['file1.txt', 'files/file1.txt'])
+  #   end
+
+  #   it 'deletes the files' do
+  #     post '/v1/resources',
+  #          params: request,
+  #          headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+  #     expect(response).to be_created
+  #     expect(File).not_to exist('tmp/stacks/bc/123/df/4567/file1.txt')
+  #     expect(File).not_to exist('tmp/stacks/bc/123/df/4567/files/file1.txt')
+  #     expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
+  #     expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+
+  #     # Check the OCFL object
+  #     directory = OCFL::Object::Directory.new(object_root: ocfl_path)
+  #     expect(directory.exists?).to be true
+  #     expect(directory.head_version.file_names).to eq(['file2.txt', 'files/file2.txt', 'cocina.json', 'public.xml'])
+  #   end
+  # end
 
   context 'when no files' do
     let(:file_uploads) { {} }
@@ -82,6 +127,11 @@ RSpec.describe 'Publish a DRO' do
       expect(response).to be_created
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+
+      # Check the OCFL object
+      directory = OCFL::Object::Directory.new(object_root: ocfl_path)
+      expect(directory.exists?).to be true
+      expect(directory.head_version.file_names).to eq(['cocina.json', 'public.xml'])
     end
   end
 

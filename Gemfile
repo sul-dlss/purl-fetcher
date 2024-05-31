@@ -70,6 +70,6 @@ gem 'whenever', require: false
 
 gem 'jwt' # json web token
 
-gem 'ocfl', '~> 0.4', '>= 0.4.1'
+gem 'ocfl', '~> 0.8'
 
 gem 'druid-tools'

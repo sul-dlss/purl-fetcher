@@ -61,17 +61,6 @@ RSpec.describe Publish::PublicXmlService do
       allow_any_instance_of(Publish::PublicDescMetadataService).to receive(:ng_xml).and_return(Nokogiri::XML(mods)) # calls Item.find and not needed in general tests
     end
 
-    context 'when there are no release tags' do
-      let(:public_cocina) do
-        build(:dro, id: druid)
-      end
-
-      it 'does not include a releaseData element and any info in identityMetadata' do
-        expect(ng_xml.at_xpath('/publicObject/releaseData')).to be_nil
-        expect(ng_xml.at_xpath('/publicObject/identityMetadata/release')).to be_nil
-      end
-    end
-
     context 'with an embargo' do
       let(:public_cocina) do
         build(:dro, id: druid).new(
@@ -281,32 +270,6 @@ RSpec.describe Publish::PublicXmlService do
           expect(ng_xml.at_xpath('/publicObject/thumb').to_xml).to be_equivalent_to('<thumb>bc123df4567/wt183gy6220_00_0001.jp2</thumb>')
         end
       end
-
-      context 'when there are single release tags per target' do
-        let(:public_cocina) do
-          build(:dro, id: druid).new(administrative:)
-        end
-
-        let(:administrative) do
-          {
-            hasAdminPolicy: 'druid:hv992ry2431',
-            releaseTags: [
-              { to: 'Searchworks', release: true, date: '2015-10-23T21:49:29.000+00:00', what: 'self' },
-              { to: 'PURL sitemap', release: true, date: '2015-10-23T21:49:29.000+00:00', what: 'self' }
-            ]
-          }
-        end
-
-        it 'does not include this release data in identityMetadata' do
-          expect(ng_xml.at_xpath('/publicObject/identityMetadata/release')).to be_nil
-        end
-
-        it 'includes releaseData element from release tags' do
-          releases = ng_xml.xpath('/publicObject/releaseData/release')
-          expect(releases.map(&:inner_text)).to eq ['true', 'true']
-          expect(releases.pluck('to')).to eq ['Searchworks', 'PURL sitemap']
-        end
-      end
     end
 
     context 'with a collection' do
@@ -330,32 +293,6 @@ RSpec.describe Publish::PublicXmlService do
           </identityMetadata>
         XML
         expect(ng_xml.at_xpath('/publicObject/identityMetadata').to_xml).to be_equivalent_to expected
-      end
-
-      context 'when there are release tags' do
-        let(:public_cocina) do
-          build(:collection, id: druid).new(administrative:)
-        end
-
-        let(:administrative) do
-          {
-            hasAdminPolicy: 'druid:hv992ry2431',
-            releaseTags: [
-              { to: 'Searchworks', release: true, date: '2015-10-23T21:49:29.000+00:00', what: 'collection' },
-              { to: 'PURL sitemap', release: true, date: '2015-10-23T21:49:29.000+00:00', what: 'collection' }
-            ]
-          }
-        end
-
-        it 'does not include this release data in identityMetadata' do
-          expect(ng_xml.at_xpath('/publicObject/identityMetadata/release')).to be_nil
-        end
-
-        it 'includes releaseData element from release tags' do
-          releases = ng_xml.xpath('/publicObject/releaseData/release')
-          expect(releases.map(&:inner_text)).to eq ['true', 'true']
-          expect(releases.pluck('to')).to eq ['Searchworks', 'PURL sitemap']
-        end
       end
     end
 
@@ -468,8 +405,7 @@ RSpec.describe Publish::PublicXmlService do
                       copyright: 'Property rights reside with the repository, Copyright © Stanford University.',
                       useAndReproductionStatement: 'To obtain permission to publish or reproduce commercially, please contact the Digital & Rare Map Librarian',
                       license: 'https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode' },
-            administrative: { hasAdminPolicy: 'druid:sq161jk2248',
-                              releaseTags: [] },
+            administrative: { hasAdminPolicy: 'druid:sq161jk2248' },
             description: {
               title: [{
                 value: "(Title Page to) Carey's American Atlas: Containing Twenty Maps And One Chart ... Philadelphia: Engraved For, And Published By, Mathew Carey, " \

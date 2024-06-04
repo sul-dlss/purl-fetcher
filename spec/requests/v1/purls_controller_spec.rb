@@ -60,7 +60,7 @@ RSpec.describe V1::PurlsController do
           public_cocina_filepath = File.join(purl_object.purl_druid_path, 'cocina.json')
           expect(JSON.parse(File.read(public_cocina_filepath))).to eq Cocina::Models.without_metadata(cocina_object).to_h.with_indifferent_access
 
-          public_xml_filepath = File.join(purl_object.purl_druid_path, 'public.xml')
+          public_xml_filepath = File.join(purl_object.purl_druid_path, 'public')
           expect(File.exist?(public_xml_filepath)).to be true
         end
       end

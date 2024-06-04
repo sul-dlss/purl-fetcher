@@ -40,7 +40,7 @@ module V1
     def write_public_files
       FileUtils.mkdir_p(@purl.purl_druid_path) unless File.directory?(@purl.purl_druid_path)
       PublicCocinaWriter.write(cocina_object, File.join(@purl.purl_druid_path, 'cocina.json'))
-      PublicXmlWriter.write(cocina_object, File.join(@purl.purl_druid_path, 'public.xml'))
+      PublicXmlWriter.write(cocina_object, File.join(@purl.purl_druid_path, 'public'))
     end
   end
 end

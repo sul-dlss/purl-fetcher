@@ -478,7 +478,7 @@ DEPENDENCIES
   kaminari
   mysql2
   newrelic_rpm
-  ocfl (~> 0.4, >= 0.4.1)
+  ocfl (~> 0.8)
   okcomputer
   puma (~> 6.0)
   racecar

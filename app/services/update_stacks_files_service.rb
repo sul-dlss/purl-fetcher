@@ -12,8 +12,6 @@ class UpdateStacksFilesService
   end
 
   def write!
-    check_files_in_structural
-    check_signed_ids
     shelve_files
     unshelve_removed_files
   end
@@ -23,18 +21,6 @@ class UpdateStacksFilesService
   attr_reader :purl, :file_uploads_map
 
   delegate :cocina_object, :stacks_druid_path, to: :purl
-
-  def check_files_in_structural
-    return if file_uploads_map.keys.all? { |filename| cocina_filenames.include?(filename) }
-
-    raise RequestError, 'Files in file_uploads not in cocina object'
-  end
-
-  def check_signed_ids
-    return if file_uploads_map.values.all? { |signed_id| ActiveStorage.verifier.valid_message?(signed_id) }
-
-    raise RequestError, "Invalid signed ids found"
-  end
 
   # Copy the files from ActiveStorage to the Stacks directory
   def shelve_files

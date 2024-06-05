@@ -12,17 +12,24 @@ module V1
       render build_error('500', e, 'Error matching uploading files to file parameters.')
     end
 
-    rescue_from UpdateStacksFilesService::RequestError do |e|
+    rescue_from UpdateOcflService::BlobError do |e|
+      render build_error('500', e, 'Error matching uploading files to file parameters.')
+    end
+
+    rescue_from FileUploadValidator::Error do |e|
       render build_error('400', e, 'Bad request')
     end
 
     # POST /resource
     def create
+      FileUploadValidator.validate(cocina_object: @cocina_object, file_uploads_map: file_uploads)
+
       PurlCocinaUpdater.new(@purl, @cocina_object).update
 
       # :file_uploads is a map of filenames to ActiveStorage signed ids
       UpdateStacksFilesService.write!(@purl, file_uploads)
       UpdatePurlMetadataService.new(@purl).write!
+      UpdateOcflService.new(@purl, file_uploads).write!
 
       render json: true, location: @purl, status: :created
     end

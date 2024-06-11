@@ -13,17 +13,21 @@ class OcflMigrator
   def migrate
     return if !overwrite && File.exist?(ocfl_druid_path)
 
-    builder.copy_recursive(stacks_druid_path)
-    builder.copy_recursive(purl_druid_path)
-    builder.save
+    ocfl_object.copy_recursive(stacks_druid_path)
+    ocfl_object.copy_recursive(purl_druid_path)
+    ocfl_object.save
   end
 
   private
 
   attr_reader :druid, :overwrite
 
-  def builder
-    @builder ||= OCFL::Object::DirectoryBuilder.new(object_root: ocfl_druid_path, id: druid)
+  def ocfl_object
+    @ocfl_object ||= storage_root.object(druid)
+  end
+
+  def storage_root
+    OCFL::StorageRoot.new(base_directory: Settings.filesystems.ocfl_root)
   end
 
   def purl_druid_path

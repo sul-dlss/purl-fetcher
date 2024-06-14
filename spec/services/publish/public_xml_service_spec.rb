@@ -416,8 +416,7 @@ RSpec.describe Publish::PublicXmlService do
                       copyright: 'Property rights reside with the repository, Copyright © Stanford University.',
                       useAndReproductionStatement: 'To obtain permission to publish or reproduce commercially, please contact the Digital & Rare Map Librarian',
                       license: 'https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode' },
-            administrative: { hasAdminPolicy: 'druid:sq161jk2248',
-                              releaseTags: [] },
+            administrative: { hasAdminPolicy: 'druid:sq161jk2248' },
             description: {
               title: [{
                 value: "(Title Page to) Carey's American Atlas: Containing Twenty Maps And One Chart ... Philadelphia: Engraved For, And Published By, Mathew Carey, " \

@@ -29,11 +29,7 @@ RSpec.describe V1::PurlsController do
       build(:dro_with_metadata, id: druid, title:,
                                 collection_ids: ['druid:xb432gf1111'])
         .new(administrative: {
-               hasAdminPolicy: "druid:hv992ry2431",
-               releaseTags: [
-                 { to: 'Searchworks', release: true, what: 'self' },
-                 { to: 'Earthworks', release: false, what: 'self' }
-               ]
+               hasAdminPolicy: "druid:hv992ry2431"
              },
              created: Time.now.utc.iso8601,
              modified: Time.now.utc.iso8601)

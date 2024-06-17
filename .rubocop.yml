@@ -2,6 +2,9 @@ require:
   - rubocop-rspec
   - rubocop-performance
   - rubocop-rails
+  - rubocop-capybara
+  - rubocop-rspec_rails
+  - rubocop-factory_bot
 
 inherit_from: .rubocop_todo.yml
 
@@ -513,4 +516,10 @@ Rails/EnvLocal: # new in 2.22
 Rails/RedundantActiveRecordAllMethod: # new in 2.21
   Enabled: true
 Rails/UnusedRenderContent: # new in 2.21
+  Enabled: true
+Style/SendWithLiteralMethodName: # new in 1.64
+  Enabled: true
+Style/SuperArguments: # new in 1.64
+  Enabled: true
+Rails/WhereRange: # new in 2.25
   Enabled: true

@@ -20,10 +20,18 @@ module V1
                 retry
               end
 
-      PurlCocinaUpdater.update(@purl, cocina_object)
-      write_public_files
+      begin
+        PurlCocinaUpdater.update(@purl, cocina_object)
+        write_public_files
 
-      render json: true, status: :accepted
+        render json: true, status: :accepted
+      rescue Cocina::Models::ValidationError => e
+        render json: {
+          errors: [
+            { title: 'bad request', detail: e.message }
+          ]
+        }, status: :bad_request
+      end
     end
 
     def destroy

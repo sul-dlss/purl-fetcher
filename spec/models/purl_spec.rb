@@ -31,6 +31,11 @@ RSpec.describe Purl do
 
   describe '.membership' do
     context 'when passed "none"' do
+      before do
+        create_list(:purl, 4)
+        create(:purl, :with_collection)
+      end
+
       it 'returns objects that do not belong to a collection' do
         objects = described_class.membership('membership' => 'none')
         expect(objects.count).to eq 4
@@ -41,6 +46,11 @@ RSpec.describe Purl do
     end
 
     context 'when passed "collection"' do
+      before do
+        create(:purl)
+        create_list(:purl, 4, :with_collection)
+      end
+
       it 'returns objects that only belong to a collection' do
         objects = described_class.membership('membership' => 'collection')
         expect(objects.count).to eq 4
@@ -59,13 +69,23 @@ RSpec.describe Purl do
 
   describe '.status' do
     context 'when passed "deleted"' do
+      before do
+        create(:purl)
+        3.times { create(:purl, deleted_at: Time.zone.now) }
+      end
+
       it 'returns objects that have been deleted' do
         objects = described_class.status('deleted')
         expect(objects.count).to eq 3
       end
     end
 
-    context 'when passed "collection"' do
+    context 'when passed "public"' do
+      before do
+        create_list(:purl, 5)
+        create(:purl, deleted_at: Time.zone.now)
+      end
+
       it 'returns objects that are still public' do
         objects = described_class.status('public')
         expect(objects.count).to eq 5
@@ -75,13 +95,22 @@ RSpec.describe Purl do
 
   describe '.target' do
     context 'when passed a valid target' do
+      before do
+        create_list(:purl, 2, :with_release_tags)
+        create(:purl)
+      end
+
       it 'returns objects that have that target' do
-        objects = described_class.target('SearchWorks')
+        objects = described_class.target('Searchworks')
         expect(objects.count).to eq 2
       end
     end
 
     context 'when passed an invalid target' do
+      before do
+        create(:purl, :with_release_tags)
+      end
+
       it 'returns nothing' do
         objects = described_class.target('SuperCoolStuff')
         expect(objects.count).to eq 0

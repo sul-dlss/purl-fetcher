@@ -75,6 +75,24 @@ RSpec.describe V1::PurlsController do
       end
     end
 
+    context 'with invalid cocina json' do
+      let(:data) { { invalid: true }.to_json }
+
+      before do
+        allow(PurlCocinaUpdater).to receive(:update)
+      end
+
+      context 'with a new item' do
+        it 'creates a new purl entry' do
+          expect do
+            post "/purls/#{druid}", params: data, headers:
+          end.to change(Purl, :count).by(1)
+          expect(response).to have_http_status(:bad_request)
+          expect(PurlCocinaUpdater).not_to have_received(:update)
+        end
+      end
+    end
+
     context 'when no authorization token is provided' do
       it 'returns 401' do
         post "/purls/#{druid}", params: data, headers: headers.except('Authorization')

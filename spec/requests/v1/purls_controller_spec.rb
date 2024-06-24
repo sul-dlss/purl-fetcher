@@ -93,11 +93,20 @@ RSpec.describe V1::PurlsController do
       purl_object.update(druid: 'druid:bb050dj7711')
     end
 
-    it 'marks the purl as deleted' do
-      delete('/purls/bb050dj7711', headers:)
-      expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
-      expect(Racecar).to have_received(:produce_sync)
-        .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
+    context 'with valid authorization token' do
+      before do
+        FileUtils.mkdir_p('tmp/stacks/bb/050/dj/7711/')
+        File.write('tmp/stacks/bb/050/dj/7711/file3.txt', 'hello world')
+      end
+
+      it 'marks the purl as deleted and removes files' do
+        expect(File).to exist('tmp/stacks/bb/050/dj/7711/file3.txt')
+        delete('/purls/bb050dj7711', headers:)
+        expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
+        expect(Racecar).to have_received(:produce_sync)
+          .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
+        expect(File).not_to exist('tmp/stacks/bb/050/dj/7711/file3.txt')
+      end
     end
 
     context 'when no authorization token is provided' do

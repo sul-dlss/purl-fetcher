@@ -3,6 +3,7 @@ module V1
     include Authenticated
 
     before_action :check_auth_token, only: %i[update destroy]
+    before_action :find_purl, only: %i[update destroy]
 
     # Show the public json for the object. Used by purl to know if this object should be indexed by crawlers.
     def show
@@ -14,12 +15,6 @@ module V1
     # Update the database purl record from the passed in cocina.
     # This is a legacy API and will be replaced by ResourcesController#create
     def update
-      @purl = begin
-                Purl.find_or_create_by(druid: druid_param)
-              rescue ActiveRecord::RecordNotUnique
-                retry
-              end
-
       PurlCocinaUpdater.update(@purl, cocina_object)
       write_public_files
 
@@ -27,11 +22,20 @@ module V1
     end
 
     def destroy
-      Purl.mark_deleted(druid_param)
+      @purl.mark_deleted
+      UpdateStacksFilesService.delete!(@purl)
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
 
     private
+
+    def find_purl
+      @purl = begin
+                Purl.find_or_create_by(druid: druid_param)
+              rescue ActiveRecord::RecordNotUnique
+                retry
+              end
+    end
 
     def cocina_object
       @cocina_object ||= Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format, *Cocina::Models::METADATA_KEYS).to_unsafe_h)

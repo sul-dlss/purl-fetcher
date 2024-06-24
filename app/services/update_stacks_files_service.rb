@@ -6,7 +6,11 @@ class UpdateStacksFilesService
     new(...).write!
   end
 
-  def initialize(purl, file_uploads_map)
+  def self.delete!(...)
+    new(...).delete!
+  end
+
+  def initialize(purl, file_uploads_map = {})
     @purl = purl
     @file_uploads_map = file_uploads_map
   end
@@ -15,6 +19,11 @@ class UpdateStacksFilesService
     check_files_in_structural
     check_signed_ids
     shelve_files
+    unshelve_removed_files
+  end
+
+  def delete!
+    @cocina_filenames = []
     unshelve_removed_files
   end
 

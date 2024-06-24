@@ -89,35 +89,28 @@ RSpec.describe Purl do
     end
   end
 
-  describe '.mark_deleted' do
-    it 'always starts without deleted_at time' do
-      purl = described_class.create(druid:)
-      expect(purl.deleted_at?).to be_falsey
-    end
+  describe '#deleted_at?' do
+    subject { purl.deleted_at? }
+    let(:purl) { described_class.create(druid:) }
+
+    it { is_expected.to be false }
+  end
+
+  describe '#mark_deleted' do
+    subject(:mark_deleted) { purl.mark_deleted }
+    let!(:purl) { create(:purl, :with_release_tags, :with_collection, druid:) }
 
     it 'marks a record as deleted' do
-      expect(described_class.mark_deleted(druid)).to be_truthy
-      purl = described_class.find_by_druid(druid)
-      expect(purl.deleted_at?).to be_truthy
-    end
-
-    it 'marks a record as deleted with a given timestamp' do
-      deleted_at_time = Time.current
-      expect(described_class.mark_deleted(druid, deleted_at_time)).to be_truthy
-      purl = described_class.find_by(druid:)
-      expect(purl.deleted_at.iso8601).to eq deleted_at_time.iso8601 # favorable compare which removes milliseconds
+      mark_deleted
+      expect(purl.deleted_at?).to be true
     end
 
     it 'cleans up release_tags' do
-      purl = described_class.find(1)
-      expect{ described_class.mark_deleted(purl.druid) }
-        .to change { purl.release_tags.count }.from(2).to(0)
+      expect { mark_deleted }.to change { purl.release_tags.count }.from(2).to(0)
     end
 
     it 'cleans up collections' do
-      purl = described_class.find(1)
-      expect{ described_class.mark_deleted(purl.druid) }
-        .to change { purl.collections.count }.from(1).to(0)
+      expect { mark_deleted }.to change { purl.collections.count }.from(1).to(0)
     end
   end
 end

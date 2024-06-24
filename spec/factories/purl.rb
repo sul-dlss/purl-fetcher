@@ -3,6 +3,9 @@ FactoryBot.define do
     sequence :druid do |n|
       "druid:zz#{format('%03d', n)}yy0000"
     end
+
+    title { 'Some test object' }
+    object_type { 'item' }
     published_at { 1.day.ago }
     public_json { association :public_json, purl: instance }
 

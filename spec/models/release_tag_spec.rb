@@ -1,18 +1,18 @@
 require 'rails_helper'
 
-describe ReleaseTag do
-  let(:purl) { Purl.find(1) }
+RSpec.describe ReleaseTag do
+  let(:purl) { create(:purl, :with_release_tags) }
 
-  context 'reads data correctly' do
-    it '.release_tags' do
+  describe '#release_tags' do
+    it 'reads the data' do
       tags = purl.release_tags.to_h { |tag| [ tag.name, tag.release_type ] }
-      expect(tags).to include('Revs' => true, 'SearchWorks' => true)
+      expect(tags).to include('PURL sitemap' => true, 'Searchworks' => true)
     end
   end
 
-  context 'updates duplicate tags correctly' do
+  describe 'updating duplicate tags' do
     it 'finds prior tags using unique composite key' do
-      tag = described_class.find_by(purl_id: purl.id, name: 'Revs')
+      tag = described_class.find_by(purl_id: purl.id, name: 'PURL sitemap')
       expect(tag).to be_an described_class
     end
 
@@ -24,7 +24,7 @@ describe ReleaseTag do
 
     describe '.for' do
       it 'overwrites prior tags' do
-        tag = described_class.for(purl, 'Revs', false)
+        tag = described_class.for(purl, 'PURL sitemap', false)
         expect(tag.release_type).to be_falsey     # sets type
         expect(tag.new_record?).to be_falsey      # reuses
         expect(tag.changed?).to be_truthy         # not saved

@@ -76,9 +76,10 @@ class UpdateStacksFilesService
     end
   end
 
+  # @return [Array<String>] a list of filenames that are set shelve: true
   def cocina_filenames
-    @cocina_filenames ||= cocina_object.structural.contains.map do |fileset|
-      fileset.structural.contains.map(&:filename)
-    end.flatten
+    @cocina_filenames ||= cocina_object.structural.contains.flat_map do |fileset|
+      fileset.structural.contains.select { |file| file.administrative.shelve }.map(&:filename)
+    end
   end
 end

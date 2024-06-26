@@ -1,7 +1,1 @@
 hmac_secret: 'my$ecretK3y'
-
-# Mounted filesystems
-filesystems:
-  ocfl_root: 'tmp/ocfl'
-  purl_root: 'tmp/purl_doc_cache'
-  stacks_root: 'tmp/stacks'

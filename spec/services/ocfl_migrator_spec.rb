@@ -26,23 +26,22 @@ RSpec.describe OcflMigrator do
 
   describe '#migrate' do
     before do
-      allow(OCFL::StorageRoot).to receive(:new).and_return(storage_root)
+      allow(OCFL::Object::DirectoryBuilder).to receive(:new).and_return(fake_builder)
       migrator.migrate
     end
 
-    let(:storage_root) { instance_double(OCFL::StorageRoot, object: version_builder) }
-    let(:version_builder) { instance_double(OCFL::VersionBuilder, copy_recursive: nil, save: nil) }
+    let(:fake_builder) { instance_double(OCFL::Object::DirectoryBuilder, copy_recursive: nil, save: nil) }
 
     it 'copies files from the stacks path' do
-      expect(version_builder).to have_received(:copy_recursive).with(/#{Settings.filesystems.stacks_root}/).once
+      expect(fake_builder).to have_received(:copy_recursive).with(/#{Settings.filesystems.stacks_root}/).once
     end
 
     it 'copies files from the purl path' do
-      expect(version_builder).to have_received(:copy_recursive).with(/#{Settings.filesystems.purl_root}/).once
+      expect(fake_builder).to have_received(:copy_recursive).with(/#{Settings.filesystems.purl_root}/).once
     end
 
     it 'saves the OCFL object directory' do
-      expect(version_builder).to have_received(:save).once
+      expect(fake_builder).to have_received(:save).once
     end
   end
 end

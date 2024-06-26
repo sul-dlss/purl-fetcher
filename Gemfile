@@ -72,5 +72,3 @@ gem "racecar"
 gem 'whenever', require: false
 
 gem 'jwt' # json web token
-
-gem 'ocfl'

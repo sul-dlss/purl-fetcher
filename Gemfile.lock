@@ -166,29 +166,13 @@ GEM
     docile (1.4.0)
     drb (2.2.1)
     druid-tools (3.0.0)
-    dry-configurable (1.1.0)
-      dry-core (~> 1.0, < 2)
-      zeitwerk (~> 2.6)
     dry-core (1.0.1)
       concurrent-ruby (~> 1.0)
       zeitwerk (~> 2.6)
     dry-inflector (1.0.0)
-    dry-initializer (3.1.1)
     dry-logic (1.5.0)
       concurrent-ruby (~> 1.0)
       dry-core (~> 1.0, < 2)
-      zeitwerk (~> 2.6)
-    dry-monads (1.6.0)
-      concurrent-ruby (~> 1.0)
-      dry-core (~> 1.0, < 2)
-      zeitwerk (~> 2.6)
-    dry-schema (1.13.4)
-      concurrent-ruby (~> 1.0)
-      dry-configurable (~> 1.0, >= 1.0.1)
-      dry-core (~> 1.0, < 2)
-      dry-initializer (~> 3.0)
-      dry-logic (>= 1.4, < 2)
-      dry-types (>= 1.7, < 2)
       zeitwerk (~> 2.6)
     dry-struct (1.6.0)
       dry-core (~> 1.0, < 2)
@@ -287,12 +271,6 @@ GEM
       racc (~> 1.4)
     nokogiri (1.16.6-x86_64-linux)
       racc (~> 1.4)
-    ocfl (0.9.1)
-      activesupport (>= 7.0)
-      dry-monads (~> 1.6)
-      dry-schema (~> 1.13)
-      dry-struct (~> 1.6)
-      zeitwerk (~> 2.0)
     okcomputer (1.18.5)
     openapi3_parser (0.10.0)
       commonmarker (>= 1.0)
@@ -469,7 +447,7 @@ DEPENDENCIES
   config
   debug
   dlss-capistrano (~> 4.4)
-  druid-tools
+  druid-tools (~> 3.0)
   factory_bot_rails
   honeybadger
   jbuilder
@@ -477,7 +455,6 @@ DEPENDENCIES
   kaminari
   mysql2
   newrelic_rpm
-  ocfl (~> 0.4, >= 0.4.1)
   okcomputer
   puma (~> 6.0)
   racecar

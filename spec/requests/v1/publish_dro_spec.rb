@@ -66,8 +66,13 @@ RSpec.describe 'Publish a DRO' do
       expect(response).to be_created
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
       expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
-      expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
-      expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+      if Settings.features.awfl
+        expect(File).to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
+        expect(File).to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
+      else
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+      end
     end
   end
 

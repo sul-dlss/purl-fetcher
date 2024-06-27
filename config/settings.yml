@@ -14,6 +14,10 @@ hmac_secret: ~
 filesystems:
   purl_root: "/purl/document_cache"
   stacks_root: "/stacks"
+  stacks_content_addressable: /stacks/content_addressable
+
+features:
+  awfl: false
 
 purl:
   hostname: purl.stanford.edu

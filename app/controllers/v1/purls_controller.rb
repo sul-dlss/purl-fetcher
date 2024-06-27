@@ -23,7 +23,7 @@ module V1
 
     def destroy
       @purl.mark_deleted
-      UpdateStacksFilesService.delete!(@purl)
+      UpdateStacksFilesService.delete!(@purl.cocina_object)
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
 

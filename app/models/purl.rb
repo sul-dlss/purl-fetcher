@@ -139,11 +139,6 @@ class Purl < ApplicationRecord
     self.collections = consitituent_druids.map { |druid| Purl.find_or_create_by(druid:) }
   end
 
-  # return [String] the Stacks path for the cocina object
-  def stacks_druid_path
-    DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).path
-  end
-
   # return [String] the Purl path for the cocina object
   def purl_druid_path
     DruidTools::PurlDruid.new(druid, Settings.filesystems.purl_root).path

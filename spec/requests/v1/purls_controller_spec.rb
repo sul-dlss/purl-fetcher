@@ -87,12 +87,11 @@ RSpec.describe V1::PurlsController do
   end
 
   describe 'DELETE delete' do
-    let(:purl_object) { create(:purl) }
+    let!(:purl_object) { create(:purl, druid: 'druid:bb050dj7711') }
     let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
 
     before do
       allow(Racecar).to receive(:produce_sync)
-      purl_object.update(druid: 'druid:bb050dj7711')
     end
 
     context 'with valid authorization token' do

@@ -14,7 +14,7 @@ RSpec.describe V1::ReleasedController do
       let!(:release_tag) { create(:release_tag, name: 'PURL sitemap', release_type: false) }
       let(:purl) { release_tag.purl }
 
-      it 'returns list of druids' do
+      it 'returns empty list' do
         get '/released/PURL%20sitemap'
         expect(response.parsed_body).to be_empty
       end

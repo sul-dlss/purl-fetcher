@@ -23,6 +23,8 @@ module V1
     end
 
     def destroy
+      return render json: { error: "already deleted" }, status: :conflict if @purl.deleted?
+
       @purl.mark_deleted
       UpdateStacksFilesService.delete!(@purl.cocina_object)
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)

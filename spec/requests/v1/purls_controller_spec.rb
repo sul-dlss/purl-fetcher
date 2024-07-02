@@ -105,18 +105,45 @@ RSpec.describe V1::PurlsController do
     end
 
     context 'with valid authorization token' do
-      before do
-        FileUtils.mkdir_p('tmp/stacks/bb/050/dj/7711/')
-        File.write('tmp/stacks/bb/050/dj/7711/file3.txt', 'hello world')
+      let(:legacy_path) { "#{Settings.filesystems.stacks_root}/bb/050/dj/7711/" }
+
+      context 'with files stored in the legacy manner' do
+        before do
+          FileUtils.rm_rf legacy_path
+          FileUtils.mkdir_p legacy_path
+          File.write("#{legacy_path}/file3.txt", 'hello world')
+        end
+
+        it 'marks the purl as deleted and removes files' do
+          expect(File).to exist("#{legacy_path}/file3.txt")
+          delete('/purls/bb050dj7711', headers:)
+          expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
+          expect(File).not_to exist("#{legacy_path}/file3.txt")
+          expect(File).not_to be_symlink("#{legacy_path}/file3.txt")
+        end
       end
 
-      it 'marks the purl as deleted and removes files' do
-        expect(File).to exist('tmp/stacks/bb/050/dj/7711/file3.txt')
-        delete('/purls/bb050dj7711', headers:)
-        expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
-        expect(Racecar).to have_received(:produce_sync)
-          .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
-        expect(File).not_to exist('tmp/stacks/bb/050/dj/7711/file3.txt')
+      context 'with files stored in the content addressed manner', skip: !Settings.features.awfl do
+        before do
+          FileUtils.rm_rf legacy_path
+          FileUtils.mkdir_p legacy_path
+
+          FileUtils.mkdir_p("#{Settings.filesystems.stacks_content_addressable}/bb/050/dj/7711/bb050dj7711/content")
+          shelving_path = "#{Settings.filesystems.stacks_content_addressable}/bb/050/dj/7711/bb050dj7711/content/5eb63bbbe01eeed093cb22bb8f5acdc3"
+          File.write(shelving_path, 'hello world')
+          File.symlink(shelving_path, "#{legacy_path}/file3.txt")
+        end
+
+        it 'marks the purl as deleted and removes files' do
+          expect(File).to be_symlink("#{legacy_path}/file3.txt")
+          delete('/purls/bb050dj7711', headers:)
+          expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
+          expect(File).not_to be_symlink("#{legacy_path}/file3.txt")
+        end
       end
     end
 

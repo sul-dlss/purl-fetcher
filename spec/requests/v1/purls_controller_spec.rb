@@ -16,7 +16,7 @@ RSpec.describe V1::PurlsController do
     end
 
     context "when the druid was deleted" do
-      let(:purl_object) { create(:purl, deleted_at: Time.zone.today) }
+      let(:purl_object) { create(:purl, :deleted) }
 
       it 'returns a 404' do
         get "/purls/#{druid}"
@@ -97,7 +97,8 @@ RSpec.describe V1::PurlsController do
   end
 
   describe 'DELETE delete' do
-    let!(:purl_object) { create(:purl, druid: 'druid:bb050dj7711') }
+    let(:druid) { 'druid:bb050dj7711' }
+    let!(:purl_object) { create(:purl, druid:) }
     let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
 
     before do
@@ -116,7 +117,7 @@ RSpec.describe V1::PurlsController do
 
         it 'marks the purl as deleted and removes files' do
           expect(File).to exist("#{legacy_path}/file3.txt")
-          delete('/purls/bb050dj7711', headers:)
+          delete("/purls/#{druid}", headers:)
           expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
           expect(Racecar).to have_received(:produce_sync)
             .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
@@ -138,18 +139,28 @@ RSpec.describe V1::PurlsController do
 
         it 'marks the purl as deleted and removes files' do
           expect(File).to be_symlink("#{legacy_path}/file3.txt")
-          delete('/purls/bb050dj7711', headers:)
+          delete("/purls/#{druid}", headers:)
           expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
           expect(Racecar).to have_received(:produce_sync)
             .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
           expect(File).not_to be_symlink("#{legacy_path}/file3.txt")
         end
       end
+
+      context "when the druid was already deleted" do
+        let(:purl_object) { create(:purl, :deleted, druid:) }
+
+        it 'returns a 409' do
+          delete("/purls/#{druid}", headers:)
+
+          expect(response).to have_http_status(:conflict)
+        end
+      end
     end
 
     context 'when no authorization token is provided' do
       it 'returns 401' do
-        delete('/purls/bb050dj7711', headers: headers.except('Authorization'))
+        delete "/purls/#{druid}", headers: headers.except('Authorization')
 
         expect(response).to have_http_status(:unauthorized)
       end

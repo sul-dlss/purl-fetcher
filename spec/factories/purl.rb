@@ -16,5 +16,11 @@ FactoryBot.define do
     trait :with_collection do
       collections { [association(:collection)] }
     end
+
+    trait :deleted do
+      # This is the state after calling `mark_deleted'
+      deleted_at { Time.zone.today }
+      public_json { nil }
+    end
   end
 end

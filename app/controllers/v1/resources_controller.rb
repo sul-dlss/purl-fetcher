@@ -21,7 +21,7 @@ module V1
       PurlCocinaUpdater.new(@purl, @cocina_object).update
 
       # :file_uploads is a map of filenames to ActiveStorage signed ids
-      UpdateStacksFilesService.write!(@cocina_object, file_uploads)
+      UpdateStacksFilesService.write!(@cocina_object, file_uploads) unless @cocina_object.collection?
       UpdatePurlMetadataService.new(@purl).write!
 
       render json: true, location: @purl, status: :created

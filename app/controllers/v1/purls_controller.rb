@@ -16,7 +16,7 @@ module V1
     # Update the database purl record from the passed in cocina.
     # This is a legacy API and will be replaced by ResourcesController#create
     def update
-      PurlCocinaUpdater.update(@purl, cocina_object)
+      PurlCocinaUpdater.update(@purl, Cocina::Models.without_metadata(cocina_object))
       write_public_files
 
       render json: true, status: :accepted
@@ -39,7 +39,7 @@ module V1
     end
 
     def cocina_object
-      @cocina_object ||= Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format, *Cocina::Models::METADATA_KEYS).to_unsafe_h)
+      @cocina_object ||= Cocina::Models.build(params.except(:action, :controller, :druid, :purl, :format).to_unsafe_h)
     end
 
     def write_public_files

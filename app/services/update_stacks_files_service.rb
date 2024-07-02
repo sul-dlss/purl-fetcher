@@ -59,6 +59,7 @@ class UpdateStacksFilesService
         shelving_path = File.join(content_addressable_path, hexdigest)
 
         FileUtils.mkdir_p(File.dirname(shelving_path))
+        Rails.logger.info("Copying #{blob_path} to #{shelving_path}")
         FileUtils.cp(blob_path, shelving_path)
         File.unlink(links_path) if File.exist?(links_path) || File.symlink?(links_path)
         File.symlink(shelving_path, links_path)

@@ -7,7 +7,8 @@ module V1
 
     # Show the files that we have for this object. Used by DSA to know which files need to be shelved.
     def show
-      purl = Purl.find_by!(druid: druid_param)
+      # Causes a 404 for a deleted item, which might happen if a purl is deleted and then reused.
+      purl = Purl.status('public').find_by!(druid: druid_param)
       render json: { files_by_md5: purl.public_json.files_by_md5 }
     end
 

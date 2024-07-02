@@ -15,6 +15,16 @@ RSpec.describe V1::PurlsController do
                                               ])
     end
 
+    context "when the druid was deleted" do
+      let(:purl_object) { create(:purl, deleted_at: Time.zone.today) }
+
+      it 'returns a 404' do
+        get "/purls/#{druid}"
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
     context "when the druid doesn't exist" do
       it 'returns a 404' do
         get "/purls/zr240vm9599"

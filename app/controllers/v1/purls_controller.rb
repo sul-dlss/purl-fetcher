@@ -34,10 +34,10 @@ module V1
 
     def find_purl
       @purl = begin
-                Purl.find_or_create_by(druid: druid_param)
-              rescue ActiveRecord::RecordNotUnique
-                retry
-              end
+        Purl.find_or_create_by(druid: druid_param)
+      rescue ActiveRecord::RecordNotUnique
+        retry
+      end
     end
 
     def cocina_object

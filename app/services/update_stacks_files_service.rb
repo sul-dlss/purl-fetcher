@@ -50,25 +50,39 @@ class UpdateStacksFilesService
   def shelve_files
     file_uploads_map.each do |filename, signed_id|
       blob = blob_for_signed_id(signed_id, filename)
-      blob_path = ActiveStorage::Blob.service.path_for(blob.key)
 
       if Settings.features.awfl
-        hexdigest = base64_to_hexdigest(blob.checksum)
-        links_path = File.join(stacks_druid_path, filename)
-        FileUtils.mkdir_p(File.dirname(links_path))
-        shelving_path = File.join(content_addressable_path, hexdigest)
-
-        FileUtils.mkdir_p(File.dirname(shelving_path))
-        Rails.logger.info("Copying #{blob_path} to #{shelving_path}")
-        FileUtils.cp(blob_path, shelving_path)
-        File.unlink(links_path) if File.exist?(links_path) || File.symlink?(links_path)
-        File.symlink(shelving_path, links_path)
+        shelving_path = copy_file_to_content_addressed_storage(blob)
+        create_link(filename, shelving_path)
       else
         shelving_path = File.join(stacks_druid_path, filename)
         FileUtils.mkdir_p(File.dirname(shelving_path))
+        blob_path = ActiveStorage::Blob.service.path_for(blob.key)
         FileUtils.cp(blob_path, shelving_path)
       end
     end
+  end
+
+  # Builds a symlink in the legacy stacks filesystem to the shelving path (in content addressable storage)
+  def create_link(filename, shelving_path)
+    # There should be no need for this check. However we're not seeing the file on the filesystem, so check for now.
+    raise "Path doesn't exist: `#{shelving_path}'" unless File.exist?(shelving_path)
+
+    links_path = File.join(stacks_druid_path, filename)
+    FileUtils.mkdir_p(File.dirname(links_path))
+    File.unlink(links_path) if File.exist?(links_path) || File.symlink?(links_path)
+    File.symlink(shelving_path, links_path)
+  end
+
+  def copy_file_to_content_addressed_storage(blob)
+    hexdigest = base64_to_hexdigest(blob.checksum)
+    shelving_path = File.join(content_addressable_path, hexdigest)
+    FileUtils.mkdir_p(File.dirname(shelving_path))
+
+    blob_path = ActiveStorage::Blob.service.path_for(blob.key)
+    Rails.logger.info("Copying #{blob_path} to #{shelving_path}")
+    FileUtils.cp(blob_path, shelving_path)
+    shelving_path
   end
 
   def base64_to_hexdigest(base64)

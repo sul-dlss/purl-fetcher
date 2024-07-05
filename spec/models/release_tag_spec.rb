@@ -5,7 +5,7 @@ RSpec.describe ReleaseTag do
 
   describe '#release_tags' do
     it 'reads the data' do
-      tags = purl.release_tags.to_h { |tag| [ tag.name, tag.release_type ] }
+      tags = purl.release_tags.to_h { |tag| [tag.name, tag.release_type] }
       expect(tags).to include('PURL sitemap' => true, 'Searchworks' => true)
     end
   end

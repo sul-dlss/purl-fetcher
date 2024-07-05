@@ -13,7 +13,7 @@ class Purl < ApplicationRecord
   max_paginates_per 10_000
   validates :druid, uniqueness: true
 
-  scope :object_type, -> (object_type) { where object_type: }
+  scope :object_type, ->(object_type) { where object_type: }
 
   scope :membership, lambda { |membership|
     case membership['membership']

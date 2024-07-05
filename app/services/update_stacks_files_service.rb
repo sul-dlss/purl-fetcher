@@ -14,8 +14,8 @@ class UpdateStacksFilesService
     @cocina_object = cocina_object
     @file_uploads_map = file_uploads_map
     @stacks_druid_path = DruidTools::PurlDruid.new(cocina_object.externalIdentifier, Settings.filesystems.stacks_root).path
-    awfl_directory = DruidTools::Druid.new(cocina_object.externalIdentifier, Settings.filesystems.stacks_content_addressable).path
-    @content_addressable_path = "#{awfl_directory}/content"
+
+    @content_addressed_storage = ContentAddressedStorage.new(cocina_object.externalIdentifier)
   end
 
   def write!
@@ -32,7 +32,7 @@ class UpdateStacksFilesService
 
   private
 
-  attr_reader :cocina_object, :file_uploads_map, :stacks_druid_path, :content_addressable_path
+  attr_reader :cocina_object, :file_uploads_map, :stacks_druid_path, :content_addressed_storage
 
   def check_files_in_structural
     return if file_uploads_map.keys.all? { |filename| cocina_filenames.include?(filename) }
@@ -52,7 +52,7 @@ class UpdateStacksFilesService
       blob = blob_for_signed_id(signed_id, filename)
 
       if Settings.features.awfl
-        shelving_path = copy_file_to_content_addressed_storage(blob)
+        shelving_path = content_addressed_storage.copy(file_path: ActiveStorage::Blob.service.path_for(blob.key), md5: base64_to_hexdigest(blob.checksum))
         create_link(filename, shelving_path)
       else
         shelving_path = File.join(stacks_druid_path, filename)
@@ -72,17 +72,6 @@ class UpdateStacksFilesService
     FileUtils.mkdir_p(File.dirname(links_path))
     File.unlink(links_path) if File.exist?(links_path) || File.symlink?(links_path)
     File.symlink(shelving_path, links_path)
-  end
-
-  def copy_file_to_content_addressed_storage(blob)
-    hexdigest = base64_to_hexdigest(blob.checksum)
-    shelving_path = File.join(content_addressable_path, hexdigest)
-    FileUtils.mkdir_p(File.dirname(shelving_path))
-
-    blob_path = ActiveStorage::Blob.service.path_for(blob.key)
-    Rails.logger.info("Copying #{blob_path} to #{shelving_path}")
-    FileUtils.cp(blob_path, shelving_path)
-    shelving_path
   end
 
   def base64_to_hexdigest(base64)
@@ -110,8 +99,7 @@ class UpdateStacksFilesService
 
     # delete from content addressable storage any file that is not in any version (currently only supporting one version)
     cocina_md5s.each do |hexdigest|
-      shelving_path = File.join(content_addressable_path, hexdigest)
-      FileUtils.rm_f(shelving_path)
+      content_addressed_storage.delete(md5: hexdigest)
     end
   end
 

@@ -64,8 +64,15 @@ RSpec.describe 'Publish a DRO' do
            params: request,
            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
       expect(response).to be_created
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      if Settings.features.awfl_metadata
+        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
+        expect(File).to be_symlink('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
+        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/public')
+      else
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      end
       if Settings.features.awfl
         expect(File).to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
         expect(File).to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
@@ -85,8 +92,15 @@ RSpec.describe 'Publish a DRO' do
            params: request,
            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
       expect(response).to be_created
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      if Settings.features.awfl_metadata
+        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
+        expect(File).to be_symlink('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
+        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/public')
+      else
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      end
     end
   end
 

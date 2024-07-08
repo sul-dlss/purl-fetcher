@@ -21,5 +21,5 @@
 
 # Purging ActiveStorage attachments during development to avoid filling storage.
 every 1.days do
-  runner "ActiveStorage::Blob.find_by('created_at < ?', 1.week.ago).find_each {|blob| blob.purge}"
+  runner "ActiveStorage::Blob.where('created_at < ?', 1.week.ago).find_each {|blob| blob.purge}"
 end

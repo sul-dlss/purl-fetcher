@@ -6,14 +6,14 @@ class ContentAddressedStorage
 
   attr_reader :content_addressable_path
 
-  # Copy the file at file_path into the content addressed file store using md5 as the key.
+  # Move the file at file_path into the content addressed file store using md5 as the key.
   # @returns [String] the path to the file in the store.
-  def copy(file_path:, md5:)
+  def mv(file_path:, md5:)
     shelving_path = File.join(content_addressable_path, md5)
     FileUtils.mkdir_p(File.dirname(shelving_path))
 
-    Rails.logger.info("Copying #{file_path} to #{shelving_path}")
-    FileUtils.cp(file_path, shelving_path)
+    Rails.logger.info("Moving #{file_path} to #{shelving_path}")
+    FileUtils.mv(file_path, shelving_path)
     shelving_path
   end
 

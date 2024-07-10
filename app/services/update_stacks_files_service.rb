@@ -49,12 +49,12 @@ class UpdateStacksFilesService
       file_path = File.join(Settings.filesystems.transfer, temp_storage_uuid)
       if Settings.features.awfl
         md5 = md5_for_filename(filename)
-        shelving_path = content_addressed_storage.copy(file_path:, md5:)
+        shelving_path = content_addressed_storage.mv(file_path:, md5:)
         create_link(filename, shelving_path)
       else
         shelving_path = File.join(stacks_druid_path, filename)
         FileUtils.mkdir_p(File.dirname(shelving_path))
-        FileUtils.cp(file_path, shelving_path)
+        FileUtils.mv(file_path, shelving_path)
       end
     end
   end

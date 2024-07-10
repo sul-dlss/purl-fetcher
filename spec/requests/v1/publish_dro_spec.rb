@@ -57,7 +57,7 @@ RSpec.describe 'Publish a DRO' do
 
   context 'when a cocina object is received' do
     before do
-      FileUtils.rm_r(Rails.root + 'tmp/purl_doc_cache')
+      FileUtils.rm_r(Rails.root + 'tmp/purl_doc_cache/bc') if Dir.exist?(Rails.root + 'tmp/purl_doc_cache/bc')
       transfer_dir = Rails.root + 'tmp/transfer'
       FileUtils.mkdir_p(transfer_dir)
       File.write(transfer_dir + 'd7e54aed-c0c4-48af-af93-bc673f079f9a', "Hello world")
@@ -84,6 +84,22 @@ RSpec.describe 'Publish a DRO' do
       else
         expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+      end
+    end
+
+    context 'when file is already in Stacks, but not found in the Cocina object' do
+      before do
+        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/')
+        File.write('tmp/stacks/bc/123/df/4567/file3.txt', 'hello world')
+      end
+
+      it 'deletes the file' do
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/file3.txt')
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).not_to exist('tmp/stacks/bc/123/df/4567/file3.txt')
       end
     end
   end
@@ -120,22 +136,6 @@ RSpec.describe 'Publish a DRO' do
       response_json = response.parsed_body
       expect(response_json['errors'][0]['title']).to eq 'Bad request'
       expect(response_json['errors'][0]['detail']).to eq 'Files in file_uploads not in cocina object'
-    end
-  end
-
-  context 'when file is already in Stacks, but not found in the Cocina object' do
-    before do
-      FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/')
-      File.write('tmp/stacks/bc/123/df/4567/file3.txt', 'hello world')
-    end
-
-    it 'deletes the file' do
-      expect(File).to exist('tmp/stacks/bc/123/df/4567/file3.txt')
-      post '/v1/resources',
-           params: request,
-           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-      expect(response).to be_created
-      expect(File).not_to exist('tmp/stacks/bc/123/df/4567/file3.txt')
     end
   end
   # rubocop:enable Style/StringConcatenation

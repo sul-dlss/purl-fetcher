@@ -2,7 +2,7 @@
 
 # purl-fetcher
 
-An HTTP API for querying and updating [PURL](https://github.com/sul-dlss/purl)s. See the [API section](#api) below for docs. Purl-fetcher is only a cache which enables the access portfolio to efficiently index and query data such as release tags and collection memberships. It is not the canonical source for any information.
+An HTTP API for querying and updating [PURL](https://github.com/sul-dlss/purl)s. See the [API section](#api) below for docs. Purl-fetcher is a cache which enables the access portfolio to efficiently index and query data such as release tags and collection memberships. It is not the canonical source for any information.
 
 ## Architecture
 https://docs.google.com/drawings/d/1--7pQQlzD-_g2AyPCtNkeODTs4CTrXKKyUyxofFWc1U/edit

@@ -19,7 +19,7 @@
 
 # Learn more: http://github.com/javan/whenever
 
-# Purging ActiveStorage attachments during development to avoid filling storage.
+# Purging transfer files that have become orphaned to avoid filling storage.
 every 1.days do
-  runner "ActiveStorage::Blob.where('created_at < ?', 1.week.ago).find_each {|blob| blob.purge}"
+  runner "`find #{Settings.filesystems.transfer} -type f -mtime +7 -exec rm {} +`"
 end

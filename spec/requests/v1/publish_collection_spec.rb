@@ -10,8 +10,7 @@ RSpec.describe 'Publish a Collection' do
     let(:collection) { build(:collection_with_metadata, id: druid) }
     let(:request) do
       {
-        object: collection.to_h,
-        file_uploads: {}
+        object: collection.to_h
       }.to_json
     end
 

@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require 'base64'
 
 RSpec.describe 'Publish a DRO' do
+  # disable because it's detecting that Pathname is a string
+  # rubocop:disable Style/StringConcatenation
   let(:bare_druid) { 'bc123df4567' }
   let(:druid) { "druid:#{bare_druid}" }
   let(:dro) { build(:dro_with_metadata, id: druid).new(structural:) }
@@ -13,7 +14,7 @@ RSpec.describe 'Publish a DRO' do
       file_uploads:
     }.to_json
   end
-  let(:file_uploads) { { 'file2.txt' => signed_id, 'files/file2.txt' => signed_id } }
+  let(:file_uploads) { { 'file2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a', 'files/file2.txt' => '7f807e3c-4cde-4b6d-8e76-f24455316a01' } }
   let(:contains) do
     [
       Cocina::Models::FileSet.new(
@@ -24,23 +25,23 @@ RSpec.describe 'Publish a DRO' do
         structural: Cocina::Models::FileSetStructural.new(
           contains: [
             Cocina::Models::File.new(
-              externalIdentifier: signed_id,
+              externalIdentifier: '1234',
               type: Cocina::Models::ObjectType.file,
-              label: 'the text file',
+              label: 'the regular file',
               filename: 'file2.txt',
               version: 1,
               hasMessageDigests: [
-                { type: 'md5', digest: Base64.decode64(blob.checksum).unpack1('H*') }
+                { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
               ]
             ),
             Cocina::Models::File.new(
-              externalIdentifier: signed_id,
+              externalIdentifier: '1234',
               type: Cocina::Models::ObjectType.file,
               label: 'the hierarchical file',
               filename: 'files/file2.txt',
               version: 1,
               hasMessageDigests: [
-                { type: 'md5', digest: Base64.decode64(blob.checksum).unpack1('H*') }
+                { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
               ]
             )
           ]
@@ -53,12 +54,16 @@ RSpec.describe 'Publish a DRO' do
       contains:
     )
   end
-  let(:blob) { create(:singleton_blob_with_file) }
-  let(:signed_id) do
-    ActiveStorage.verifier.generate(blob.id, purpose: :blob_id)
-  end
 
   context 'when a cocina object is received' do
+    before do
+      FileUtils.rm_r(Rails.root + 'tmp/purl_doc_cache')
+      transfer_dir = Rails.root + 'tmp/transfer'
+      FileUtils.mkdir_p(transfer_dir)
+      File.write(transfer_dir + 'd7e54aed-c0c4-48af-af93-bc673f079f9a', "Hello world")
+      File.write(transfer_dir + '7f807e3c-4cde-4b6d-8e76-f24455316a01', "The other one")
+    end
+
     it 'creates the cocina json file for the resource' do
       post '/v1/resources',
            params: request,
@@ -104,34 +109,8 @@ RSpec.describe 'Publish a DRO' do
     end
   end
 
-  context 'when blob not found for file' do
-    let(:signed_id) { ActiveStorage.verifier.generate('thisisinvalid', purpose: :blob_id) }
-
-    it 'returns 500' do
-      post '/v1/resources',
-           params: request,
-           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-      expect(response).to have_http_status(:server_error)
-      expect(JSON.parse(response.body)['errors'][0]['title']).to eq 'Error matching uploading files to file parameters.' # rubocop:disable Rails/ResponseParsedBody
-    end
-  end
-
-  context 'when invalid signed id' do
-    let(:signed_id) { 'not_a_signed_id' }
-
-    it 'returns 400' do
-      post '/v1/resources',
-           params: request,
-           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-      expect(response).to have_http_status(:bad_request)
-      response_json = response.parsed_body
-      expect(response_json['errors'][0]['title']).to eq 'Bad request'
-      expect(response_json['errors'][0]['detail']).to eq 'Invalid signed ids found'
-    end
-  end
-
-  context 'when file not found in structural' do
-    let(:file_uploads) { { 'xfile2.txt' => signed_id } }
+  context 'when file listed in the file_uploads is not found in structural' do
+    let(:file_uploads) { { 'xfile2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a' } }
 
     it 'returns 400' do
       post '/v1/resources',
@@ -144,7 +123,7 @@ RSpec.describe 'Publish a DRO' do
     end
   end
 
-  context 'when file is not found in the cocina object' do
+  context 'when file is already in Stacks, but not found in the Cocina object' do
     before do
       FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/')
       File.write('tmp/stacks/bc/123/df/4567/file3.txt', 'hello world')
@@ -159,4 +138,5 @@ RSpec.describe 'Publish a DRO' do
       expect(File).not_to exist('tmp/stacks/bc/123/df/4567/file3.txt')
     end
   end
+  # rubocop:enable Style/StringConcatenation
 end

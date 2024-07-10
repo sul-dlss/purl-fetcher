@@ -20,7 +20,6 @@ module V1
     def create
       PurlCocinaUpdater.new(@purl, @cocina_object).update
 
-      # :file_uploads is a map of filenames to ActiveStorage signed ids
       UpdateStacksFilesService.write!(@cocina_object, file_uploads) unless @cocina_object.collection?
       UpdatePurlMetadataService.new(@purl).write!
 
@@ -41,6 +40,7 @@ module V1
       retry
     end
 
+    # @return [Hash<String, String>] is a map of filenames to temporary UUIDs
     def file_uploads
       params.require(:resource).permit![:file_uploads].to_h
     end

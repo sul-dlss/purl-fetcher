@@ -20,7 +20,6 @@ class UpdateStacksFilesService
 
   def write!
     check_files_in_structural
-    check_signed_ids
     shelve_files
     unshelve_removed_files
   end
@@ -34,31 +33,28 @@ class UpdateStacksFilesService
 
   attr_reader :cocina_object, :file_uploads_map, :stacks_druid_path, :content_addressed_storage
 
+  def inspect
+    "<#{self.class}:#{object_id} id=#{cocina.externalIdentifier}>"
+  end
+
   def check_files_in_structural
     return if file_uploads_map.keys.all? { |filename| cocina_filenames.include?(filename) }
 
     raise RequestError, 'Files in file_uploads not in cocina object'
   end
 
-  def check_signed_ids
-    return if file_uploads_map.values.all? { |signed_id| ActiveStorage.verifier.valid_message?(signed_id) }
-
-    raise RequestError, "Invalid signed ids found"
-  end
-
-  # Copy the files from ActiveStorage to the Stacks directory
+  # Copy the files from the staging area to the Stacks directory
   def shelve_files
-    file_uploads_map.each do |filename, signed_id|
-      blob = blob_for_signed_id(signed_id, filename)
-
+    file_uploads_map.each do |filename, temp_storage_uuid|
+      file_path = File.join(Settings.filesystems.transfer, temp_storage_uuid)
       if Settings.features.awfl
-        shelving_path = content_addressed_storage.copy(file_path: ActiveStorage::Blob.service.path_for(blob.key), md5: base64_to_hexdigest(blob.checksum))
+        md5 = md5_for_filename(filename)
+        shelving_path = content_addressed_storage.copy(file_path:, md5:)
         create_link(filename, shelving_path)
       else
         shelving_path = File.join(stacks_druid_path, filename)
         FileUtils.mkdir_p(File.dirname(shelving_path))
-        blob_path = ActiveStorage::Blob.service.path_for(blob.key)
-        FileUtils.cp(blob_path, shelving_path)
+        FileUtils.cp(file_path, shelving_path)
       end
     end
   end
@@ -72,18 +68,6 @@ class UpdateStacksFilesService
     FileUtils.mkdir_p(File.dirname(links_path))
     File.unlink(links_path) if File.exist?(links_path) || File.symlink?(links_path)
     File.symlink(shelving_path, links_path)
-  end
-
-  def base64_to_hexdigest(base64)
-    Base64.decode64(base64).unpack1('H*')
-  end
-
-  # return [ActiveStorage::Blob] the blob for the signed id
-  def blob_for_signed_id(signed_id, filename)
-    file_id = ActiveStorage.verifier.verified(signed_id, purpose: :blob_id)
-    ActiveStorage::Blob.find(file_id)
-  rescue ActiveRecord::RecordNotFound
-    raise BlobError, "Unable to find upload for #{filename} (#{signed_id})"
   end
 
   # Remove files from the Stacks directory that are not in the cocina object
@@ -105,14 +89,22 @@ class UpdateStacksFilesService
 
   def cocina_md5s
     cocina_files.map do |file|
-      file.hasMessageDigests.find { |digest| digest.type == 'md5' }.digest
+      md5_for_file(file)
     end
+  end
+
+  def md5_for_file(file)
+    file.hasMessageDigests.find { |digest| digest.type == 'md5' }.digest
   end
 
   def cocina_files
     @cocina_files ||= cocina_object.structural.contains.flat_map do |fileset|
       fileset.structural.contains
     end
+  end
+
+  def md5_for_filename(filename)
+    md5_for_file(cocina_files.find { |file| file.filename == filename })
   end
 
   def cocina_filenames

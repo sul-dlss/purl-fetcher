@@ -46,7 +46,6 @@ group :deployment do
   gem 'capistrano-bundler'
   gem 'capistrano-passenger'
   gem 'capistrano-rails'
-  gem 'capistrano-rvm'
   gem 'dlss-capistrano', '~> 5.1'
 end
 

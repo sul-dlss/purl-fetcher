@@ -15,7 +15,7 @@ filesystems:
   purl_root: "/purl/document_cache"
   stacks_root: "/stacks"
   stacks_content_addressable: /stacks/content_addressable
-  transfer: /stacks/access-transfer-stage
+  transfer: /access-transfer-stage
 
 features:
   awfl: false

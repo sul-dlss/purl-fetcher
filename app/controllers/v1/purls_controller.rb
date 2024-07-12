@@ -26,6 +26,7 @@ module V1
       return render json: { error: "already deleted" }, status: :conflict if @purl.deleted?
 
       @purl.mark_deleted
+      UpdatePurlMetadataService.new(@purl).delete!
       UpdateStacksFilesService.delete!(@purl.cocina_object)
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end

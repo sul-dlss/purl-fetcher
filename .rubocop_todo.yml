@@ -92,13 +92,6 @@ RSpec/LetBeforeExamples:
   Exclude:
     - 'spec/models/purl_spec.rb'
 
-# Offense count: 2
-# Configuration parameters: Max.
-RSpec/MultipleExpectations:
-  Exclude:
-    - 'spec/requests/v1/publish_dro_spec.rb'
-    - 'spec/services/publish/public_desc_metadata_service_spec.rb'
-
 # Offense count: 12
 # Configuration parameters: EnforcedStyle, IgnoreSharedExamples.
 # SupportedStyles: always, named_only

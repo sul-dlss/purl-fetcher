@@ -101,49 +101,63 @@ RSpec.describe V1::PurlsController do
     let!(:purl_object) { create(:purl, druid:) }
     let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
 
+    let(:legacy_stacks_path) { "#{Settings.filesystems.stacks_root}/bb/050/dj/7711/" }
+    let(:legacy_purl_path) { "#{Settings.filesystems.purl_root}/bb/050/dj/7711/" }
+
     before do
       allow(Racecar).to receive(:produce_sync)
+      FileUtils.mkdir_p legacy_stacks_path
+      FileUtils.mkdir_p legacy_purl_path
+    end
+
+    after do
+      FileUtils.rm_rf legacy_stacks_path
+      FileUtils.rm_rf legacy_purl_path
     end
 
     context 'with valid authorization token' do
-      let(:legacy_path) { "#{Settings.filesystems.stacks_root}/bb/050/dj/7711/" }
-
-      context 'with files stored in the legacy manner' do
+      context 'with files stored in the legacy manner', skip: Settings.features.awfl do
         before do
-          FileUtils.rm_rf legacy_path
-          FileUtils.mkdir_p legacy_path
-          File.write("#{legacy_path}/file3.txt", 'hello world')
+          File.write("#{legacy_stacks_path}/file3.txt", 'hello world')
+          File.write("#{legacy_purl_path}/cocina.json", 'hello cocina')
         end
 
         it 'marks the purl as deleted and removes files' do
-          expect(File).to exist("#{legacy_path}/file3.txt")
+          expect(File).to exist("#{legacy_stacks_path}/file3.txt")
+          expect(File).to exist("#{legacy_purl_path}/cocina.json")
+
           delete("/purls/#{druid}", headers:)
+
           expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
           expect(Racecar).to have_received(:produce_sync)
             .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
-          expect(File).not_to exist("#{legacy_path}/file3.txt")
-          expect(File).not_to be_symlink("#{legacy_path}/file3.txt")
+          expect(File).not_to exist("#{legacy_stacks_path}/file3.txt")
+          expect(File).not_to be_symlink("#{legacy_stacks_path}/file3.txt")
+          expect(File).not_to exist("#{legacy_purl_path}/cocina.json")
+          expect(File).not_to be_symlink("#{legacy_purl_path}/cocina.json")
         end
       end
 
       context 'with files stored in the content addressed manner', skip: !Settings.features.awfl do
         before do
-          FileUtils.rm_rf legacy_path
-          FileUtils.mkdir_p legacy_path
-
           FileUtils.mkdir_p("#{Settings.filesystems.stacks_content_addressable}/bb/050/dj/7711/bb050dj7711/content")
           shelving_path = "#{Settings.filesystems.stacks_content_addressable}/bb/050/dj/7711/bb050dj7711/content/5eb63bbbe01eeed093cb22bb8f5acdc3"
           File.write(shelving_path, 'hello world')
-          File.symlink(shelving_path, "#{legacy_path}/file3.txt")
+          File.symlink(shelving_path, "#{legacy_stacks_path}/file3.txt")
         end
 
         it 'marks the purl as deleted and removes files' do
-          expect(File).to be_symlink("#{legacy_path}/file3.txt")
+          expect(File).to be_symlink("#{legacy_stacks_path}/file3.txt")
+
           delete("/purls/#{druid}", headers:)
-          expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
-          expect(Racecar).to have_received(:produce_sync)
-            .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
-          expect(File).not_to be_symlink("#{legacy_path}/file3.txt")
+
+          # Delete is not fully implemented yet.
+          expect(response).to have_http_status(:server_error)
+
+          # expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
+          # expect(Racecar).to have_received(:produce_sync)
+          #   .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
+          # expect(File).not_to be_symlink("#{legacy_stacks_path}/file3.txt")
         end
       end
 

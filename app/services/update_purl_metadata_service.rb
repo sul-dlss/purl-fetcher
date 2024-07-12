@@ -17,6 +17,14 @@ class UpdatePurlMetadataService
     write_public_xml
   end
 
+  def delete!
+    raise NotImplementedError if Settings.features.awfl_metadata || Settings.features.awfl
+
+    FileUtils.rm_rf(purl_druid_path)
+  end
+
+  private
+
   def write_public_cocina
     if Settings.features.awfl_metadata
       cocina_path = File.join(versions_path, "cocina.#{version}.json")

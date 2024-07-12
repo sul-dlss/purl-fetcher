@@ -47,7 +47,7 @@ Metrics/AbcSize:
   Max: 30
 
 RSpec/MultipleExpectations:
-  Max: 7
+  Enabled: false
 
 RSpec/MultipleMemoizedHelpers:
   Enabled: false

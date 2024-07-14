@@ -47,7 +47,6 @@ RSpec.describe V1::ReleasedController do
 
       before do
         FileUtils.rm_r(purl_druid_path) if File.directory?(purl_druid_path)
-        FileUtils.mkdir_p(purl_druid_path)
       end
 
       it 'puts a Kafka message on the queue for indexing' do

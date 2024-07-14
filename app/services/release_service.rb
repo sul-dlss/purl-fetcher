@@ -10,6 +10,7 @@ class ReleaseService
   end
 
   def self.write_meta_json(purl)
+    FileUtils.mkdir_p(purl.purl_druid_path)
     file_path = File.join(purl.purl_druid_path, 'meta.json')
     File.write(file_path, meta_json(purl))
   end

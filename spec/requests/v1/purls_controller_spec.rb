@@ -34,68 +34,6 @@ RSpec.describe V1::PurlsController do
     end
   end
 
-  describe 'POST update' do
-    let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
-    let(:title) { "The Information Paradox for Black Holes" }
-    let(:cocina_object) do
-      build(:dro_with_metadata, id: druid, title:,
-                                collection_ids: ['druid:xb432gf1111'])
-        .new(administrative: {
-               hasAdminPolicy: "druid:hv992ry2431"
-             },
-             created: Time.now.utc.iso8601,
-             modified: Time.now.utc.iso8601)
-    end
-    let(:data) { cocina_object.to_json }
-    let(:druid) { 'druid:zz222yy2222' }
-
-    context 'with cocina json' do
-      before do
-        allow(PurlCocinaUpdater).to receive(:update)
-      end
-
-      context 'with a new item' do
-        it 'creates a new purl entry' do
-          expect do
-            post "/purls/#{druid}", params: data, headers:
-          end.to change(Purl, :count).by(1)
-          expect(response).to have_http_status(:accepted)
-          expect(PurlCocinaUpdater).to have_received(:update)
-            .with(an_instance_of(Purl), an_instance_of(Cocina::Models::DRO))
-
-          purl_object = Purl.find_by!(druid:)
-
-          public_cocina_filepath = File.join(purl_object.purl_druid_path, 'cocina.json')
-          expect(File.read(public_cocina_filepath)).to eq cocina_object.to_json
-
-          public_xml_filepath = File.join(purl_object.purl_druid_path, 'public')
-          expect(File.exist?(public_xml_filepath)).to be true
-        end
-      end
-
-      context 'with an existing item' do
-        let(:purl_object) { create(:purl) }
-        let(:druid) { purl_object.druid }
-
-        it 'updates the purl with new data' do
-          post("/purls/#{druid}", params: data, headers:)
-          expect(PurlCocinaUpdater).to have_received(:update)
-            .with(an_instance_of(Purl), an_instance_of(Cocina::Models::DRO))
-
-          expect(response).to have_http_status(:accepted)
-        end
-      end
-    end
-
-    context 'when no authorization token is provided' do
-      it 'returns 401' do
-        post "/purls/#{druid}", params: data, headers: headers.except('Authorization')
-
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
-  end
-
   describe 'DELETE delete' do
     let(:druid) { 'druid:bb050dj7711' }
     let!(:purl_object) { create(:purl, druid:) }

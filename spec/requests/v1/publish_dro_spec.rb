@@ -7,7 +7,7 @@ RSpec.describe 'Publish a DRO' do
   # rubocop:disable Style/StringConcatenation
   let(:bare_druid) { 'bc123df4567' }
   let(:druid) { "druid:#{bare_druid}" }
-  let(:dro) { build(:dro_with_metadata, id: druid).new(structural:) }
+  let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
   let(:request) do
     {
       object: dro.to_h,
@@ -32,7 +32,11 @@ RSpec.describe 'Publish a DRO' do
               version: 1,
               hasMessageDigests: [
                 { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
-              ]
+              ],
+              administrative: {
+                publish: true,
+                shelve: true
+              }
             ),
             Cocina::Models::File.new(
               externalIdentifier: '1234',
@@ -42,7 +46,11 @@ RSpec.describe 'Publish a DRO' do
               version: 1,
               hasMessageDigests: [
                 { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
-              ]
+              ],
+              administrative: {
+                publish: true,
+                shelve: true
+              }
             )
           ]
         )
@@ -56,31 +64,110 @@ RSpec.describe 'Publish a DRO' do
   end
 
   context 'when a cocina object is received' do
+    let(:transfer_dir) { Rails.root + 'tmp/transfer' }
+
     before do
-      FileUtils.rm_r(Rails.root + 'tmp/purl_doc_cache/bc') if Dir.exist?(Rails.root + 'tmp/purl_doc_cache/bc')
-      transfer_dir = Rails.root + 'tmp/transfer'
+      FileUtils.rm_rf(transfer_dir)
+      FileUtils.rm_rf(Settings.filesystems.purl_root)
+      FileUtils.rm_rf(Settings.filesystems.stacks_root)
+
       FileUtils.mkdir_p(transfer_dir)
       File.write(transfer_dir + 'd7e54aed-c0c4-48af-af93-bc673f079f9a', "Hello world")
       File.write(transfer_dir + '7f807e3c-4cde-4b6d-8e76-f24455316a01', "The other one")
     end
 
-    it 'creates the cocina json file for the resource' do
-      post '/v1/resources',
-           params: request,
-           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-      expect(response).to be_created
-      if Settings.features.awfl_metadata
-        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
+    after do
+      FileUtils.rm_rf(transfer_dir)
+      FileUtils.rm_rf(Settings.filesystems.purl_root)
+      FileUtils.rm_rf(Settings.filesystems.stacks_root)
+    end
+
+    context 'when versioned files is enabled and object does not already exist' do
+      before do
+        allow(Settings.features).to receive(:versioned_files).and_return(true)
       end
-      if Settings.features.awfl
-        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
-        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
+
+      # rubocop:disable RSpec/ExpectActual
+      it 'creates the resource' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
+        expect('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62').to link_to('tmp/stacks/bc/123/df/4567/file2.txt')
+        expect('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf').to link_to('tmp/stacks/bc/123/df/4567/files/file2.txt')
       end
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
-      expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
-      expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+      # rubocop:enable RSpec/ExpectActual
+    end
+
+    context 'when versioned files is enabled and object already exists' do
+      before do
+        allow(Settings.features).to receive(:versioned_files).and_return(true)
+        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
+      end
+
+      it 'creates the resource in unversioned layout' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
+        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
+      end
+    end
+
+    context 'when versioned files is not enabled' do
+      before do
+        allow(Settings.features).to receive(:versioned_files).and_return(false)
+      end
+
+      it 'creates the resource in unversioned layout' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
+        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
+        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
+      end
+    end
+
+    context 'when legacy purl is enabled' do
+      before do
+        allow(Settings.features).to receive_messages(versioned_files: true, legacy_purl: true)
+      end
+
+      it 'created the resource' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      end
+    end
+
+    context 'when legacy purl is not enabled' do
+      before do
+        allow(Settings.features).to receive_messages(versioned_files: true, legacy_purl: false)
+      end
+
+      it 'creates the cocina json file for the resource' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).not_to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).not_to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      end
     end
 
     context 'when file is already in Stacks, but not found in the Cocina object' do
@@ -104,17 +191,34 @@ RSpec.describe 'Publish a DRO' do
     let(:file_uploads) { {} }
     let(:contains) { [] }
 
-    it 'creates the cocina json file for the resource' do
-      post '/v1/resources',
-           params: request,
-           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-      expect(response).to be_created
-      if Settings.features.awfl_metadata
-        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
+    context 'when versioned files is enabled' do
+      before do
+        allow(Settings.features).to receive(:versioned_files).and_return(true)
       end
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+
+      it 'creates the cocina json file for the resource' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
+      end
+    end
+
+    context 'when legacy_purl is enabled' do
+      before do
+        allow(Settings.features).to receive(:legacy_purl).and_return(true)
+      end
+
+      it 'creates the cocina json file for the resource' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      end
     end
   end
 

@@ -8,11 +8,7 @@ module V1
     before_action :load_cocina_object
     before_action :load_purl
 
-    rescue_from UpdateStacksFilesService::BlobError do |e|
-      render build_error('500', e, 'Error matching uploading files to file parameters.')
-    end
-
-    rescue_from UpdateStacksFilesService::RequestError do |e|
+    rescue_from UpdateStacksFilesService::RequestError, VersionedFilesService::BadFileTransferError do |e|
       render build_error('400', e, 'Bad request')
     end
 
@@ -20,8 +16,11 @@ module V1
     def create
       PurlCocinaUpdater.new(@purl, @cocina_object).update
 
-      UpdateStacksFilesService.write!(@cocina_object, file_uploads) unless @cocina_object.collection?
-      UpdatePurlMetadataService.new(@purl).write!
+      # TODO: Allow DSA to provide a version. Hardcoding version to 1 for now
+      # TODO: Allow DSA to provide a version date. Setting version date to now for now.
+      # TODO: Allow DSA to indicate if an object is versioned. If versioned and object is not using versioned layout,
+      #   invoke VersionedFilesService.migrate before VersionedFilesService.update to migrate from unversioned to versioned layout.
+      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version: '1', version_date: DateTime.now)
 
       render json: true, location: @purl, status: :created
     end

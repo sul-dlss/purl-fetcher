@@ -17,8 +17,9 @@ module V1
       return render json: { error: "already deleted" }, status: :conflict if @purl.deleted?
 
       @purl.mark_deleted
-      UpdatePurlMetadataService.new(@purl).delete!
-      UpdateStacksFilesService.delete!(@purl.cocina_object)
+
+      # TODO: Once DSA is providing the version, || '1' can be removed.
+      PurlAndStacksService.delete(purl: @purl, version: params[:version] || '1')
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
 

@@ -1,3 +1,4 @@
+# Facade around updating PURL and Stacks files.
 class PurlAndStacksService
   def self.delete(purl:, version:)
     new(purl:).delete(version:)
@@ -7,13 +8,18 @@ class PurlAndStacksService
     new(purl:).update(cocina_object:, file_uploads:, version:, version_date:)
   end
 
+  # @param purl [Purl] the PURL model object.
   def initialize(purl:)
     @purl = purl
   end
 
+  # Update the PURL and Stacks files.
+  # @param cocina_object [Cocina::Models::DRO,Cocina::Models::Collection] the Cocina data object
+  # @param file_uploads [Hash<String,String>] map of cocina filenames to staging filenames (UUIDs)
+  # @param version [String] the version number
+  # @param version_date [DateTime] the version date
   def update(cocina_object:, file_uploads:, version:, version_date:)
     if use_versioned_layout?
-      # Writes to stacks with versioned layout.
       VersionedFilesService.new(druid:).update(version:,
                                                version_metadata: VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date),
                                                cocina: cocina_object,
@@ -29,6 +35,8 @@ class PurlAndStacksService
     end
   end
 
+  # Delete the PURL and Stacks files.
+  # @param version [String] the version number
   def delete(version:)
     if versioned_files_enabled? && VersionedFilesService.versioned_files?(druid: purl.druid)
       begin

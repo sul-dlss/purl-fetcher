@@ -13,6 +13,7 @@ module V1
     end
 
     def destroy
+      return render json: { error: "not yet published" }, status: :conflict if @purl.new_record?
       return render json: { error: "already deleted" }, status: :conflict if @purl.deleted?
 
       @purl.mark_deleted
@@ -25,7 +26,7 @@ module V1
 
     def find_purl
       @purl = begin
-        Purl.find_or_create_by(druid: druid_param)
+        Purl.find_or_initialize_by(druid: druid_param)
       rescue ActiveRecord::RecordNotUnique
         retry
       end

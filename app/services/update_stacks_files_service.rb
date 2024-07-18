@@ -59,15 +59,15 @@ class UpdateStacksFilesService
     end
   end
 
-  # Builds a symlink in the legacy stacks filesystem to the shelving path (in content addressable storage)
+  # Builds a hard link in the legacy stacks filesystem to the shelving path (in content addressable storage)
   def create_link(filename, shelving_path)
     # There should be no need for this check. However we're not seeing the file on the filesystem, so check for now.
     raise "Path doesn't exist: `#{shelving_path}'" unless File.exist?(shelving_path)
 
     links_path = File.join(stacks_druid_path, filename)
     FileUtils.mkdir_p(File.dirname(links_path))
-    File.unlink(links_path) if File.exist?(links_path) || File.symlink?(links_path)
-    File.symlink(shelving_path, links_path)
+    FileUtils.rm_f(links_path)
+    File.link(shelving_path, links_path)
   end
 
   # Remove files from the Stacks directory that are not in the cocina object

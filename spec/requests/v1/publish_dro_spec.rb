@@ -71,20 +71,12 @@ RSpec.describe 'Publish a DRO' do
       expect(response).to be_created
       if Settings.features.awfl_metadata
         expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to be_symlink('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
-        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/public')
-      else
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
       end
-      if Settings.features.awfl
-        expect(File).to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
-        expect(File).to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
-      else
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
-      end
+      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+      expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
+      expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
     end
 
     context 'when file is already in Stacks, but not found in the Cocina object' do
@@ -115,13 +107,10 @@ RSpec.describe 'Publish a DRO' do
       expect(response).to be_created
       if Settings.features.awfl_metadata
         expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to be_symlink('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
-        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-        expect(File).to be_symlink('tmp/purl_doc_cache/bc/123/df/4567/public')
-      else
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+        expect(File).to exist('tmp/stacks/content_addressable/bc/123/df/4567/bc123df4567/versions/cocina.json')
       end
+      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+      expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
     end
   end
 

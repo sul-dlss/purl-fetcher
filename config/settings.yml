@@ -20,6 +20,7 @@ filesystems:
 features:
   awfl: false
   awfl_metadata: false
+  legacy_purl: true
 
 purl:
   hostname: purl.stanford.edu

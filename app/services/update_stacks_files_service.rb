@@ -25,6 +25,7 @@ class UpdateStacksFilesService
   end
 
   def delete!
+    @cocina_md5s = []
     @cocina_filenames = []
     unshelve_removed_files
   end
@@ -82,13 +83,16 @@ class UpdateStacksFilesService
     return unless Settings.features.awfl
 
     # delete from content addressable storage any file that is not in any version (currently only supporting one version)
-    cocina_md5s.each do |hexdigest|
-      content_addressed_storage.delete(md5: hexdigest)
+    # NOTE: All of the filenames are expected to be md5 digests
+    Dir.each_child(content_addressed_storage.content_addressable_path).each do |md5|
+      next if cocina_md5s.include?(md5)
+
+      content_addressed_storage.delete(md5:)
     end
   end
 
   def cocina_md5s
-    cocina_files.map do |file|
+    @cocina_md5s ||= cocina_files.map do |file|
       md5_for_file(file)
     end
   end

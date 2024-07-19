@@ -82,6 +82,10 @@ class UpdateStacksFilesService
     end
     return unless Settings.features.awfl
 
+    # The directory may not exist if no files have ever been shelved to the content_addressable_storage
+    # This may happen during a metadata only update
+    return unless Dir.exist?(content_addressed_storage.content_addressable_path)
+
     # delete from content addressable storage any file that is not in any version (currently only supporting one version)
     # NOTE: All of the filenames are expected to be md5 digests
     Dir.each_child(content_addressed_storage.content_addressable_path).each do |md5|

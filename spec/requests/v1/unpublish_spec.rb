@@ -38,9 +38,7 @@ RSpec.describe 'Unpublish a Purl' do
           expect(Racecar).to have_received(:produce_sync)
             .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
           expect(File).not_to exist("#{legacy_stacks_path}/file3.txt")
-          expect(File).not_to be_symlink("#{legacy_stacks_path}/file3.txt")
           expect(File).not_to exist("#{legacy_purl_path}/cocina.json")
-          expect(File).not_to be_symlink("#{legacy_purl_path}/cocina.json")
         end
       end
 
@@ -60,15 +58,15 @@ RSpec.describe 'Unpublish a Purl' do
         before do
           FileUtils.mkdir_p(content_path)
           File.write(file_content_path, 'hello world')
-          File.symlink(file_content_path, legacy_file_path)
+          File.link(file_content_path, legacy_file_path)
 
           FileUtils.mkdir_p(versions_path)
           File.write(cocina_version_path, 'hello cocina')
-          File.symlink(cocina_version_path, cocina_head_version_path)
-          File.symlink(cocina_version_path, legacy_purl_cocina_path)
+          File.link(cocina_version_path, cocina_head_version_path)
+          File.link(cocina_version_path, legacy_purl_cocina_path)
           File.write(xml_version_path, 'hello public xml')
-          File.symlink(xml_version_path, xml_head_version_path)
-          File.symlink(xml_version_path, legacy_purl_xml_path)
+          File.link(xml_version_path, xml_head_version_path)
+          File.link(xml_version_path, legacy_purl_xml_path)
         end
 
         after do
@@ -86,13 +84,13 @@ RSpec.describe 'Unpublish a Purl' do
           expect(Racecar).to have_received(:produce_sync)
             .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
           expect(File).not_to exist(file_content_path)
-          expect(File).not_to be_symlink(legacy_file_path)
+          expect(File).not_to exist(legacy_file_path)
           expect(File).not_to exist(cocina_version_path)
-          expect(File).not_to be_symlink(cocina_head_version_path)
-          expect(File).not_to be_symlink(legacy_purl_cocina_path)
+          expect(File).not_to exist(cocina_head_version_path)
+          expect(File).not_to exist(legacy_purl_cocina_path)
           expect(File).not_to exist(xml_version_path)
-          expect(File).not_to be_symlink(xml_head_version_path)
-          expect(File).not_to be_symlink(legacy_purl_xml_path)
+          expect(File).not_to exist(xml_head_version_path)
+          expect(File).not_to exist(legacy_purl_xml_path)
         end
       end
 

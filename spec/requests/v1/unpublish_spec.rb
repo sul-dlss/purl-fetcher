@@ -90,6 +90,23 @@ RSpec.describe 'Unpublish a Purl' do
         end
       end
 
+      context 'when versioned files is enabled and version is provided' do
+        let(:service) { instance_double(VersionedFilesService, delete: true) }
+
+        before do
+          allow(Settings.features).to receive(:versioned_files).and_return(true)
+          allow(VersionedFilesService).to receive_messages(versioned_files?: true, new: service)
+        end
+
+        it 'invokes VersionedFilesService#delete with the version' do
+          delete("/purls/#{druid}?version=2", headers:)
+
+          expect(response).to have_http_status(:success)
+          expect(VersionedFilesService).to have_received(:new).with(druid:)
+          expect(service).to have_received(:delete).with(version: '2')
+        end
+      end
+
       context 'when legacy_purl is enabled' do
         before do
           allow(Settings.features).to receive(:legacy_purl).and_return(true)

@@ -4,8 +4,8 @@ class PurlAndStacksService
     new(purl:).delete(version:)
   end
 
-  def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:)
-    new(purl:).update(cocina_object:, file_uploads:, version:, version_date:)
+  def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:, must_version:) # rubocop:disable Metrics/ParameterLists
+    new(purl:).update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
   end
 
   # @param purl [Purl] the PURL model object.
@@ -18,10 +18,14 @@ class PurlAndStacksService
   # @param file_uploads [Hash<String,String>] map of cocina filenames to staging filenames (UUIDs)
   # @param version [String] the version number
   # @param version_date [DateTime] the version date
-  def update(cocina_object:, file_uploads:, version:, version_date:)
+  # @param must_version [Boolean] true if the versioned layout is required
+  def update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
+    version_metadata = VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date)
+    VersionedFilesService.new(druid:).migrate(version_metadata:) if migrate_to_versioned_layout?(must_version)
+
     if use_versioned_layout?
       VersionedFilesService.new(druid:).update(version:,
-                                               version_metadata: VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date),
+                                               version_metadata:,
                                                cocina: cocina_object,
                                                public_xml: PublicXmlWriter.generate(cocina_object),
                                                file_transfers: file_uploads)
@@ -77,7 +81,7 @@ class PurlAndStacksService
     # TODO: Support DSA indicating if an object is versioned.
 
     # Is it already in versioned layout?
-    return true if VersionedFilesService.versioned_files?(druid:)
+    return true if already_versioned_layout?
     # Does the object already exist and is versioned?
     # The presence of the Stacks object directory indicates that it is versioned.
     # For example, /stacks/bc/123/df/4567/bc123df4567 indicates that versioned layout is being used.
@@ -85,5 +89,15 @@ class PurlAndStacksService
     return true unless DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname.exist?
 
     false
+  end
+
+  def migrate_to_versioned_layout?(must_version)
+    return false unless versioned_files_enabled?
+
+    !already_versioned_layout? && must_version
+  end
+
+  def already_versioned_layout?
+    VersionedFilesService.versioned_files?(druid:)
   end
 end

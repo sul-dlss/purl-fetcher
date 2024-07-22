@@ -60,7 +60,7 @@ class VersionedFilesService
 
   # Migrate from unversioned to versioned layout.
   # @param version_metadata [VersionMetadata] the metadata for the version
-  def migate(version_metadata:)
+  def migrate(version_metadata:)
     MigrateAction.new(version_metadata:, service: self).call
   end
 

@@ -1,5 +1,4 @@
 class UpdateStacksFilesService
-  class BlobError < StandardError; end
   class RequestError < StandardError; end
 
   def self.write!(...)
@@ -14,8 +13,6 @@ class UpdateStacksFilesService
     @cocina_object = cocina_object
     @file_uploads_map = file_uploads_map
     @stacks_druid_path = DruidTools::PurlDruid.new(cocina_object.externalIdentifier, Settings.filesystems.stacks_root).path
-
-    @content_addressed_storage = ContentAddressedStorage.new(cocina_object.externalIdentifier)
   end
 
   def write!
@@ -32,7 +29,7 @@ class UpdateStacksFilesService
 
   private
 
-  attr_reader :cocina_object, :file_uploads_map, :stacks_druid_path, :content_addressed_storage
+  attr_reader :cocina_object, :file_uploads_map, :stacks_druid_path
 
   def inspect
     "<#{self.class}:#{object_id} id=#{cocina.externalIdentifier}>"
@@ -48,15 +45,9 @@ class UpdateStacksFilesService
   def shelve_files
     file_uploads_map.each do |filename, temp_storage_uuid|
       file_path = File.join(Settings.filesystems.transfer, temp_storage_uuid)
-      if Settings.features.awfl
-        md5 = md5_for_filename(filename)
-        shelving_path = content_addressed_storage.mv(file_path:, md5:)
-        create_link(filename, shelving_path)
-      else
-        shelving_path = File.join(stacks_druid_path, filename)
-        FileUtils.mkdir_p(File.dirname(shelving_path))
-        FileUtils.mv(file_path, shelving_path)
-      end
+      shelving_path = File.join(stacks_druid_path, filename)
+      FileUtils.mkdir_p(File.dirname(shelving_path))
+      FileUtils.mv(file_path, shelving_path)
     end
   end
 
@@ -79,19 +70,6 @@ class UpdateStacksFilesService
       next if cocina_filenames.include?(file)
 
       File.delete(file_with_path)
-    end
-    return unless Settings.features.awfl
-
-    # The directory may not exist if no files have ever been shelved to the content_addressable_storage
-    # This may happen during a metadata only update
-    return unless Dir.exist?(content_addressed_storage.content_addressable_path)
-
-    # delete from content addressable storage any file that is not in any version (currently only supporting one version)
-    # NOTE: All of the filenames are expected to be md5 digests
-    Dir.each_child(content_addressed_storage.content_addressable_path).each do |md5|
-      next if cocina_md5s.include?(md5)
-
-      content_addressed_storage.delete(md5:)
     end
   end
 

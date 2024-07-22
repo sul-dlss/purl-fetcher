@@ -1,0 +1,81 @@
+class PurlAndStacksService
+  def self.delete(purl:, version:)
+    new(purl:).delete(version:)
+  end
+
+  def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:)
+    new(purl:).update(cocina_object:, file_uploads:, version:, version_date:)
+  end
+
+  def initialize(purl:)
+    @purl = purl
+  end
+
+  def update(cocina_object:, file_uploads:, version:, version_date:)
+    if use_versioned_layout?
+      # Writes to stacks with versioned layout.
+      VersionedFilesService.new(druid:).update(version:,
+                                               version_metadata: VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date),
+                                               cocina: cocina_object,
+                                               public_xml: PublicXmlWriter.generate(cocina_object),
+                                               file_transfers: file_uploads)
+      # Writes to purl. In the future when PURL Application can handle versioned layout, this will be removed.
+      UpdatePurlMetadataService.new(purl).write! if legacy_purl_enabled?
+
+    else
+      # Writes to stacks with unversioned layout.
+      UpdateStacksFilesService.write!(cocina_object, file_uploads) unless cocina_object.collection?
+      UpdatePurlMetadataService.new(purl).write!
+    end
+  end
+
+  def delete(version:)
+    if versioned_files_enabled? && VersionedFilesService.versioned_files?(druid: purl.druid)
+      begin
+        VersionedFilesService.new(druid: purl.druid).delete(version:)
+      rescue VersionedFilesService::UnknowVersionError
+        # This shouldn't happen, but in case it does it can be ignored.
+        # In theory, it could happen if delete is called multiple times and the Purl DB record is out of sync with
+        # the PURL file system.
+      end
+
+    else
+      UpdateStacksFilesService.delete!(purl.cocina_object)
+    end
+    UpdatePurlMetadataService.new(purl).delete! if legacy_purl_enabled?
+  end
+
+  private
+
+  attr_reader :purl
+
+  delegate :druid, to: :purl
+
+  def versioned_files_enabled?
+    Settings.features.versioned_files
+  end
+
+  def legacy_purl_enabled?
+    Settings.features.legacy_purl
+  end
+
+  def use_versioned_layout?
+    return false unless versioned_files_enabled?
+
+    # Use versioned layout (1) if the object is already using the versioned layout; (2) if the object is new; or
+    # (3) if the object is using the unversioned layout, but DSA indicates that the object is versioned.
+    # 3 may be the case for existing H2 objects, as they were previously unversioned but versions are being added.
+
+    # TODO: Support DSA indicating if an object is versioned.
+
+    # Is it already in versioned layout?
+    return true if VersionedFilesService.versioned_files?(druid:)
+    # Does the object already exist and is versioned?
+    # The presence of the Stacks object directory indicates that it is versioned.
+    # For example, /stacks/bc/123/df/4567/bc123df4567 indicates that versioned layout is being used.
+    # /stacks/bc/123/df/4567 but NOT bc123df4567 indicates that unversioned layout is being used.
+    return true unless DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname.exist?
+
+    false
+  end
+end

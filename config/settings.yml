@@ -14,12 +14,10 @@ hmac_secret: ~
 filesystems:
   purl_root: "/purl/document_cache"
   stacks_root: "/stacks"
-  stacks_content_addressable: /stacks/content_addressable
   transfer: /access-transfer-stage
 
 features:
-  awfl: false
-  awfl_metadata: false
+  versioned_files: false
   legacy_purl: true
 
 purl:

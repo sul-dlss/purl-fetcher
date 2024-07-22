@@ -15,11 +15,6 @@ module Publish
       @ng_xml = {}
     end
 
-    # @return [Nokogiri::XML::Document] A copy of the descriptiveMetadata of the object, to be modified
-    def doc
-      @doc ||= Cocina::Models::Mapping::ToMods::Description.transform(cocina_object.description, cocina_object.externalIdentifier)
-    end
-
     # @return [String] Public descriptive medatada XML
     # @params [Hash] _opts ({}) Rails sends args when rendering XML but we ignore them
     def to_xml(_opts = {})
@@ -35,13 +30,9 @@ module Publish
     # @return [Nokogiri::XML::Document]
     def ng_xml(include_access_conditions: true)
       @ng_xml[include_access_conditions] ||= begin
-        add_collection_reference!
-        AccessConditions.add(public_mods: doc, access: cocina_object.access) if include_access_conditions
-        add_constituent_relations!
-        add_doi
-        strip_comments!
+        AccessConditions.add(public_mods:, access: cocina_object.access) if include_access_conditions
 
-        new_doc = Nokogiri::XML(doc.to_xml, &:noblanks)
+        new_doc = Nokogiri::XML(public_mods.to_xml, &:noblanks)
         new_doc.encoding = 'UTF-8'
         new_doc
       end
@@ -49,12 +40,23 @@ module Publish
 
     private
 
-    def strip_comments!
+    # @return [Nokogiri::XML::Document] A copy of the descriptiveMetadata of the object, to be modified
+    def public_mods
+      @public_mods ||= Cocina::Models::Mapping::ToMods::Description.transform(cocina_object.description,
+                                                                              cocina_object.externalIdentifier).tap do |doc|
+        add_collection_reference!(doc)
+        add_constituent_relations!(doc)
+        add_doi(doc)
+        strip_comments!(doc)
+      end
+    end
+
+    def strip_comments!(doc)
       doc.xpath('//comment()').remove
     end
 
     # Export DOI into the public descMetadata to allow PURL to display it
-    def add_doi
+    def add_doi(doc)
       return unless cocina_object.dro? && cocina_object.identification.doi
 
       identifier = doc.create_element('identifier', xmlns: MODS_NS)
@@ -66,7 +68,7 @@ module Publish
 
     # expand constituent relations into relatedItem references -- see JUMBO-18
     # @return [Void]
-    def add_constituent_relations!
+    def add_constituent_relations!(doc)
       constituents.each do |virtual_object_params|
         # create the MODS relation
         relatedItem = doc.create_element('relatedItem', xmlns: MODS_NS)
@@ -99,27 +101,27 @@ module Publish
     # Adds to desc metadata a relatedItem with information about the collection this object belongs to.
     # For use in published mods and mods-to-DC conversion.
     # @return [Void]
-    def add_collection_reference!
+    def add_collection_reference!(doc)
       return if cocina_object.collection? || cocina_object.structural&.isMemberOf.blank?
 
       collections = cocina_object.structural&.isMemberOf
 
-      remove_related_item_nodes_for_collections!
+      remove_related_item_nodes_for_collections!(doc)
 
       Purl.where(druid: collections).find_each do |collection|
-        add_related_item_node_for_collection! collection
+        add_related_item_node_for_collection! doc, collection
       end
     end
 
     # Remove existing relatedItem entries for collections from descMetadata
-    def remove_related_item_nodes_for_collections!
+    def remove_related_item_nodes_for_collections!(doc)
       doc.search('/mods:mods/mods:relatedItem[@type="host"]/mods:typeOfResource[@collection=\'yes\']',
                  'mods' => 'http://www.loc.gov/mods/v3').each do |node|
         node.parent.remove
       end
     end
 
-    def add_related_item_node_for_collection!(collection)
+    def add_related_item_node_for_collection!(doc, collection)
       title_node         = Nokogiri::XML::Node.new('title', doc)
       title_node.content = collection.title
 

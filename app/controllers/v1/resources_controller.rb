@@ -16,11 +16,7 @@ module V1
     def create
       PurlCocinaUpdater.new(@purl, @cocina_object).update
 
-      # TODO: Allow DSA to provide a version. Hardcoding version to 1 for now
-      # TODO: Allow DSA to provide a version date. Setting version date to now for now.
-      # TODO: Allow DSA to indicate if an object is versioned. If versioned and object is not using versioned layout,
-      #   invoke VersionedFilesService.migrate before VersionedFilesService.update to migrate from unversioned to versioned layout.
-      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version: '1', version_date: DateTime.now)
+      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:, must_version:)
 
       render json: true, location: @purl, status: :created
     end
@@ -59,6 +55,25 @@ module V1
         content_type: 'application/json',
         status: error_code
       }
+    end
+
+    def version_date
+      version_date = params.require(:resource)[:version_date]
+      # TODO: Conditional can be removed once DSA is providing the version date.
+      version_date ? DateTime.iso8601(version_date) : DateTime.now
+    end
+
+    def version
+      version = params.require(:resource)[:version]
+      # TODO: Once DSA is providing the version, || '1' can be removed.
+      version || '1'
+    end
+
+    def must_version
+      # This allows DSA to indicate that the object must be in the versioned layout.
+      # TODO: This is a temporary parameter until migration is complete.
+      # It is necessary so that DSA that a previously unversioned object now has versions.
+      params.require(:resource)[:must_version] || false
     end
   end
 end

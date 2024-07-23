@@ -21,12 +21,9 @@ class VersionedFilesService
   def initialize(druid:)
     @druid = druid
     @paths = Paths.new(druid:)
-    @version_manifest = VersionsManifest.new(path: @paths.versions_manifest_path)
-    @contents = Contents.new(service: self)
-    @metadata = Metadata.new(service: self)
   end
 
-  attr_reader :druid, :version_manifest
+  attr_reader :druid
 
   delegate :object_path, :content_path, :versions_path, :head_cocina_path,
            :cocina_path_for, :head_public_xml_path, :public_xml_path_for,
@@ -35,10 +32,22 @@ class VersionedFilesService
   delegate :head_version, :head_version?, :version?, :version_metadata_for,
            :withdraw, :versions, to: :version_manifest
 
-  delegate :content_md5s, :move_content, to: :@contents
+  delegate :content_md5s, :move_content, to: :contents
 
   delegate :write_cocina, :write_public_xml,
-           :delete_cocina, :delete_public_xml, to: :@metadata
+           :delete_cocina, :delete_public_xml, to: :metadata
+
+  def version_manifest
+    @version_manifest ||= VersionsManifest.new(path: @paths.versions_manifest_path)
+  end
+
+  def metadata
+    @metadata ||= Metadata.new(paths: @paths)
+  end
+
+  def contents
+    @contents ||= Contents.new(paths: @paths)
+  end
 
   # Creates or updates a version.
   # @param version [String] the version number

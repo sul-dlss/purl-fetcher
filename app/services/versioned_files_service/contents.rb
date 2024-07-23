@@ -1,9 +1,9 @@
 class VersionedFilesService
   # Support for managing content files.
   class Contents
-    # @param service [VersionedFilesService] the service
-    def initialize(service:)
-      @service = service
+    # @param paths [VersionedFilesService::Paths] the paths service
+    def initialize(paths:)
+      @paths = paths
     end
 
     # @return [Array<String>] the md5s for all content files
@@ -22,6 +22,6 @@ class VersionedFilesService
       content_path_for(md5:).delete
     end
 
-    delegate :content_path_for, :content_path, to: :@service
+    delegate :content_path_for, :content_path, to: :@paths
   end
 end

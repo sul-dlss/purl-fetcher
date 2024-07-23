@@ -14,7 +14,7 @@ class VersionedFilesService
 
     private
 
-    delegate :content_md5s, :delete_content, :versions, :content_path_for, :druid,
+    delegate :content_md5s, :delete_content, :versions, :druid,
              to: :@service
 
     def cocina_content_md5s
@@ -22,10 +22,6 @@ class VersionedFilesService
         cocina = Cocina.for(druid:, version:)
         cocina.shelve_file_map.values
       end.flatten.uniq
-    end
-
-    def delete_content(md5:)
-      content_path_for(md5:).delete
     end
   end
 end

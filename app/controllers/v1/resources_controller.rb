@@ -16,7 +16,7 @@ module V1
     def create
       PurlCocinaUpdater.new(@purl, @cocina_object).update
 
-      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:, must_version:)
+      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:)
 
       render json: true, location: @purl, status: :created
     end
@@ -67,13 +67,6 @@ module V1
       version = params.require(:resource)[:version]
       # TODO: Once DSA is providing the version, || '1' can be removed.
       version || '1'
-    end
-
-    def must_version
-      # This allows DSA to indicate that the object must be in the versioned layout.
-      # TODO: This is a temporary parameter until migration is complete.
-      # It is necessary so that DSA that a previously unversioned object now has versions.
-      params.require(:resource)[:must_version] || false
     end
   end
 end

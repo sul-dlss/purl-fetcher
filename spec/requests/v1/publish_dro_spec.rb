@@ -12,13 +12,11 @@ RSpec.describe 'Publish a DRO' do
     {
       object: dro.to_h,
       file_uploads:,
-      must_version:,
       version:,
       version_date: version_date.iso8601
     }.to_json
   end
   let(:file_uploads) { { 'file2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a', 'files/file2.txt' => '7f807e3c-4cde-4b6d-8e76-f24455316a01' } }
-  let(:must_version) { false }
   let(:version) { '1' }
   let(:version_date) { DateTime.now }
 
@@ -108,29 +106,7 @@ RSpec.describe 'Publish a DRO' do
       # rubocop:enable RSpec/ExpectActual
     end
 
-    context 'when versioned files is enabled and object already exists' do
-      before do
-        allow(Settings.features).to receive(:versioned_files).and_return(true)
-        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
-      end
-
-      it 'creates the resource in unversioned layout' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-        expect(response).to be_created
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
-        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
-        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
-      end
-    end
-
-    context 'when version files is enabled and must_version is true' do
-      let(:must_version) { true }
-
+    context 'when version files is enabled' do
       let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true) }
 
       let(:version_metadata) { VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date) }
@@ -142,6 +118,8 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'performs a migration before updating the resource' do
+        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
+
         post '/v1/resources',
              params: request,
              headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }

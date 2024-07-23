@@ -4,8 +4,8 @@ class PurlAndStacksService
     new(purl:).delete(version:)
   end
 
-  def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:, must_version:) # rubocop:disable Metrics/ParameterLists
-    new(purl:).update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
+  def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:)
+    new(purl:).update(cocina_object:, file_uploads:, version:, version_date:)
   end
 
   # @param purl [Purl] the PURL model object.
@@ -18,12 +18,11 @@ class PurlAndStacksService
   # @param file_uploads [Hash<String,String>] map of cocina filenames to staging filenames (UUIDs)
   # @param version [String] the version number
   # @param version_date [DateTime] the version date
-  # @param must_version [Boolean] true if the versioned layout is required
-  def update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
+  def update(cocina_object:, file_uploads:, version:, version_date:)
     version_metadata = VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date)
-    VersionedFilesService.new(druid:).migrate(version_metadata:) if migrate_to_versioned_layout?(must_version)
+    VersionedFilesService.new(druid:).migrate(version_metadata:) if versioned_files_enabled? && !(new_object? || already_versioned_layout?)
 
-    if use_versioned_layout?
+    if versioned_files_enabled?
       VersionedFilesService.new(druid:).update(version:,
                                                version_metadata:,
                                                cocina: cocina_object,
@@ -31,7 +30,6 @@ class PurlAndStacksService
                                                file_transfers: file_uploads)
       # Writes to purl. In the future when PURL Application can handle versioned layout, this will be removed.
       UpdatePurlMetadataService.new(purl).write! if legacy_purl_enabled?
-
     else
       # Writes to stacks with unversioned layout.
       UpdateStacksFilesService.write!(cocina_object, file_uploads) unless cocina_object.collection?
@@ -71,33 +69,11 @@ class PurlAndStacksService
     Settings.features.legacy_purl
   end
 
-  def use_versioned_layout?
-    return false unless versioned_files_enabled?
-
-    # Use versioned layout (1) if the object is already using the versioned layout; (2) if the object is new; or
-    # (3) if the object is using the unversioned layout, but DSA indicates that the object is versioned.
-    # 3 may be the case for existing H2 objects, as they were previously unversioned but versions are being added.
-
-    # TODO: Support DSA indicating if an object is versioned.
-
-    # Is it already in versioned layout?
-    return true if already_versioned_layout?
-    # Does the object already exist and is versioned?
-    # The presence of the Stacks object directory indicates that it is versioned.
-    # For example, /stacks/bc/123/df/4567/bc123df4567 indicates that versioned layout is being used.
-    # /stacks/bc/123/df/4567 but NOT bc123df4567 indicates that unversioned layout is being used.
-    return true unless DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname.exist?
-
-    false
-  end
-
-  def migrate_to_versioned_layout?(must_version)
-    return false unless versioned_files_enabled?
-
-    !already_versioned_layout? && must_version
-  end
-
   def already_versioned_layout?
     VersionedFilesService.versioned_files?(druid:)
+  end
+
+  def new_object?
+    !DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname.exist?
   end
 end

@@ -28,7 +28,7 @@ class VersionedFilesService
 
   attr_reader :druid, :version_manifest
 
-  delegate :object_path, :content_path, :versions_path, :head_cocina_path,
+  delegate :object_path, :stacks_object_path, :content_path, :versions_path, :head_cocina_path,
            :cocina_path_for, :head_public_xml_path, :public_xml_path_for,
            :versions_manifest_path, :content_path_for, to: :@paths
 
@@ -62,11 +62,5 @@ class VersionedFilesService
   # @param version_metadata [VersionMetadata] the metadata for the version
   def migrate(version_metadata:)
     MigrateAction.new(version_metadata:, service: self).call
-  end
-
-  # @return [Pathname] the path to the Stacks object directory
-  # Note that this is the logical path; the path may not exist.
-  def stacks_object_path
-    DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname
   end
 end

@@ -12,6 +12,12 @@ class VersionedFilesService
       @object_path ||= DruidTools::Druid.new(druid, Settings.filesystems.stacks_root).pathname
     end
 
+    # @return [Pathname] the path to the Stacks object directory
+    # Note that this is the logical path; the path may not exist.
+    def stacks_object_path
+      @stacks_object_path ||= DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname
+    end
+
     # @return [Pathname] the path to the content directory
     # Note that this is the logical path; the path may not exist.
     def content_path

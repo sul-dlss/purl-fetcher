@@ -872,12 +872,4 @@ RSpec.describe VersionedFilesService do
       end
     end
   end
-
-  describe '#stacks_object_path' do
-    let(:path) { service.stacks_object_path.to_s }
-
-    it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567")
-    end
-  end
 end

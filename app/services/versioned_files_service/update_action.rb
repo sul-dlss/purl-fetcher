@@ -4,14 +4,12 @@ class VersionedFilesService
     # @param version [String] the version number
     # @param version_metadata [VersionMetadata] the metadata for the version
     # @param cocina [Cocina::Models::DRO, Cocina::Models::Collection] the cocina object
-    # @param public_xml [String] the public xml content
     # @param file_transfers [Hash<String, String>] a hash of filename (from cocina) to transfer UUID.
     # @param service [VersionedFilesService] the service
-    def initialize(version:, version_metadata:, cocina:, public_xml:, file_transfers:, service:) # rubocop:disable Metrics/ParameterLists
+    def initialize(version:, version_metadata:, cocina:, file_transfers:, service:)
       @version = version
       @version_metadata = version_metadata
       @cocina = cocina
-      @public_xml = public_xml
       @file_transfers = file_transfers
       @service = service
     end
@@ -38,7 +36,7 @@ class VersionedFilesService
 
     private
 
-    attr_reader :version, :version_metadata, :cocina, :public_xml, :file_transfers
+    attr_reader :version, :version_metadata, :cocina, :file_transfers
 
     delegate :content_md5s, :transfer_path_for, :content_path, :move_content,
              :write_cocina, :write_public_xml, :version_manifest,
@@ -55,6 +53,10 @@ class VersionedFilesService
 
         raise Error, "Missing content file for #{filename}"
       end
+    end
+
+    def public_xml
+      @public_xml ||= PublicXmlWriter.generate(cocina)
     end
 
     def check_file_transfers!

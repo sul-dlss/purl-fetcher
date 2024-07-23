@@ -53,10 +53,9 @@ class VersionedFilesService
   # @param version [String] the version number
   # @param version_metadata [VersionMetadata] the metadata for the version
   # @param cocina [Cocina::Models::DRO] the cocina model
-  # @param public_xml [String] the public xml content
   # @param file_transfers [Hash<String, String>] a map of filenames to transfer UUIDs
-  def update(version:, version_metadata:, cocina:, public_xml:, file_transfers: {})
-    UpdateAction.new(version:, version_metadata:, cocina:, public_xml:, file_transfers:, service: self).call
+  def update(version:, version_metadata:, cocina:, file_transfers: {})
+    UpdateAction.new(version:, version_metadata:, cocina:, file_transfers:, service: self).call
     StacksLinkAction.new(version:, service: self).call
   end
 

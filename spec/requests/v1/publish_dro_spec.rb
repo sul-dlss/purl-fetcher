@@ -152,7 +152,6 @@ RSpec.describe 'Publish a DRO' do
         expect(versioned_files_service).to have_received(:update).with(version:,
                                                                        version_metadata:,
                                                                        cocina: dro,
-                                                                       public_xml: PublicXmlWriter.generate(dro),
                                                                        file_transfers: file_uploads)
       end
     end
@@ -180,7 +179,6 @@ RSpec.describe 'Publish a DRO' do
         expect(versioned_files_service).to have_received(:update).with(version:,
                                                                        version_metadata:,
                                                                        cocina: dro,
-                                                                       public_xml: PublicXmlWriter.generate(dro),
                                                                        file_transfers: file_uploads)
       end
     end

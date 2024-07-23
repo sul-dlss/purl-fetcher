@@ -1,7 +1,7 @@
 # Write a version of an object. Note that this does not correctly update an existing version.
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/ParameterLists
-def write_version(content_path:, versions_path:, stacks_object_path:, cocina_object:, public_xml:, version:, version_metadata:)
+def write_version(content_path:, versions_path:, stacks_object_path:, cocina_object:, version:, version_metadata:)
   # Write original content files and symlink to stacks filesystem
   FileUtils.mkdir_p(content_path)
   cocina_object.structural.contains.each do |file_set|
@@ -19,7 +19,7 @@ def write_version(content_path:, versions_path:, stacks_object_path:, cocina_obj
   File.write("#{versions_path}/cocina.#{version}.json", cocina_object.to_json)
   FileUtils.rm_rf("#{versions_path}/cocina.json")
   File.link("#{versions_path}/cocina.#{version}.json", "#{versions_path}/cocina.json")
-  File.write("#{versions_path}/public.#{version}.xml", public_xml)
+  File.write("#{versions_path}/public.#{version}.xml", PublicXmlWriter.generate(cocina_object))
   FileUtils.rm_rf("#{versions_path}/public.xml")
   File.link("#{versions_path}/public.#{version}.xml", "#{versions_path}/public.xml")
   File.write("#{versions_path}/versions.json", { versions: { version => { withdrawn: false, date: version_metadata.date.iso8601 } }, head: version }.to_json)

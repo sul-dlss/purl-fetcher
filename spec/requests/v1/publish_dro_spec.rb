@@ -139,6 +139,7 @@ RSpec.describe 'Publish a DRO' do
         allow(Settings.features).to receive(:versioned_files).and_return(true)
         allow(VersionedFilesService).to receive(:versioned_files?).and_return(false, true)
         allow(VersionedFilesService).to receive(:new).and_return(versioned_files_service)
+        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
       end
 
       it 'performs a migration before updating the resource' do
@@ -148,6 +149,34 @@ RSpec.describe 'Publish a DRO' do
         expect(response).to be_created
 
         expect(versioned_files_service).to have_received(:migrate).with(version_metadata:)
+        expect(versioned_files_service).to have_received(:update).with(version:,
+                                                                       version_metadata:,
+                                                                       cocina: dro,
+                                                                       public_xml: PublicXmlWriter.generate(dro),
+                                                                       file_transfers: file_uploads)
+      end
+    end
+
+    context 'when version files is enabled and must_version is true but a new object' do
+      let(:must_version) { true }
+
+      let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true) }
+
+      let(:version_metadata) { VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date) }
+
+      before do
+        allow(Settings.features).to receive(:versioned_files).and_return(true)
+        allow(VersionedFilesService).to receive(:versioned_files?).and_return(false, true)
+        allow(VersionedFilesService).to receive(:new).and_return(versioned_files_service)
+      end
+
+      it 'does not perform a migration before updating the resource' do
+        post '/v1/resources',
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+
+        expect(versioned_files_service).not_to have_received(:migrate)
         expect(versioned_files_service).to have_received(:update).with(version:,
                                                                        version_metadata:,
                                                                        cocina: dro,

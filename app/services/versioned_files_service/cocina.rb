@@ -23,7 +23,7 @@ class VersionedFilesService
                              {}.tap do |file_map|
                                cocina_hash.dig('structural', 'contains')&.each do |file_set|
                                  file_set.dig('structural', 'contains').each do |file|
-                                   file_map[file['filename']] = md5_for(file) if file.dig('administrative', 'shelve')
+                                   file_map[file['filename']] = md5_for(file) if shelved?(file)
                                  end
                                end
                              end
@@ -32,12 +32,33 @@ class VersionedFilesService
                            end
     end
 
+    # @return [Array<Hash<String, String>>] array of hashes with md5 as key and filename as value for shelved files
+    # For example: [
+    #   { "5b79c8570b7ef582735f912aa24ce5f2" => "2542A.tiff" },
+    #   { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => "2542A.jp2" }
+    # ]
+    def files_by_md5
+      @files_by_md5 ||= if cocina_hash.key?('structural')
+                          cocina_hash.dig('structural', 'contains').flat_map do |file_set|
+                            file_set.dig('structural', 'contains').filter_map do |file|
+                              { md5_for(file) => file.fetch('filename') } if shelved?(file)
+                            end
+                          end
+                        else
+                          []
+                        end
+    end
+
     private
 
     attr_reader :cocina_hash
 
     def md5_for(file)
       file['hasMessageDigests'].find { |digest| digest['type'] == 'md5' }['digest']
+    end
+
+    def shelved?(file)
+      file.dig('administrative', 'shelve')
     end
   end
 end

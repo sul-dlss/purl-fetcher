@@ -880,4 +880,120 @@ RSpec.describe VersionedFilesService do
       expect(path).to eq("#{stacks_pathname}/bc/123/df/4567")
     end
   end
+
+  describe '#files_by_md5' do
+    context 'when deleting a subsequent version head' do
+      let(:initial_dro) do
+        build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
+        Cocina::Models::DROStructural.new(
+          contains: [
+            Cocina::Models::FileSet.new(
+              externalIdentifier: 'bc123df4567_2',
+              type: Cocina::Models::FileSetType.file,
+              label: 'text file',
+              version: 1,
+              structural: Cocina::Models::FileSetStructural.new(
+                contains: [
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the regular file',
+                    filename: 'file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  ),
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'a file only in version 1',
+                    filename: 'files/file0.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3497de4d5abb55f21f652aa61b8f3abd' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  )
+                ]
+              )
+            )
+          ]
+        ))
+      end
+
+      let(:version_2_dro) do
+        build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
+        Cocina::Models::DROStructural.new(
+          contains: [
+            Cocina::Models::FileSet.new(
+              externalIdentifier: 'bc123df4567_2',
+              type: Cocina::Models::FileSetType.file,
+              label: 'text file',
+              version: 1,
+              structural: Cocina::Models::FileSetStructural.new(
+                contains: [
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the regular file',
+                    filename: 'file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  ),
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'a file only in version 2',
+                    filename: 'files/file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  )
+                ]
+              )
+            )
+          ]
+        ))
+      end
+
+      before do
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1')
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: '2')
+        File.write("#{versions_path}/versions.json", {
+          versions: {
+            1 => { withdrawn: false, date: DateTime.now.iso8601 },
+            2 => { withdrawn: false, date: DateTime.now.iso8601 }
+          },
+          head: '2'
+        }.to_json)
+      end
+
+      it 'returns array of files by md5' do
+        expect(service.files_by_md5).to eq [
+          { "3e25960a79dbc69b674cd4ec67a72c62" => "file2.txt" },
+          { "3497de4d5abb55f21f652aa61b8f3abd" => "files/file0.txt" },
+          { "5997de4d5abb55f21f652aa61b8f3aaf" => "files/file2.txt" }
+        ]
+      end
+    end
+  end
 end

@@ -9,7 +9,7 @@ module V1
     def show
       # Causes a 404 for a deleted item, which might happen if a purl is deleted and then reused.
       purl = Purl.status('public').find_by!(druid: druid_param)
-      render json: { files_by_md5: purl.public_json.files_by_md5 }
+      render json: { files_by_md5: FilesByMd5Service.call(purl:) }
     end
 
     def destroy

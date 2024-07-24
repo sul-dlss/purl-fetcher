@@ -25,9 +25,9 @@ FactoryBot.define do
                                                  download: 'none'
                                                },
                                                administrative: {
-                                                 publish: false,
+                                                 publish: true,
                                                  sdrPreserve: true,
-                                                 shelve: false
+                                                 shelve: true
                                                },
                                                hasMessageDigests: [
                                                  {

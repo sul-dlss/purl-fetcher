@@ -78,4 +78,13 @@ class VersionedFilesService
   def stacks_object_path
     DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname
   end
+
+  # @return [Array<Hash<String, String>>] array of hashes with md5 as key and filename as value for shelved files for all versions.
+  # For example: [
+  #   { "5b79c8570b7ef582735f912aa24ce5f2" => "2542A.tiff" },
+  #   { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => "2542A.jp2" }
+  # ]
+  def files_by_md5
+    versions.flat_map { |version| Cocina.for(druid:, version:).files_by_md5 }.uniq
+  end
 end

@@ -42,7 +42,7 @@ class VersionedFilesService
 
     delegate :content_md5s, :transfer_path_for, :content_path, :move_content,
              :write_cocina, :write_public_xml, :version_manifest,
-             :head_version?, :head_version, :versions, :druid,
+             :head_version?, :head_version,
              to: :@service
 
     def check_content_files!
@@ -83,13 +83,6 @@ class VersionedFilesService
       else
         true
       end
-    end
-
-    def cocina_content_md5s
-      versions.map do |version|
-        cocina = Cocina.for(druid:, version:)
-        cocina.shelve_file_map.values
-      end.flatten.uniq
     end
 
     # @return [Pathname] the path to the transfer file with the given transfer UUID

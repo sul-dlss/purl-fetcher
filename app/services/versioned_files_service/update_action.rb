@@ -40,7 +40,7 @@ class VersionedFilesService
 
     attr_reader :version, :version_metadata, :cocina, :public_xml, :file_transfers
 
-    delegate :content_md5s, :content_path, :move_content,
+    delegate :content_md5s, :move_content,
              :write_cocina, :write_public_xml, :version_manifest,
              :head_version?, :head_version,
              to: :@service

@@ -19,9 +19,14 @@ Rails.application.routes.draw do
     put 'released/:druid', to: 'purls#release_tags'
 
     resource :mods, only: :create
-    resources :resources, only: :create
+
+    # backwards-compatibility.
+    post 'resources', to: 'purls#create'
+
     resources :purls, only: [:destroy, :show], param: :druid do
       member do
+        put '/', to: 'purls#create'
+
         put 'release_tags'
         patch 'release_tags'
       end

@@ -2,8 +2,8 @@ module V1
   class PurlsController < ApplicationController
     include Authenticated
 
-    before_action :check_auth_token, only: :destroy
-    before_action :find_purl, only: :destroy
+    before_action :check_auth_token, only: %i[destroy release_tags]
+    before_action :find_purl, only: %i[destroy release_tags]
 
     # Show the files that we have for this object. Used by DSA to know which files need to be shelved.
     def show
@@ -23,6 +23,16 @@ module V1
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
 
+    # This starts the release process.
+    # The object must be shelved and published before calling this API endpoint.
+    def release_tags
+      return render json: { error: "not yet published" }, status: :not_found if @purl.new_record?
+
+      ReleaseService.release(@purl, release_tag_params)
+
+      render json: true, status: :accepted
+    end
+
     private
 
     def find_purl
@@ -31,6 +41,10 @@ module V1
       rescue ActiveRecord::RecordNotUnique
         retry
       end
+    end
+
+    def release_tag_params
+      params.require(:actions).permit(index: [], delete: [])
     end
   end
 end

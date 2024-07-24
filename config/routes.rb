@@ -4,11 +4,7 @@ Rails.application.routes.draw do
   scope module: :v1, constraints: ApiConstraint.new(version: 1), defaults: { format: :json } do
     resources :released, only: :show
 
-    resources :purls, only: [:destroy, :show], param: :druid do
-      member do
-        post '/', action: 'update'
-      end
-    end
+    resources :purls, only: [:destroy, :show], param: :druid
 
     resources :collections, only: [], param: :druid  do
       member do

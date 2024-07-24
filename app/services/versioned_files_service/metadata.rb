@@ -1,9 +1,9 @@
 class VersionedFilesService
   # Support for managing cocina.json and public xml files.
   class Metadata
-    # @param service [VersionedFilesService] the service
-    def initialize(service:)
-      @service = service
+    # @param paths [VersionedFilesService::Paths] the paths service
+    def initialize(paths:)
+      @paths = paths
     end
 
     # Write the cocina.json file for a version.
@@ -55,6 +55,6 @@ class VersionedFilesService
     end
 
     delegate :cocina_path_for, :public_xml_path_for, :versions_path,
-             :head_cocina_path, :head_public_xml_path, to: :@service
+             :head_cocina_path, :head_public_xml_path, to: :@paths
   end
 end

@@ -133,7 +133,7 @@ RSpec.describe 'Publish a DRO' do
 
       let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true) }
 
-      let(:version_metadata) { VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date) }
+      let(:version_metadata) { VersionedFilesService::VersionMetadata.new(version: 1, withdrawn: false, date: version_date) }
 
       before do
         allow(Settings.features).to receive(:versioned_files).and_return(true)
@@ -161,7 +161,7 @@ RSpec.describe 'Publish a DRO' do
 
       let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true) }
 
-      let(:version_metadata) { VersionedFilesService::VersionMetadata.new(withdrawn: false, date: version_date) }
+      let(:version_metadata) { VersionedFilesService::VersionMetadata.new(version: 1, withdrawn: false, date: version_date) }
 
       before do
         allow(Settings.features).to receive(:versioned_files).and_return(true)

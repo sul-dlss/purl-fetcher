@@ -82,7 +82,7 @@ RSpec.describe VersionedFilesService do
 
       context 'when a version' do
         it 'returns version metadata' do
-          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionMetadata.new(false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
+          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionMetadata.new(1, false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
         end
       end
 
@@ -166,7 +166,7 @@ RSpec.describe VersionedFilesService do
 
   describe '#update' do
     let(:access_transfer_stage) { 'tmp/access-transfer-stage' }
-    let(:version_metadata) { VersionedFilesService::VersionMetadata.new(false, DateTime.now) }
+    let(:version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
 
     before do
       FileUtils.mkdir_p(access_transfer_stage)
@@ -393,7 +393,7 @@ RSpec.describe VersionedFilesService do
         ))
         end
 
-        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(false, DateTime.now) }
+        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
 
         let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
@@ -553,7 +553,7 @@ RSpec.describe VersionedFilesService do
           ))
         end
 
-        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(false, DateTime.now) }
+        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
 
         let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
@@ -714,7 +714,7 @@ RSpec.describe VersionedFilesService do
         ))
       end
 
-      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(false, DateTime.now) }
+      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
 
       before do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
@@ -822,23 +822,25 @@ RSpec.describe VersionedFilesService do
         ))
       end
 
-      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(false, DateTime.now) }
-      let(:version_2_metadata) { VersionedFilesService::VersionMetadata.new(false, DateTime.now) }
+      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+      let(:version_2_metadata) { VersionedFilesService::VersionMetadata.new(2, false, DateTime.now) }
 
       before do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: '2', version_metadata: version_2_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '2', version_metadata: initial_version_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: '3', version_metadata: version_2_metadata)
         File.write("#{versions_path}/versions.json", {
           versions: {
             1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-            2 => { withdrawn: false, date: version_2_metadata.date.iso8601 }
+            2 => { withdrawn: true, date: initial_version_metadata.date.iso8601 },
+            3 => { withdrawn: false, date: version_2_metadata.date.iso8601 }
           },
-          head: 2
+          head: 3
         }.to_json)
       end
 
       it 'update content files and metadata' do
-        service.delete(version: 2)
+        service.delete(version: 3)
         # Deletes content files
         expect(File.exist?("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to be true
         expect(File.exist?("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to be false
@@ -848,13 +850,14 @@ RSpec.describe VersionedFilesService do
         expect("#{versions_path}/cocina.json").to link_to("#{versions_path}/cocina.1.json")
         expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
         expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
-        expect(File.exist?("#{versions_path}/cocina.2.json")).to be false
-        expect(File.exist?("#{versions_path}/public.2.xml")).to be false
+        expect(File.exist?("#{versions_path}/cocina.3.json")).to be false
+        expect(File.exist?("#{versions_path}/public.3.xml")).to be false
 
         # Writes version manifest
         expect(File.read("#{versions_path}/versions.json")).to eq({
           versions: {
-            '1' => { withdrawn: false, date: initial_version_metadata.date.iso8601 }
+            '1' => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
+            '2' => { withdrawn: true, date: initial_version_metadata.date.iso8601 }
           },
           head: 1
         }.to_json)

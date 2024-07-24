@@ -55,7 +55,7 @@ class VersionedFilesService
       check_version(version:)
 
       version_data = versions_hash[version]
-      VersionMetadata.new(version_data[:withdrawn], DateTime.iso8601(version_data[:date]))
+      VersionMetadata.new(version.to_i, version_data[:withdrawn], DateTime.iso8601(version_data[:date]))
     end
 
     # Update the version metadata to indicate that the version is withdrawn.
@@ -70,7 +70,12 @@ class VersionedFilesService
       write!
     end
 
-    # @return [Array<String>] the list of versions
+    def version_metadata
+      versions.map do |version|
+        version_metadata_for(version:)
+      end.sort_by(&:version)
+    end
+
     def versions
       versions_hash.keys
     end

@@ -19,17 +19,7 @@ class VersionedFilesService
 
     # @return [Hash<String,String>] map of filename to md5 for shelved files
     def shelve_file_map
-      @shelve_file_map ||= if cocina_hash.key?('structural')
-                             {}.tap do |file_map|
-                               cocina_hash.dig('structural', 'contains')&.each do |file_set|
-                                 file_set.dig('structural', 'contains').each do |file|
-                                   file_map[file['filename']] = md5_for(file) if shelved?(file)
-                                 end
-                               end
-                             end
-                           else
-                             {}
-                           end
+      @shelve_file_map ||= shelved_files.index_by { |file| file['filename'] }.transform_values { |file| md5_for(file) }
     end
 
     # @return [Array<Hash<String, String>>] array of hashes with md5 as key and filename as value for shelved files
@@ -38,15 +28,9 @@ class VersionedFilesService
     #   { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => "2542A.jp2" }
     # ]
     def files_by_md5
-      @files_by_md5 ||= if cocina_hash.key?('structural')
-                          cocina_hash.dig('structural', 'contains').flat_map do |file_set|
-                            file_set.dig('structural', 'contains').filter_map do |file|
-                              { md5_for(file) => file.fetch('filename') } if shelved?(file)
-                            end
-                          end
-                        else
-                          []
-                        end
+      @files_by_md5 ||= shelved_files.map do |file|
+        { md5_for(file) => file.fetch('filename') }
+      end
     end
 
     private
@@ -59,6 +43,14 @@ class VersionedFilesService
 
     def shelved?(file)
       file.dig('administrative', 'shelve')
+    end
+
+    def shelved_files
+      @shelved_files ||= cocina_hash.dig('structural', 'contains')&.flat_map do |file_set|
+        file_set.dig('structural', 'contains').select { |file| shelved?(file) }
+      end
+
+      @shelved_files ||= []
     end
   end
 end

@@ -82,17 +82,22 @@ class PurlAndStacksService
 
     # Is it already in versioned layout?
     return true if already_versioned_layout?
-    # Does the object already exist and is versioned?
-    # The presence of the Stacks object directory indicates that it is versioned.
-    # For example, /stacks/bc/123/df/4567/bc123df4567 indicates that versioned layout is being used.
-    # /stacks/bc/123/df/4567 but NOT bc123df4567 indicates that unversioned layout is being used.
-    return true unless DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname.exist?
+
+    # Is it a new object?
+    return true if new_object?
 
     false
   end
 
+  def new_object?
+    # Stacks directory (e.g., /stacks/bc/123/df/4567) does nto exist.
+    !DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname.exist?
+  end
+
   def migrate_to_versioned_layout?(must_version)
     return false unless versioned_files_enabled?
+
+    return false if new_object?
 
     !already_versioned_layout? && must_version
   end

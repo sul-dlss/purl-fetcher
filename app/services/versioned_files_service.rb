@@ -32,7 +32,7 @@ class VersionedFilesService
   delegate :head_version, :head_version?, :version?, :version_metadata_for,
            :withdraw, :versions, to: :version_manifest
 
-  delegate :content_md5s, :move_content, to: :contents
+  delegate :content_md5s, :move_content, :delete_content, to: :contents
 
   delegate :write_cocina, :write_public_xml,
            :delete_cocina, :delete_public_xml, to: :metadata

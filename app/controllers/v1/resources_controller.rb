@@ -5,7 +5,7 @@ module V1
     include Authenticated
 
     before_action :check_auth_token, only: %i[create]
-    before_action :load_cocina_object
+    before_action :load_cocina_object, only: %i[create]
     before_action :load_purl
 
     rescue_from UpdateStacksFilesService::RequestError, VersionedFilesService::BadFileTransferError do |e|
@@ -25,7 +25,7 @@ module V1
 
     # Build the cocina object from the params
     def load_cocina_object
-      cocina_model_params = params.require(:resource).require(:object).to_unsafe_h
+      cocina_model_params = resource_params.require(:object).to_unsafe_h
       @cocina_object = Cocina::Models.build(cocina_model_params)
     end
 
@@ -37,7 +37,7 @@ module V1
 
     # @return [Hash<String, String>] is a map of filenames to temporary UUIDs
     def file_uploads
-      params.require(:resource).permit![:file_uploads].to_h
+      resource_params[:file_uploads].to_h
     end
 
     # JSON-API error response. See https://jsonapi.org/.
@@ -58,13 +58,13 @@ module V1
     end
 
     def version_date
-      version_date = params.require(:resource)[:version_date]
+      version_date = resource_params[:version_date]
       # TODO: Conditional can be removed once DSA is providing the version date.
       version_date ? DateTime.iso8601(version_date) : DateTime.now
     end
 
     def version
-      version = params.require(:resource)[:version]
+      version = resource_params[:version]
       # TODO: Once DSA is providing the version, || '1' can be removed.
       version || '1'
     end
@@ -73,7 +73,17 @@ module V1
       # This allows DSA to indicate that the object must be in the versioned layout.
       # TODO: This is a temporary parameter until migration is complete.
       # It is necessary so that DSA that a previously unversioned object now has versions.
-      params.require(:resource)[:must_version] || false
+      resource_params[:must_version] || false
+    end
+
+    # @return [Hash]
+    #   * :file_uploads [Hash<String, String>] map of cocina filenames to staging filenames (UUIDs)
+    #   * :version_date [String] the version date (in ISO8601 format)
+    #   * :version [String] the version of the item
+    #   * :must_version [String] whether the item must be versioned
+    #   * :object [Hash] the Cocina data object
+    def resource_params
+      params.require(:resource).permit(:version_date, :version, :must_version, file_uploads: {}, object: {})
     end
   end
 end

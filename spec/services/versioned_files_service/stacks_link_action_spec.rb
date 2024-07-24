@@ -4,10 +4,10 @@ require 'rails_helper'
 
 RSpec.describe VersionedFilesService::StacksLinkAction do
   describe '#recursive_cleanup' do
-    let(:action) { described_class.new(version: 1, service:) }
+    let(:action) { described_class.new(version: 1, object:) }
 
     let(:druid) { 'druid:bc123df4567' }
-    let(:service) { instance_double(VersionedFilesService, stacks_object_path: stacks_object_pathname, object_path: object_pathname) }
+    let(:object) { instance_double(VersionedFilesService::Object, stacks_object_path: stacks_object_pathname, object_path: object_pathname) }
 
     let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 

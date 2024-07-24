@@ -3,10 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe VersionedFilesService::MigrateAction do
-  let(:action) { described_class.new(service:, version_metadata:) }
+  let(:action) { described_class.new(object:, version_metadata:) }
 
-  let(:service) do
-    VersionedFilesService.new(druid:)
+  let(:object) do
+    VersionedFilesService::Object.new(druid)
   end
 
   let(:version_metadata) { VersionedFilesService::VersionMetadata.new(version: '1', withdrawn: false, date: DateTime.now) }

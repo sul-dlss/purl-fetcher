@@ -2,10 +2,10 @@ class VersionedFilesService
   # Deletes head version.
   class DeleteAction
     # @param version [String] the version number
-    # @param service [VersionedFilesService] the service
-    def initialize(version:, service:)
+    # @param object [VersionedFilesService::Object] the object
+    def initialize(version:, object:)
       @version = version
-      @service = service
+      @object = object
     end
 
     # @raise [UnknowVersionError] if the version is not found
@@ -22,14 +22,14 @@ class VersionedFilesService
       # Update the version manifest.
       version_manifest.delete_version(version:, new_head_version:)
       # Delete the content files that aren't referenced by any cocina version files.
-      PurgeContentAction.new(service: @service).call
+      PurgeContentAction.new(object: @object).call
     end
 
     private
 
     attr_reader :version
 
-    delegate :head_version, :delete_cocina, :delete_public_xml, :version_manifest, :version_metadata, :version?, to: :@service
+    delegate :head_version, :delete_cocina, :delete_public_xml, :version_manifest, :version_metadata, :version?, to: :@object
 
     def new_head_version
       @new_head_version ||= head_version == 1 ? nil : version_metadata.reject { |x| x.version == @version || x.withdrawn }.last&.version

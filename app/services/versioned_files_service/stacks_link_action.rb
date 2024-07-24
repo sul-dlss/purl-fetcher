@@ -1,11 +1,11 @@
 class VersionedFilesService
   # Creates symlinks in the Stacks filesystem for the given object.
   class StacksLinkAction
-    # @param service [VersionedFilesService] the service
+    # @param object [VersionedFilesService::Object] the object
     # @param version [String] the version number
-    def initialize(service:, version:)
+    def initialize(object:, version:)
       @version = version
-      @service = service
+      @object = object
     end
 
     def call
@@ -20,7 +20,7 @@ class VersionedFilesService
 
     attr_reader :cocina, :version
 
-    delegate :stacks_object_path, :content_path_for, :cocina_path_for, :object_path, to: :@service
+    delegate :stacks_object_path, :content_path_for, :cocina_path_for, :object_path, to: :@object
 
     def shelve_file_map
       @shelve_file_map ||= version ? Cocina.new(hash: cocina_hash).shelve_file_map : {}

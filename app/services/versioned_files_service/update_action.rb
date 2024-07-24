@@ -5,13 +5,13 @@ class VersionedFilesService
     # @param version_metadata [VersionMetadata] the metadata for the version
     # @param cocina [Cocina::Models::DRO, Cocina::Models::Collection] the cocina object
     # @param file_transfers [Hash<String, String>] a hash of filename (from cocina) to transfer UUID.
-    # @param service [VersionedFilesService] the service
-    def initialize(version:, version_metadata:, cocina:, file_transfers:, service:)
+    # @param object [VersionedFilesService::Object] the object
+    def initialize(version:, version_metadata:, cocina:, file_transfers:, object:)
       @version = version
       @version_metadata = version_metadata
       @cocina = cocina
       @file_transfers = file_transfers
-      @service = service
+      @object = object
     end
 
     # @raise [UnexpectedFileTransferError] if a file transfer is missing files or has extra files
@@ -31,7 +31,7 @@ class VersionedFilesService
       # Update the version manifest.
       version_manifest.update_version(version:, version_metadata:, head_version: new_head?)
       # Delete the content files that aren't referenced by any cocina version files.
-      PurgeContentAction.new(service: @service).call
+      PurgeContentAction.new(object: @object).call
     end
 
     private
@@ -41,7 +41,7 @@ class VersionedFilesService
     delegate :content_md5s, :move_content,
              :write_cocina, :write_public_xml, :version_manifest,
              :head_version?, :head_version,
-             to: :@service
+             to: :@object
 
     def check_content_files!
       shelve_file_map.each do |filename, md5|

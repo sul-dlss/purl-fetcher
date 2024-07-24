@@ -1,9 +1,9 @@
 class VersionedFilesService
   # Deletes content files that aren't referenced by any cocina version files.
   class PurgeContentAction
-    # @param service [VersionedFilesService] the service
-    def initialize(service:)
-      @service = service
+    # @param object [VersionedFilesService] the object
+    def initialize(object:)
+      @object = object
     end
 
     def call
@@ -15,7 +15,7 @@ class VersionedFilesService
     private
 
     delegate :content_md5s, :delete_content, :versions, :druid,
-             to: :@service
+             to: :@object
 
     def cocina_content_md5s
       versions.map do |version|

@@ -8,6 +8,7 @@ class PurlCocinaUpdater
 
   # @param [Purl] active_record
   # @param [Cocina::Models::Collection, Cocina::Models::DRO] cocina_object
+  # @param [Integer] version
   def initialize(active_record, cocina_object, version: nil)
     @active_record = active_record
     @cocina_data = CocinaData.new(cocina_object)

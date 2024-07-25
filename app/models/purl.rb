@@ -155,4 +155,8 @@ class Purl < ApplicationRecord
     public_json&.delete
     save!
   end
+
+  def version
+    super.to_i
+  end
 end

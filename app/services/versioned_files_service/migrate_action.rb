@@ -14,11 +14,11 @@ class VersionedFilesService
       # For each shelved file, create a hardlink named by md5
       link_content_files
       # Write the cocina to cocina path for the version and create a new head cocina symlink.
-      write_cocina(version: '1', cocina: cocina_hash, head_version: true)
+      write_cocina(version: 1, cocina: cocina_hash, head_version: true)
       # Write the public xml to public xml path for the version and create a new head public xml symlink .
-      write_public_xml(version: '1', public_xml:, head_version: true)
+      write_public_xml(version: 1, public_xml:, head_version: true)
       # Update the version manifest.
-      version_manifest.update_version(version: '1', version_metadata:, head_version: true)
+      version_manifest.update_version(version: 1, version_metadata:, head_version: true)
     end
 
     private

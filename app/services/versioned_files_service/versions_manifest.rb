@@ -86,7 +86,10 @@ class VersionedFilesService
 
     def manifest
       @manifest ||= (path.exist? ? JSON.parse(@path.read).with_indifferent_access : {}).tap do |manifest|
+        manifest[:$schemaVersion] ||= 1
+
         # json numeric keys are converted to strings, so convert them back to integers
+        manifest[:versions] ||= {}
         manifest[:versions]&.transform_keys!(&:to_i)
         manifest[:head] &&= manifest[:head].to_i
       end

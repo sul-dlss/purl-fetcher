@@ -40,8 +40,8 @@ RSpec.describe VersionedFilesService::Object do
     end
 
     context 'when the version manifest does not exist' do
-      it 'raises UnknownVersionError' do
-        expect { service.head_version }.to raise_error(VersionedFilesService::UnknowVersionError, 'Head version not found')
+      it 'returns 0' do
+        expect(service.head_version).to eq 0
       end
     end
   end

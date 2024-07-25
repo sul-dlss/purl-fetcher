@@ -50,14 +50,7 @@ class VersionedFilesService
     # @return [Integer] the version number of the head version
     # @raise [Error] if the head version is not found
     def head_version
-      return manifest[:head] if head_version?
-
-      raise UnknowVersionError, 'Head version not found'
-    end
-
-    # @return [Boolean] true if there is a head version
-    def head_version?
-      manifest.key?(:head)
+      manifest[:head].to_i
     end
 
     # @return [Boolean] true if the given version exists (i.e., found in the version manifest)

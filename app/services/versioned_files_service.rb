@@ -19,7 +19,7 @@ class VersionedFilesService
     object_path.exist?
   end
 
-  delegate :head_version, :head_version?, :object_path, to: :@object
+  delegate :head_version, :object_path, to: :@object
 
   # Creates or updates a version.
   # @param version [String] the version number
@@ -35,7 +35,7 @@ class VersionedFilesService
   # @param version [String] the version number
   def delete(version:)
     DeleteAction.new(version:, object: @object).call
-    StacksLinkAction.new(version: head_version? ? head_version : nil, object: @object).call
+    StacksLinkAction.new(version: head_version, object: @object).call
   end
 
   # Migrate from unversioned to versioned layout.

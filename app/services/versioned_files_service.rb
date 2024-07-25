@@ -7,7 +7,7 @@ class VersionedFilesService
 
   # @param withdrawn [Boolean] true if the version is withdrawn
   # @param date [DateTime] the version date
-  VersionMetadata = Struct.new('VersionMetadata', :withdrawn, :date) do
+  VersionMetadata = Struct.new('VersionMetadata', :version, :withdrawn, :date) do
     def withdrawn?
       withdrawn
     end
@@ -30,7 +30,7 @@ class VersionedFilesService
            :versions_manifest_path, :content_path_for, to: :@paths
 
   delegate :head_version, :head_version?, :version?, :version_metadata_for,
-           :withdraw, :versions, to: :version_manifest
+           :withdraw, :versions, :version_metadata, to: :version_manifest
 
   delegate :content_md5s, :move_content, :delete_content, to: :contents
 

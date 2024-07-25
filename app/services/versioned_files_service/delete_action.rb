@@ -29,10 +29,10 @@ class VersionedFilesService
 
     attr_reader :version
 
-    delegate :head_version, :delete_cocina, :delete_public_xml, :version_manifest, :version?, to: :@service
+    delegate :head_version, :delete_cocina, :delete_public_xml, :version_manifest, :version_metadata, :version?, to: :@service
 
     def new_head_version
-      @new_head_version ||= head_version == 1 ? nil : (head_version.to_i - 1)
+      @new_head_version ||= head_version == 1 ? nil : version_metadata.reject { |x| x.version == @version || x.withdrawn }.last&.version
     end
   end
 end

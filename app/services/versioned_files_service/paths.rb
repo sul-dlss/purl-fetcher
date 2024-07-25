@@ -54,6 +54,12 @@ class VersionedFilesService
       @versions_manifest_path ||= versions_path.join('versions.json')
     end
 
+    # @return [Pathname] the path to meta.json
+    # Note that this is the logical path; the path may not exist.
+    def meta_json_path
+      @meta_json_path ||= versions_path.join('meta.json')
+    end
+
     # @return [Pathname] the path to the content file with the given md5
     # Note that this is the logical path; the path may not exist.
     def content_path_for(md5:)

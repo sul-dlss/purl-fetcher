@@ -17,6 +17,7 @@ class VersionedFilesService
       write_cocina(version: 1, cocina: cocina_hash, head_version: true)
       # Write the public xml to public xml path for the version and create a new head public xml symlink .
       write_public_xml(version: 1, public_xml:, head_version: true)
+      copy_meta_json
       # Update the version manifest.
       version_manifest.update_version(version: 1, version_metadata:, head_version: true)
     end
@@ -25,7 +26,7 @@ class VersionedFilesService
 
     attr_reader :version_metadata
 
-    delegate :content_path, :content_path_for, :stacks_object_path,
+    delegate :content_path, :content_path_for, :stacks_object_path, :meta_json_path,
              :write_cocina, :write_public_xml, :version_manifest, :druid, to: :@object
 
     def check_content_files!
@@ -41,6 +42,10 @@ class VersionedFilesService
       end
     end
 
+    def copy_meta_json
+      FileUtils.cp(purl_meta_json_path, meta_json_path) if purl_meta_json_path.exist?
+    end
+
     def shelve_file_map
       @shelve_file_map ||= Cocina.new(hash: cocina_hash).shelve_file_map
     end
@@ -51,6 +56,10 @@ class VersionedFilesService
 
     def public_xml
       purl_object_path.join('public').read
+    end
+
+    def purl_meta_json_path
+      @purl_meta_json_path ||= purl_object_path.join('meta.json')
     end
 
     def stacks_content_path_for(filename:)

@@ -5,6 +5,18 @@ class VersionedFilesService
       new(path: Pathname.new(path))
     end
 
+    # @param withdrawn [Boolean] true if the version is withdrawn
+    # @param date [DateTime] the version date
+    VersionMetadata = Struct.new('VersionMetadata', :version, :withdrawn, :date) do
+      def withdrawn?
+        withdrawn
+      end
+
+      def as_json
+        { withdrawn: withdrawn?, date: date.iso8601 }
+      end
+    end
+
     # @param path [Pathname] the path to the versions manifest
     def initialize(path:)
       @path = path
@@ -16,7 +28,7 @@ class VersionedFilesService
     # @param head_version [Boolean] true if the version is the head version
     def update_version(version:, version_metadata:, head_version: false)
       manifest[:versions] ||= {}
-      manifest[:versions][version] = { withdrawn: version_metadata.withdrawn?, date: version_metadata.date.iso8601 }
+      manifest[:versions][version] = version_metadata.as_json
 
       manifest[:head] = version if head_version
       write!
@@ -59,7 +71,7 @@ class VersionedFilesService
       check_version(version:)
 
       version_data = manifest[:versions][version]
-      VersionMetadata.new(version.to_i, version_data[:withdrawn], DateTime.iso8601(version_data[:date]))
+      VersionMetadata.new(version: version.to_i, withdrawn: version_data[:withdrawn], date: DateTime.iso8601(version_data[:date]))
     end
 
     # Update the version metadata to indicate that the version is withdrawn.

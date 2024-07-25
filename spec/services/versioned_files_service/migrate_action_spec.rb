@@ -9,7 +9,7 @@ RSpec.describe VersionedFilesService::MigrateAction do
     VersionedFilesService::Object.new(druid)
   end
 
-  let(:version_metadata) { VersionedFilesService::VersionMetadata.new(version: 1, withdrawn: false, date: DateTime.now) }
+  let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, withdrawn: false, date: DateTime.now) }
 
   let(:druid) { 'druid:bc123df4567' }
 

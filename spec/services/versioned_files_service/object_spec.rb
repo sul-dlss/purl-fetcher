@@ -84,7 +84,7 @@ RSpec.describe VersionedFilesService::Object do
 
       context 'when a version' do
         it 'returns version metadata' do
-          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionMetadata.new(1, false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
+          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
         end
       end
 

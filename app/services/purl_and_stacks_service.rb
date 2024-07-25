@@ -20,7 +20,7 @@ class PurlAndStacksService
   # @param version_date [DateTime] the version date
   # @param must_version [Boolean] true if the versioned layout is required
   def update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
-    version_metadata = VersionedFilesService::VersionMetadata.new(version: version.to_i, withdrawn: false, date: version_date)
+    version_metadata = VersionedFilesService::VersionsManifest::VersionMetadata.new(version: version.to_i, withdrawn: false, date: version_date)
     VersionedFilesService.new(druid:).migrate(version_metadata:) if migrate_to_versioned_layout?(must_version)
 
     if use_versioned_layout?

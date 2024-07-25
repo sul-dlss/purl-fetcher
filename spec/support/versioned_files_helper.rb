@@ -2,7 +2,7 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/ParameterLists
 def write_version(content_path:, versions_path:, stacks_object_path:, cocina_object:,
-                  version_metadata: VersionedFilesService::VersionMetadata.new(1, false, DateTime.now),
+                  version_metadata: VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now),
                   version: 1)
   # Write original content files and symlink to stacks filesystem
   FileUtils.mkdir_p(content_path)

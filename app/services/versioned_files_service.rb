@@ -5,14 +5,6 @@ class VersionedFilesService
   class UnknowVersionError < Error; end
   class BadFileTransferError < Error; end
 
-  # @param withdrawn [Boolean] true if the version is withdrawn
-  # @param date [DateTime] the version date
-  VersionMetadata = Struct.new('VersionMetadata', :version, :withdrawn, :date) do
-    def withdrawn?
-      withdrawn
-    end
-  end
-
   # Return true if the object is in the versioned_files layout.
   def self.versioned_files?(druid:)
     Paths.new(druid:).object_path.exist?
@@ -26,7 +18,7 @@ class VersionedFilesService
 
   # Creates or updates a version.
   # @param version [String] the version number
-  # @param version_metadata [VersionMetadata] the metadata for the version
+  # @param version_metadata [VersionedFilesService::VersionsManifest::VersionMetadata] the metadata for the version
   # @param cocina [Cocina::Models::DRO] the cocina model
   # @param file_transfers [Hash<String, String>] a map of filenames to transfer UUIDs
   def update(version:, version_metadata:, cocina:, file_transfers: {})
@@ -42,7 +34,7 @@ class VersionedFilesService
   end
 
   # Migrate from unversioned to versioned layout.
-  # @param version_metadata [VersionMetadata] the metadata for the version
+  # @param version_metadata [VersionedFilesService::VersionsManifest::VersionMetadata] the metadata for the version
   def migrate(version_metadata:)
     MigrateAction.new(version_metadata:, object: @object).call
   end

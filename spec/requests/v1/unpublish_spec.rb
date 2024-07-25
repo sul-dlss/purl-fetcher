@@ -91,11 +91,11 @@ RSpec.describe 'Unpublish a Purl' do
       end
 
       context 'when versioned files is enabled and version is provided' do
-        let(:service) { instance_double(VersionedFilesService, delete: true) }
+        let(:service) { instance_double(VersionedFilesService, delete: true, versioned_files?: true) }
 
         before do
           allow(Settings.features).to receive(:versioned_files).and_return(true)
-          allow(VersionedFilesService).to receive_messages(versioned_files?: true, new: service)
+          allow(VersionedFilesService).to receive_messages(new: service)
         end
 
         it 'invokes VersionedFilesService#delete with the version' do

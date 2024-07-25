@@ -29,7 +29,7 @@ class VersionedFilesService
       manifest[:versions] ||= {}
       manifest[:versions][version] = version_metadata.as_json
 
-      update_head_version if !version_metadata.withdrawn? && version >= head_version
+      update_head_version if !version_metadata.withdrawn? && (head_version.nil? || version >= head_version)
 
       write!
     end
@@ -61,10 +61,9 @@ class VersionedFilesService
       manifest.delete(:head) if manifest[:head].nil?
     end
 
-    # @return [Integer] the version number of the head version
-    # @raise [Error] if the head version is not found
+    # @return [Integer] the version number of the head version or nil
     def head_version
-      manifest[:head].to_i
+      manifest[:head]&.to_i
     end
 
     def previous_head_version(before:)

@@ -40,8 +40,8 @@ RSpec.describe VersionedFilesService::Object do
     end
 
     context 'when the version manifest does not exist' do
-      it 'returns 0' do
-        expect(service.head_version).to eq 0
+      it 'returns nil' do
+        expect(service.head_version).to be_nil
       end
     end
   end

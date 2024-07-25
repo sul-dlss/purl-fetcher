@@ -11,7 +11,7 @@ class VersionedFilesService
              :cocina_path_for, :head_public_xml_path, :public_xml_path_for,
              :versions_manifest_path, :content_path_for, :meta_json_path, to: :paths
 
-    delegate :head_version, :head_version?, :version?, :version_metadata_for, :version_metadata,
+    delegate :head_version, :version?, :version_metadata_for, :version_metadata,
              :withdraw, :versions, to: :version_manifest
 
     delegate :content_md5s, :move_content, :delete_content, to: :contents

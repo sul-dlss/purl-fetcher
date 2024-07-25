@@ -20,10 +20,10 @@ class PurlAndStacksService
   # @param version_date [DateTime] the version date
   # @param must_version [Boolean] true if the versioned layout is required
   def update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
-    version_metadata = VersionedFilesService::VersionMetadata.new(version: version.to_i, withdrawn: false, date: version_date)
-    VersionedFilesService.new(druid:).migrate(version_metadata:) if migrate_to_versioned_layout?(must_version)
+    if use_versioned_layout? || must_version
+      version_metadata = VersionedFilesService::VersionMetadata.new(version: version.to_i, withdrawn: false, date: version_date)
+      VersionedFilesService.new(druid:).migrate(version_metadata:) unless already_versioned_layout? || new_object?
 
-    if use_versioned_layout?
       VersionedFilesService.new(druid:).update(version:,
                                                version_metadata:,
                                                cocina: cocina_object,
@@ -41,9 +41,9 @@ class PurlAndStacksService
   # Delete the PURL and Stacks files.
   # @param version [String] the version number
   def delete(version:)
-    if versioned_files_enabled? && VersionedFilesService.versioned_files?(druid: purl.druid)
+    if versioned_files_enabled? && already_versioned_layout?
       begin
-        VersionedFilesService.new(druid: purl.druid).delete(version:)
+        VersionedFilesService.new(druid:).delete(version:)
       rescue VersionedFilesService::UnknowVersionError
         # This shouldn't happen, but in case it does it can be ignored.
         # In theory, it could happen if delete is called multiple times and the Purl DB record is out of sync with
@@ -91,14 +91,6 @@ class PurlAndStacksService
   def new_object?
     # Stacks directory (e.g., /stacks/bc/123/df/4567) does nto exist.
     !DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname.exist?
-  end
-
-  def migrate_to_versioned_layout?(must_version)
-    return false unless versioned_files_enabled?
-
-    return false if new_object?
-
-    !already_versioned_layout? && must_version
   end
 
   def already_versioned_layout?

@@ -23,13 +23,16 @@ class VersionedFilesService
       # For each provided content file, get the md5 from the cocina object. If the content file does not already exist for that md5, then write a new content file named by the md5.
       move_content_files
       # Write the cocina to cocina path for the version (overwriting if already exists).
-      # Create a new head cocina symlink if the version is the head version.
-      write_cocina(version:, cocina:, head_version: new_head?)
+      write_cocina(version:, cocina:)
       # Write the public xml to public xml path for the version (overwriting if already exists).
-      # Create a new head public xml symlink if the version is the head version.
-      write_public_xml(version:, public_xml:, head_version: new_head?)
+      write_public_xml(version:, public_xml:)
+      new_head_version = head_version.nil? || version > head_version ? version : nil
       # Update the version manifest.
       version_manifest.update_version(version:, version_metadata:)
+      # Create a new head cocina symlink if the version is the head version.
+      link_cocina_head_version(version: new_head_version) if new_head_version
+      # Create a new head public xml symlink if the version is the head version.
+      link_public_xml_head_version(version: new_head_version) if new_head_version
       # Delete the content files that aren't referenced by any cocina version files.
       PurgeContentAction.new(object: @object).call
     end
@@ -40,7 +43,7 @@ class VersionedFilesService
 
     delegate :content_md5s, :move_content,
              :write_cocina, :write_public_xml, :version_manifest,
-             :head_version,
+             :head_version, :link_cocina_head_version, :link_public_xml_head_version,
              to: :@object
 
     def check_content_files!
@@ -77,10 +80,6 @@ class VersionedFilesService
 
     def shelve_file_map
       @shelve_file_map ||= Cocina.new(hash: cocina.to_h).shelve_file_map
-    end
-
-    def new_head?
-      head_version.nil? || version > head_version
     end
 
     # @return [Pathname] the path to the transfer file with the given transfer UUID

@@ -19,6 +19,17 @@ RSpec.describe 'Publish a Collection' do
           params: request,
           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
       expect(response).to be_created
+      expect(Purl.last.druid).to eq(druid)
+    end
+
+    context 'when using the legacy endpoint' do
+      it 'does not fail' do
+        post "/v1/resources",
+             params: request,
+             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(Purl.last.druid).to eq(druid)
+      end
     end
   end
 end

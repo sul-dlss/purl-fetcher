@@ -12,6 +12,8 @@ class ApplicationController < ActionController::Base
   end
 
   def druid_param
+    return if params[:druid].blank?
+
     druid = params[:druid]
     druid = "druid:#{druid}" unless druid&.start_with?('druid:')
     druid

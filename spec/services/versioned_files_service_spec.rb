@@ -93,7 +93,7 @@ RSpec.describe VersionedFilesService do
 
       it 'raises an error' do
         expect do
-          service.update(version: '1', version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 1, version_metadata:, cocina: dro, file_transfers:)
         end.to raise_error(VersionedFilesService::BadFileTransferError, 'Transfer file for files/file2.txt not found')
       end
 
@@ -166,7 +166,7 @@ RSpec.describe VersionedFilesService do
         end
 
         it 'writes content files and metadata' do
-          service.update(version: '1', version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 1, version_metadata:, cocina: dro, file_transfers:)
 
           # Writes content files
           expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
@@ -325,11 +325,11 @@ RSpec.describe VersionedFilesService do
 
         before do
           write_file_transfers(file_transfers:, access_transfer_stage:)
-          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
+          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do
-          service.update(version: '2', version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 2, version_metadata:, cocina: dro, file_transfers:)
 
           # Writes new content files
           expect(File.read("#{content_path}/6007de4d5abb55f21f652aa61b8f3bbg")).to eq 'file3.txt'
@@ -453,7 +453,7 @@ RSpec.describe VersionedFilesService do
         end
 
         before do
-          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
+          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do
@@ -689,9 +689,9 @@ RSpec.describe VersionedFilesService do
       let(:version_2_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(2, false, DateTime.now) }
 
       before do
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '2', version_metadata: initial_version_metadata)
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: '3', version_metadata: version_2_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 2, version_metadata: initial_version_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: 3, version_metadata: version_2_metadata)
         File.write("#{versions_path}/versions.json", {
           versions: {
             1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },

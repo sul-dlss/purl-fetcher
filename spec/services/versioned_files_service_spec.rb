@@ -184,7 +184,10 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({ versions: { '1': { withdrawn: false, date: version_metadata.date.iso8601 } }, head: '1' }.to_json)
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
+            versions: { 1 => { withdrawn: false, date: version_metadata.date.iso8601 } },
+            head: 1
+          )
 
           # Symlinks to stacks filesystem
           expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")
@@ -350,13 +353,13 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.2.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              '1': { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-              '2': { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
+              2 => { withdrawn: false, date: version_metadata.date.iso8601 }
             },
-            head: '2'
-          }.to_json)
+            head: 2
+          )
 
           # Symlinks to stacks filesystem
           expect(File.exist?("#{stacks_object_path}/file1.txt")).to be false
@@ -469,12 +472,12 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              '1': { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { withdrawn: false, date: version_metadata.date.iso8601 }
             },
             head: 1
-          }.to_json)
+          )
         end
       end
 
@@ -493,12 +496,12 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              '1': { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { withdrawn: false, date: version_metadata.date.iso8601 }
             },
             head: 1
-          }.to_json)
+          )
         end
       end
     end
@@ -593,9 +596,9 @@ RSpec.describe VersionedFilesService do
         expect(File.exist?("#{versions_path}/public.xml")).to be false
 
         # Writes version manifest
-        expect(File.read("#{versions_path}/versions.json")).to eq({
+        expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
           versions: {}
-        }.to_json)
+        )
 
         # Deletes symlinks to stacks filesystem
         expect(File.exist?("#{stacks_object_path}/file2.txt")).to be false
@@ -714,13 +717,13 @@ RSpec.describe VersionedFilesService do
         expect(File.exist?("#{versions_path}/public.3.xml")).to be false
 
         # Writes version manifest
-        expect(File.read("#{versions_path}/versions.json")).to eq({
+        expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
           versions: {
-            '1' => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-            '2' => { withdrawn: true, date: initial_version_metadata.date.iso8601 }
+            1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
+            2 => { withdrawn: true, date: initial_version_metadata.date.iso8601 }
           },
           head: 1
-        }.to_json)
+        )
 
         # Deletes symlinks to stacks filesystem
         expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")

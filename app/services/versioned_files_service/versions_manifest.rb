@@ -1,6 +1,10 @@
 class VersionedFilesService
   # Class for reading and writing the versions manifest.
   class VersionsManifest
+    def self.read(path)
+      new(path: Pathname.new(path))
+    end
+
     # @param path [Pathname] the path to the versions manifest
     def initialize(path:)
       @path = path
@@ -80,10 +84,6 @@ class VersionedFilesService
       manifest[:versions].keys
     end
 
-    private
-
-    attr_reader :path
-
     def manifest
       @manifest ||= (path.exist? ? JSON.parse(@path.read).with_indifferent_access : {}).tap do |manifest|
         manifest[:$schemaVersion] ||= 1
@@ -94,6 +94,10 @@ class VersionedFilesService
         manifest[:head] &&= manifest[:head].to_i
       end
     end
+
+    private
+
+    attr_reader :path
 
     def write!
       FileUtils.mkdir_p(path.dirname)

@@ -1,10 +1,10 @@
 class VersionedFilesService
   # Migrate an object from unversioned to versioned Stacks layout.
   class MigrateAction
-    # @param service [VersionedFilesService] the service
+    # @param object [VersionedFilesService::Object] the object
     # @param version_metadata [VersionedFilesService::VersionMetadata] the version metadata
-    def initialize(service:, version_metadata:)
-      @service = service
+    def initialize(object:, version_metadata:)
+      @object = object
       @version_metadata = version_metadata
     end
 
@@ -26,7 +26,7 @@ class VersionedFilesService
     attr_reader :version_metadata
 
     delegate :content_path, :content_path_for, :stacks_object_path,
-             :write_cocina, :write_public_xml, :version_manifest, :druid, to: :@service
+             :write_cocina, :write_public_xml, :version_manifest, :druid, to: :@object
 
     def check_content_files!
       shelve_file_map.each_key do |filename|

@@ -30,16 +30,16 @@ class FilesByMd5Service
   delegate :druid, to: :purl
 
   def versioned_files_by_md5
-    versioned_files_service.files_by_md5.select { |md5_file| check_exists(versioned_files_service.content_path_for(md5: md5_file.keys.first)) }
+    versioned_files_object.files_by_md5.select { |md5_file| check_exists(versioned_files_object.content_path_for(md5: md5_file.keys.first)) }
   end
 
-  def versioned_files_service
-    @versioned_files_service ||= VersionedFilesService.new(druid:)
+  def versioned_files_object
+    @versioned_files_object ||= VersionedFilesService::Object.new(druid)
   end
 
   def unversioned_files_by_md5
     cocina = VersionedFilesService::Cocina.new(hash: purl.public_json.cocina_hash)
-    cocina.files_by_md5.select { |md5_file| check_exists(versioned_files_service.stacks_object_path.join(md5_file.values.first)) }
+    cocina.files_by_md5.select { |md5_file| check_exists(versioned_files_object.stacks_object_path.join(md5_file.values.first)) }
   end
 
   def check_exists(path)

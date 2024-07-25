@@ -80,7 +80,7 @@ class VersionedFilesService
     end
 
     def new_head?
-      version > head_version
+      head_version.nil? || version > head_version
     end
 
     # @return [Pathname] the path to the transfer file with the given transfer UUID

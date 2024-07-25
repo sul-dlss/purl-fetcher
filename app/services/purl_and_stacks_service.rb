@@ -27,7 +27,6 @@ class PurlAndStacksService
       VersionedFilesService.new(druid:).update(version:,
                                                version_metadata:,
                                                cocina: cocina_object,
-                                               public_xml: PublicXmlWriter.generate(cocina_object),
                                                file_transfers: file_uploads)
       # Writes to purl. In the future when PURL Application can handle versioned layout, this will be removed.
       UpdatePurlMetadataService.new(purl).write! if legacy_purl_enabled?

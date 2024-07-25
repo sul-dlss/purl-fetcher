@@ -65,7 +65,7 @@ RSpec.describe 'Unpublish a Purl' do
           File.link(cocina_version_path, cocina_head_version_path)
           File.write(xml_version_path, 'hello public xml')
           File.link(xml_version_path, xml_head_version_path)
-          File.write(versions_json_path, { versions: { '1': {} }, head: "1" }.to_json)
+          File.write(versions_json_path, { versions: { '1': { date: '2024' } }, head: "1" }.to_json)
         end
 
         after do

@@ -35,7 +35,7 @@ class VersionedFilesService
       cocina_path = cocina_path_for(version:)
       cocina_path.delete
       if new_head_version
-        LinkSupport.link(cocina_path_for(version: new_head_version), head_cocina_path) if new_head_version
+        LinkSupport.link(cocina_path_for(version: new_head_version), head_cocina_path)
       elsif head_cocina_path.exist?
         head_cocina_path.delete
       end
@@ -48,7 +48,7 @@ class VersionedFilesService
       public_xml_path = public_xml_path_for(version:)
       public_xml_path.delete
       if new_head_version
-        LinkSupport.link(public_xml_path_for(version: new_head_version), head_public_xml_path) if new_head_version
+        LinkSupport.link(public_xml_path_for(version: new_head_version), head_public_xml_path)
       elsif head_public_xml_path.exist?
         head_public_xml_path.delete
       end

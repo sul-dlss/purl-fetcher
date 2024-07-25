@@ -19,7 +19,7 @@ class VersionedFilesService
       write_public_xml(version: 1, public_xml:, head_version: true)
       copy_meta_json
       # Update the version manifest.
-      version_manifest.update_version(version: 1, version_metadata:, head_version: true)
+      version_manifest.update_version(version: 1, version_metadata:)
     end
 
     private

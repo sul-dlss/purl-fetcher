@@ -29,7 +29,7 @@ class VersionedFilesService
       # Create a new head public xml symlink if the version is the head version.
       write_public_xml(version:, public_xml:, head_version: new_head?)
       # Update the version manifest.
-      version_manifest.update_version(version:, version_metadata:, head_version: new_head?)
+      version_manifest.update_version(version:, version_metadata:)
       # Delete the content files that aren't referenced by any cocina version files.
       PurgeContentAction.new(object: @object).call
     end

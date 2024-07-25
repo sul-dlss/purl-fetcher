@@ -27,7 +27,7 @@ class VersionedFilesService
       else
         manifest.delete(:head)
       end
-      versions_hash.delete(version)
+      manifest[:versions].delete(version)
       write!
     end
 
@@ -46,7 +46,7 @@ class VersionedFilesService
 
     # @return [Boolean] true if the given version exists (i.e., found in the version manifest)
     def version?(version:)
-      versions_hash.key?(version)
+      manifest[:versions].key?(version)
     end
 
     # @return [VersionMetadata] the metadata for the given version
@@ -54,7 +54,7 @@ class VersionedFilesService
     def version_metadata_for(version:)
       check_version(version:)
 
-      version_data = versions_hash[version]
+      version_data = manifest[:versions][version]
       VersionMetadata.new(version.to_i, version_data[:withdrawn], DateTime.iso8601(version_data[:date]))
     end
 
@@ -66,7 +66,7 @@ class VersionedFilesService
     def withdraw(version:, withdrawn: true)
       check_version(version:)
 
-      versions_hash[version][:withdrawn] = withdrawn
+      manifest[:versions][version][:withdrawn] = withdrawn
       write!
     end
 
@@ -77,7 +77,7 @@ class VersionedFilesService
     end
 
     def versions
-      versions_hash.keys
+      manifest[:versions].keys
     end
 
     private
@@ -93,10 +93,6 @@ class VersionedFilesService
         manifest[:versions]&.transform_keys!(&:to_i)
         manifest[:head] &&= manifest[:head].to_i
       end
-    end
-
-    def versions_hash
-      manifest.fetch(:versions, {})
     end
 
     def write!

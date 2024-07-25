@@ -79,6 +79,7 @@ RSpec.describe VersionedFilesService::MigrateAction do
     FileUtils.mkdir_p(purl_object_path)
     File.write("#{purl_object_path}/cocina.json", dro.to_json)
     File.write("#{purl_object_path}/public", 'public xml')
+    File.write("#{purl_object_path}/meta.json", 'meta json')
   end
 
   after do
@@ -108,6 +109,7 @@ RSpec.describe VersionedFilesService::MigrateAction do
     expect("#{versions_path}/cocina.json").to link_to("#{versions_path}/cocina.1.json")
     expect(File.read("#{versions_path}/public.1.xml")).to eq "public xml"
     expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
+    expect(File.read("#{versions_path}/meta.json")).to eq "meta json"
 
     # Writes version manifest
     expect(File.read("#{versions_path}/versions.json")).to eq({ versions: { '1': { withdrawn: false, date: version_metadata.date.iso8601 } }, head: 1 }.to_json)

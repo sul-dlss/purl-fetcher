@@ -10,9 +10,19 @@ class ReleaseService
   end
 
   def self.write_meta_json(purl)
+    if VersionedFilesService.versioned_files?(druid: purl.druid)
+      VersionedFilesService::Paths.new(druid: purl.druid).meta_json_path.write(meta_json(purl))
+      write_purl_meta_json(purl) if Settings.features.legacy_purl
+    else
+      write_purl_meta_json(purl)
+    end
+  end
+
+  def self.write_purl_meta_json(purl)
     file_path = File.join(purl.purl_druid_path, 'meta.json')
     File.write(file_path, meta_json(purl))
   end
+  private_class_method :write_purl_meta_json
 
   def self.meta_json(purl)
     {

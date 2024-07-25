@@ -382,6 +382,7 @@ In Stacks file system:
   \-- bc123df4567/
         |   versions/
               |   versions.json <-- Metadata about versions.
+              |   meta.json
               |   cocina.1.json <-- cocina.json for version 1.
               |   cocina.2.json <-- cocina.json for version 2.
               |   cocina.json <-- cocina.json for head version. Hardlinked with cocina.2.json.

@@ -9,7 +9,7 @@ class VersionedFilesService
 
     delegate :object_path, :content_path, :versions_path, :head_cocina_path,
              :cocina_path_for, :head_public_xml_path, :public_xml_path_for,
-             :versions_manifest_path, :content_path_for, to: :paths
+             :versions_manifest_path, :content_path_for, :meta_json_path, to: :paths
 
     delegate :head_version, :head_version?, :version?, :version_metadata_for, :version_metadata,
              :withdraw, :versions, to: :version_manifest

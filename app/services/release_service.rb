@@ -39,6 +39,7 @@ class ReleaseService
 
   def meta_json
     {
+      '$schemaVersion': 1,
       sitemap: purl.true_targets.include?('PURL sitemap'),
       searchworks: purl.true_targets.include?('Searchworks'),
       earthworks: purl.true_targets.include?('Earthworks')

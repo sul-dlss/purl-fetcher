@@ -19,7 +19,7 @@ module V1
 
     # POST /resource
     def create
-      PurlCocinaUpdater.new(@purl, @cocina_object).update
+      PurlCocinaUpdater.new(@purl, @cocina_object, version:).update if version >= @purl.version
 
       PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:, must_version:)
 

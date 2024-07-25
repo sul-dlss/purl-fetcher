@@ -1,11 +1,10 @@
 class UpdatePurlMetadataService
-  attr_reader :purl, :version, :versions_path
+  attr_reader :purl, :versions_path
 
   delegate :cocina_object, :druid, :purl_druid_path, to: :purl
 
-  def initialize(purl, version: '1')
+  def initialize(purl)
     @purl = purl
-    @version = version
     versioned_object_directory = DruidTools::Druid.new(druid, Settings.filesystems.stacks_root).path
     @versions_path = "#{versioned_object_directory}/versions"
   end

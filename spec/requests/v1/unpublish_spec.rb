@@ -103,7 +103,7 @@ RSpec.describe 'Unpublish a Purl' do
 
           expect(response).to have_http_status(:success)
           expect(VersionedFilesService).to have_received(:new).with(druid:)
-          expect(service).to have_received(:delete).with(version: '2')
+          expect(service).to have_received(:delete).with(version: 2)
         end
       end
 

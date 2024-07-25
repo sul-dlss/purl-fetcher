@@ -32,7 +32,7 @@ class VersionedFilesService
     delegate :head_version, :delete_cocina, :delete_public_xml, :version_manifest, :version?, to: :@service
 
     def new_head_version
-      @new_head_version ||= head_version == "1" ? nil : (head_version.to_i - 1).to_s
+      @new_head_version ||= head_version == 1 ? nil : (head_version.to_i - 1)
     end
   end
 end

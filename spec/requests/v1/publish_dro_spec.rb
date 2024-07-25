@@ -96,9 +96,9 @@ RSpec.describe 'Publish a DRO' do
 
       # rubocop:disable RSpec/ExpectActual
       it 'creates the resource' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
@@ -115,9 +115,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'creates the resource in unversioned layout' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
@@ -143,9 +143,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'performs a migration before updating the resource' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
 
         expect(versioned_files_service).to have_received(:migrate).with(version_metadata:)
@@ -170,9 +170,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'does not perform a migration before updating the resource' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
 
         expect(versioned_files_service).not_to have_received(:migrate)
@@ -189,9 +189,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'creates the resource in unversioned layout' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
@@ -208,9 +208,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'created the resource' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
@@ -223,9 +223,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'creates the cocina json file for the resource' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).not_to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
         expect(File).not_to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
@@ -240,9 +240,9 @@ RSpec.describe 'Publish a DRO' do
 
       it 'deletes the file' do
         expect(File).to exist('tmp/stacks/bc/123/df/4567/file3.txt')
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).not_to exist('tmp/stacks/bc/123/df/4567/file3.txt')
       end
@@ -259,9 +259,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'creates the cocina json file for the resource' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
@@ -274,9 +274,9 @@ RSpec.describe 'Publish a DRO' do
       end
 
       it 'creates the cocina json file for the resource' do
-        post '/v1/resources',
-             params: request,
-             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
         expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
@@ -288,9 +288,9 @@ RSpec.describe 'Publish a DRO' do
     let(:file_uploads) { { 'xfile2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a' } }
 
     it 'returns 400' do
-      post '/v1/resources',
-           params: request,
-           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+      put "/v1/purls/#{druid}",
+          params: request,
+          headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
       expect(response).to have_http_status(:bad_request)
       response_json = response.parsed_body
       expect(response_json['errors'][0]['title']).to eq 'Bad request'

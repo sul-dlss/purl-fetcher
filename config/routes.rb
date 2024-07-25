@@ -14,8 +14,22 @@ Rails.application.routes.draw do
   end
 
   scope 'v1', module: :v1 do
-    resources :released, only: :update, param: :druid
+    # backwards compatibility
+    patch 'released/:druid', to: 'purls#release_tags'
+    put 'released/:druid', to: 'purls#release_tags'
+
     resource :mods, only: :create
-    resources :resources, only: :create
+
+    # backwards-compatibility.
+    post 'resources', to: 'purls#create'
+
+    resources :purls, only: [:destroy, :show], param: :druid do
+      member do
+        put '/', to: 'purls#create'
+
+        put 'release_tags'
+        patch 'release_tags'
+      end
+    end
   end
 end

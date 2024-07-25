@@ -15,9 +15,9 @@ RSpec.describe 'Publish a Collection' do
     end
 
     it 'does not fail' do
-      post '/v1/resources',
-           params: request,
-           headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+      put "/v1/purls/#{druid}",
+          params: request,
+          headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
       expect(response).to be_created
     end
   end

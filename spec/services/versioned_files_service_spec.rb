@@ -26,7 +26,7 @@ RSpec.describe VersionedFilesService do
 
   describe '#update' do
     let(:access_transfer_stage) { 'tmp/access-transfer-stage' }
-    let(:version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+    let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
     before do
       FileUtils.mkdir_p(access_transfer_stage)
@@ -256,7 +256,7 @@ RSpec.describe VersionedFilesService do
         ))
         end
 
-        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+        let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
         let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
@@ -416,7 +416,7 @@ RSpec.describe VersionedFilesService do
           ))
         end
 
-        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+        let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
         let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
@@ -577,7 +577,7 @@ RSpec.describe VersionedFilesService do
         ))
       end
 
-      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+      let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
       before do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
@@ -685,8 +685,8 @@ RSpec.describe VersionedFilesService do
         ))
       end
 
-      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
-      let(:version_2_metadata) { VersionedFilesService::VersionMetadata.new(2, false, DateTime.now) }
+      let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
+      let(:version_2_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(2, false, DateTime.now) }
 
       before do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)

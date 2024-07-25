@@ -66,7 +66,7 @@ module V1
     def version
       version = resource_params[:version]
       # TODO: Once DSA is providing the version, || '1' can be removed.
-      version || '1'
+      version&.to_i || 1
     end
 
     def must_version

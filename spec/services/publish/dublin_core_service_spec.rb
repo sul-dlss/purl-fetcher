@@ -3,12 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe Publish::DublinCoreService do
-  subject(:service) { described_class.new(desc_md_xml) }
+  subject(:service) { described_class.new(cocina_object, []) }
 
   let(:cocina_object) do
     build(:dro, id: 'druid:bc123df4567').new(description:)
   end
-  let(:desc_md_xml) { Publish::PublicDescMetadataService.new(cocina_object, []).ng_xml(include_access_conditions: false) }
 
   describe '#ng_xml' do
     subject(:xml) { service.ng_xml }

@@ -28,12 +28,12 @@ RSpec.describe VersionedFilesService do
     context 'when the manifest has the head version' do
       before do
         FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { head: '3' }
+        manifest = { head: 3 }
         File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
       end
 
       it 'returns the head version' do
-        expect(service.head_version).to eq('3')
+        expect(service.head_version).to eq(3)
       end
     end
 
@@ -48,26 +48,26 @@ RSpec.describe VersionedFilesService do
     context 'when the version manifest exists' do
       before do
         FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { versions: { '1': { withdrawn: false, date: '2022-06-26T10:06:45−07:00' } } }
+        manifest = { versions: { 1 => { withdrawn: false, date: '2022-06-26T10:06:45−07:00' } } }
         File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
       end
 
       context 'when a version' do
         it 'returns true' do
-          expect(service.version?(version: '1')).to be true
+          expect(service.version?(version: 1)).to be true
         end
       end
 
       context 'when not a version' do
         it 'returns false' do
-          expect(service.version?(version: '2')).to be false
+          expect(service.version?(version: 2)).to be false
         end
       end
     end
 
     context 'when the version manifest does not exist' do
       it 'returns false' do
-        expect(service.version?(version: '1')).to be false
+        expect(service.version?(version: 1)).to be false
       end
     end
   end
@@ -76,26 +76,26 @@ RSpec.describe VersionedFilesService do
     context 'when the version manifest exists' do
       before do
         FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { versions: { '1': { withdrawn: false, date: '2022-06-26T10:06:45+07:00' } } }
+        manifest = { versions: { 1 => { withdrawn: false, date: '2022-06-26T10:06:45+07:00' } } }
         File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
       end
 
       context 'when a version' do
         it 'returns version metadata' do
-          expect(service.version_metadata_for(version: '1')).to eq VersionedFilesService::VersionMetadata.new(false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
+          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionMetadata.new(false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
         end
       end
 
       context 'when not a version' do
         it 'raises UnknownVersionError' do
-          expect { service.version_metadata_for(version: '2') }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
+          expect { service.version_metadata_for(version: 2) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
         end
       end
     end
 
     context 'when the version manifest does not exist' do
       it 'raises UnknownVersionError' do
-        expect { service.version_metadata_for(version: '1') }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 1 not found')
+        expect { service.version_metadata_for(version: 1) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 1 not found')
       end
     end
   end
@@ -108,36 +108,36 @@ RSpec.describe VersionedFilesService do
 
       before do
         FileUtils.mkdir_p(File.dirname(versions_manifest_path))
-        manifest = { versions: { '1': { withdrawn: false, date: '2022-06-26T10:06:45+07:00' } } }
+        manifest = { versions: { 1 => { withdrawn: false, date: '2022-06-26T10:06:45+07:00' } } }
         File.write(versions_manifest_path, manifest.to_json)
       end
 
       context 'when withdrawing' do
         it 'sets withdrawn to true' do
-          service.withdraw(version: '1')
-          expect(service.version_metadata_for(version: '1').withdrawn?).to be true
+          service.withdraw(version: 1)
+          expect(service.version_metadata_for(version: 1).withdrawn?).to be true
           expect(versions_manifest[:versions]['1'][:withdrawn]).to be true
         end
       end
 
       context 'when unwithdrawing' do
         it 'sets withdrawn to false' do
-          service.withdraw(version: '1', withdrawn: false)
-          expect(service.version_metadata_for(version: '1').withdrawn?).to be false
+          service.withdraw(version: 1, withdrawn: false)
+          expect(service.version_metadata_for(version: 1).withdrawn?).to be false
           expect(versions_manifest[:versions]['1'][:withdrawn]).to be false
         end
       end
 
       context 'when not a version' do
         it 'raises UnknownVersionError' do
-          expect { service.withdraw(version: '2') }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
+          expect { service.withdraw(version: 2) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
         end
       end
     end
 
     context 'when the version manifest does not exist' do
       it 'raises UnknownVersionError' do
-        expect { service.withdraw(version: '1') }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 1 not found')
+        expect { service.withdraw(version: 1) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 1 not found')
       end
     end
   end
@@ -594,7 +594,7 @@ RSpec.describe VersionedFilesService do
         end
 
         it 'writes content files and metadata' do
-          service.update(version: '1', version_metadata:, cocina: dro, file_transfers: {})
+          service.update(version: 1, version_metadata:, cocina: dro, file_transfers: {})
 
           # Retains unchanged content files
           expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
@@ -613,7 +613,7 @@ RSpec.describe VersionedFilesService do
             versions: {
               '1': { withdrawn: false, date: version_metadata.date.iso8601 }
             },
-            head: '1'
+            head: 1
           }.to_json)
         end
       end
@@ -622,7 +622,7 @@ RSpec.describe VersionedFilesService do
         let(:collection) { build(:collection_with_metadata, id: druid).new(access: { view: 'world' }) }
 
         it 'writes content files and metadata' do
-          service.update(version: '1', version_metadata:, cocina: collection, file_transfers: {})
+          service.update(version: 1, version_metadata:, cocina: collection, file_transfers: {})
 
           expect(File.exist?(content_path)).to be false
 
@@ -637,7 +637,7 @@ RSpec.describe VersionedFilesService do
             versions: {
               '1': { withdrawn: false, date: version_metadata.date.iso8601 }
             },
-            head: '1'
+            head: 1
           }.to_json)
         end
       end
@@ -652,7 +652,7 @@ RSpec.describe VersionedFilesService do
       end
 
       it 'raises an error' do
-        expect { service.delete(version: '1') }.to raise_error(VersionedFilesService::Error, 'Only head version can be deleted')
+        expect { service.delete(version: 1) }.to raise_error(VersionedFilesService::Error, 'Only head version can be deleted')
       end
     end
 
@@ -663,7 +663,7 @@ RSpec.describe VersionedFilesService do
       end
 
       it 'raises an error' do
-        expect { service.delete(version: '2') }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
+        expect { service.delete(version: 2) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
       end
     end
 
@@ -717,11 +717,11 @@ RSpec.describe VersionedFilesService do
       let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(false, DateTime.now) }
 
       before do
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
       end
 
       it 'update content files and metadata' do
-        service.delete(version: '1')
+        service.delete(version: 1)
         # Deletes content files
         expect(File.exist?("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to be false
         expect(File.exist?("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to be false
@@ -833,12 +833,12 @@ RSpec.describe VersionedFilesService do
             1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
             2 => { withdrawn: false, date: version_2_metadata.date.iso8601 }
           },
-          head: '2'
+          head: 2
         }.to_json)
       end
 
       it 'update content files and metadata' do
-        service.delete(version: '2')
+        service.delete(version: 2)
         # Deletes content files
         expect(File.exist?("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to be true
         expect(File.exist?("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to be false
@@ -854,9 +854,9 @@ RSpec.describe VersionedFilesService do
         # Writes version manifest
         expect(File.read("#{versions_path}/versions.json")).to eq({
           versions: {
-            1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 }
+            '1' => { withdrawn: false, date: initial_version_metadata.date.iso8601 }
           },
-          head: '1'
+          head: 1
         }.to_json)
 
         # Deletes symlinks to stacks filesystem
@@ -871,6 +871,122 @@ RSpec.describe VersionedFilesService do
 
     it 'returns the expected path' do
       expect(path).to eq("#{stacks_pathname}/bc/123/df/4567")
+    end
+  end
+
+  describe '#files_by_md5' do
+    context 'when deleting a subsequent version head' do
+      let(:initial_dro) do
+        build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
+        Cocina::Models::DROStructural.new(
+          contains: [
+            Cocina::Models::FileSet.new(
+              externalIdentifier: 'bc123df4567_2',
+              type: Cocina::Models::FileSetType.file,
+              label: 'text file',
+              version: 1,
+              structural: Cocina::Models::FileSetStructural.new(
+                contains: [
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the regular file',
+                    filename: 'file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  ),
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'a file only in version 1',
+                    filename: 'files/file0.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3497de4d5abb55f21f652aa61b8f3abd' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  )
+                ]
+              )
+            )
+          ]
+        ))
+      end
+
+      let(:version_2_dro) do
+        build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
+        Cocina::Models::DROStructural.new(
+          contains: [
+            Cocina::Models::FileSet.new(
+              externalIdentifier: 'bc123df4567_2',
+              type: Cocina::Models::FileSetType.file,
+              label: 'text file',
+              version: 1,
+              structural: Cocina::Models::FileSetStructural.new(
+                contains: [
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the regular file',
+                    filename: 'file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  ),
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'a file only in version 2',
+                    filename: 'files/file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  )
+                ]
+              )
+            )
+          ]
+        ))
+      end
+
+      before do
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1')
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: '2')
+        File.write("#{versions_path}/versions.json", {
+          versions: {
+            1 => { withdrawn: false, date: DateTime.now.iso8601 },
+            2 => { withdrawn: false, date: DateTime.now.iso8601 }
+          },
+          head: '2'
+        }.to_json)
+      end
+
+      it 'returns array of files by md5' do
+        expect(service.files_by_md5).to eq [
+          { "3e25960a79dbc69b674cd4ec67a72c62" => "file2.txt" },
+          { "3497de4d5abb55f21f652aa61b8f3abd" => "files/file0.txt" },
+          { "5997de4d5abb55f21f652aa61b8f3aaf" => "files/file2.txt" }
+        ]
+      end
     end
   end
 end

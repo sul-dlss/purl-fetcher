@@ -5,6 +5,11 @@ RSpec.describe V1::PurlsController do
     let(:purl_object) { create(:purl) }
     let(:druid) { purl_object.druid }
 
+    before do
+      allow(FilesByMd5Service).to receive(:call).and_return([{ "5b79c8570b7ef582735f912aa24ce5f2" => "2542A.tiff" },
+                                                             { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => "2542A.jp2" }])
+    end
+
     it 'displays the purl data' do
       get "/purls/#{druid}"
 
@@ -13,6 +18,8 @@ RSpec.describe V1::PurlsController do
                                                 { "5b79c8570b7ef582735f912aa24ce5f2" => "2542A.tiff" },
                                                 { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => "2542A.jp2" }
                                               ])
+
+      expect(FilesByMd5Service).to have_received(:call).with(purl: purl_object)
     end
 
     context "when the druid was deleted" do

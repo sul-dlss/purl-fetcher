@@ -19,7 +19,7 @@ RSpec.describe 'Publish a DRO' do
   end
   let(:file_uploads) { { 'file2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a', 'files/file2.txt' => '7f807e3c-4cde-4b6d-8e76-f24455316a01' } }
   let(:must_version) { false }
-  let(:version) { '1' }
+  let(:version) { 1 }
   let(:version_date) { DateTime.now }
 
   let(:contains) do

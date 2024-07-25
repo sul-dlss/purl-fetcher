@@ -3,16 +3,16 @@
 module Publish
   # Creates the descriptive XML that we display on purl.stanford.edu
   class PublicDescMetadataService
-    attr_reader :cocina_object, :constituents
+    attr_reader :cocina_object, :constituents, :include_access_conditions
 
     MODS_NS = 'http://www.loc.gov/mods/v3'
 
     # @param [Cocina::Models::Collection,Cocina::Models::DRO] cocina_object
     # @param [Array<Hash>] constituents a list of constituents (virtual object members) that are part of this object
-    def initialize(cocina_object, constituents)
+    def initialize(cocina_object, constituents, include_access_conditions: true)
       @cocina_object = cocina_object
       @constituents = constituents
-      @ng_xml = {}
+      @include_access_conditions = include_access_conditions
     end
 
     # @return [Nokogiri::XML::Document] A copy of the descriptiveMetadata of the object, to be modified
@@ -27,14 +27,14 @@ module Publish
       #        for a bug in libxml2 that the Nokogiri maintainers don't want to
       #        address in Rubyland. They recommend using `#gsub` on the string
       #        returned from `#to_xml`: https://github.com/sparklemotion/nokogiri/issues/1356
-      ng_xml(include_access_conditions: true)
+      ng_xml
         .to_xml
         .gsub('&#13;', "\r")
     end
 
     # @return [Nokogiri::XML::Document]
-    def ng_xml(include_access_conditions: true)
-      @ng_xml[include_access_conditions] ||= begin
+    def ng_xml
+      @ng_xml ||= begin
         add_collection_reference!
         AccessConditions.add(public_mods: doc, access: cocina_object.access) if include_access_conditions
         add_constituent_relations!

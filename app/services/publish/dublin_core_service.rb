@@ -6,8 +6,9 @@ module Publish
     XMLNS_OAI_DC = 'http://www.openarchives.org/OAI/2.0/oai_dc/'
 
     # @param [Nokogiri::XML::Document] the MODS XML to generate the DublinCore for.
-    def initialize(desc_md_xml)
-      @desc_md_xml = desc_md_xml
+    def initialize(public_cocina, constituents)
+      desc_metadata_service = PublicDescMetadataService.new(public_cocina, constituents, include_access_conditions: false)
+      @desc_md_xml = desc_metadata_service.ng_xml
     end
 
     # Generates Dublin Core from the MODS in the descMetadata datastream using the LoC mods2dc stylesheet

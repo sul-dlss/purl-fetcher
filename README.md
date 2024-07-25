@@ -349,3 +349,47 @@ To generate an authentication token run RAILS_ENV=production bin/rails generate_
 ```
 {"invoked_by" => "workflow-service"}
 ```
+
+## File layout
+Objects created prior to August 2024 use the legacy, unversioned layout. Objects created thereafter have the new versioned layout.
+
+In a future workcycle, access applications (image server, streaming server, etc.) will be changed to utilize the versioned layout, at which point all objects can be migrated to the versioned layout.
+
+### Unversioned layout
+In PURL file system:
+```
+/purl/document_cache/bc/123/df/4567/
+  |   cocina.json
+  |   public <-- public xml
+  \-- meta.json
+```
+
+In Stacks file system:
+```
+/stacks/bc/123/df/4567/
+  |   file1.txt <-- content file
+  \-- more_files/
+      \--   files2.txt
+```
+
+### Versioned layout
+In Stacks file system:
+```
+/stacks/bc/123/df/4567/
+  |   file1.txt <-- Hardlinked with content/3e25960a79dbc69b674cd4ec67a72c62. For consistency with unversioned layout.
+  |   more_files/
+      \--   files2.txt <-- Hardlinked with content/5997de4d5abb55f21f652aa61b8f3aaf. For consistency with unversioned layout.
+  \-- bc123df4567/
+        |   versions/
+              |   versions.json <-- Metadata about versions.
+              |   cocina.1.json <-- cocina.json for version 1.
+              |   cocina.2.json <-- cocina.json for version 2.
+              |   cocina.json <-- cocina.json for head version. Hardlinked with cocina.2.json.
+              |   public.1.xml <-- public xml for version 1.
+              |   public.2.xml <-- public xml for version 2.
+              \-- public.xml <-- public xml for head version. Hardlinked with public.2.xml.
+        \-- content/
+              |   3e25960a79dbc69b674cd4ec67a72c62 <-- content file named by md5. Hardlinked with file1.txt.
+              |   fb46af9b56999fc63eeda4da3d6bc1de <-- content file in version 1, but not version 2.
+              \-- 5997de4d5abb55f21f652aa61b8f3aaf <-- Hardlinked with more_files/files2.txt.
+```

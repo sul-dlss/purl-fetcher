@@ -1,7 +1,9 @@
 # Write a version of an object. Note that this does not correctly update an existing version.
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/ParameterLists
-def write_version(content_path:, versions_path:, stacks_object_path:, cocina_object:, version:, version_metadata:)
+def write_version(content_path:, versions_path:, stacks_object_path:, cocina_object:,
+                  version_metadata: VersionedFilesService::VersionMetadata.new(false, DateTime.now),
+                  version: 1)
   # Write original content files and symlink to stacks filesystem
   FileUtils.mkdir_p(content_path)
   cocina_object.structural.contains.each do |file_set|

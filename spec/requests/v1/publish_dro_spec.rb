@@ -137,7 +137,6 @@ RSpec.describe 'Publish a DRO' do
 
       before do
         allow(Settings.features).to receive(:versioned_files).and_return(true)
-        allow(VersionedFilesService).to receive(:versioned_files?).and_return(false, true)
         allow(VersionedFilesService).to receive(:new).and_return(versioned_files_service)
         FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
       end

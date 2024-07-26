@@ -56,6 +56,18 @@ class PurlAndStacksService
     UpdatePurlMetadataService.new(purl).delete! if legacy_purl_enabled?
   end
 
+  # Delete the PURL and Stacks files.
+  # @param version [String] the version number
+  def withdraw(version:)
+    return unless versioned_files_enabled? && already_versioned_layout?
+
+    VersionedFilesService.new(druid:).withdraw(version:)
+  rescue VersionedFilesService::UnknowVersionError
+    # This shouldn't happen, but in case it does it can be ignored.
+    # In theory, it could happen if withdraw is called multiple times and the Purl DB record is out of sync with
+    # the PURL file system.
+  end
+
   private
 
   attr_reader :purl

@@ -731,4 +731,128 @@ RSpec.describe VersionedFilesService do
       end
     end
   end
+
+  describe '#withdraw' do
+    context 'when withdrawing an older version head' do
+      let(:initial_dro) do
+        build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
+        Cocina::Models::DROStructural.new(
+          contains: [
+            Cocina::Models::FileSet.new(
+              externalIdentifier: 'bc123df4567_2',
+              type: Cocina::Models::FileSetType.file,
+              label: 'text file',
+              version: 1,
+              structural: Cocina::Models::FileSetStructural.new(
+                contains: [
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the regular file',
+                    filename: 'file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  )
+                ]
+              )
+            )
+          ]
+        ))
+      end
+
+      let(:version_2_dro) do
+        build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
+        Cocina::Models::DROStructural.new(
+          contains: [
+            Cocina::Models::FileSet.new(
+              externalIdentifier: 'bc123df4567_2',
+              type: Cocina::Models::FileSetType.file,
+              label: 'text file',
+              version: 1,
+              structural: Cocina::Models::FileSetStructural.new(
+                contains: [
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the regular file',
+                    filename: 'file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  ),
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'a file only in version 2',
+                    filename: 'files/file2.txt',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  )
+                ]
+              )
+            )
+          ]
+        ))
+      end
+
+      let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
+      let(:version_2_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(2, false, DateTime.now) }
+      let(:version_3_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(3, false, DateTime.now) }
+
+      before do
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: 2, version_metadata: version_2_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 3, version_metadata: version_3_metadata)
+        File.write("#{versions_path}/versions.json", {
+          versions: {
+            1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
+            2 => { withdrawn: false, date: version_2_metadata.date.iso8601 },
+            3 => { withdrawn: false, date: version_3_metadata.date.iso8601 }
+          },
+          head: 3
+        }.to_json)
+      end
+
+      it 'update content files and metadata' do
+        service.withdraw(version: 2)
+
+        # Retains unchanged content files
+        expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
+
+        # Deletes unused content files
+        expect(File.exist?("#{content_path}/327d41a48b459a2807d750324bd864ce")).to be false
+
+        # Deletes metadata
+        expect(File.exist?("#{versions_path}/cocina.2.json")).to be false
+        expect(File.exist?("#{versions_path}/public.2.xml")).to be false
+
+        # Writes version manifest
+        expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
+          versions: {
+            1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
+            2 => { withdrawn: true, date: version_2_metadata.date.iso8601 },
+            3 => { withdrawn: false, date: version_3_metadata.date.iso8601 }
+          },
+          head: 3
+        )
+      end
+    end
+  end
 end

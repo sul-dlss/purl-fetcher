@@ -47,6 +47,12 @@ module V1
       render json: true, status: :accepted
     end
 
+    def withdraw_version
+      return render json: { error: "not yet published" }, status: :conflict if @purl.new_record?
+
+      PurlAndStacksService.withdraw(purl: @purl, version:)
+    end
+
     private
 
     def find_purl

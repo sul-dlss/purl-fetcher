@@ -14,12 +14,12 @@ class VersionedFilesService
 
     private
 
-    delegate :content_md5s, :delete_content, :versions, :druid,
+    delegate :content_md5s, :delete_content, :version_metadata, :druid,
              to: :@object
 
     def cocina_content_md5s
-      versions.map do |version|
-        cocina = Cocina.for(druid:, version:)
+      version_metadata.reject(&:withdrawn?).map do |metadata|
+        cocina = Cocina.for(druid:, version: metadata.version)
         cocina.shelve_file_map.values
       end.flatten.uniq
     end

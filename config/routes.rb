@@ -29,6 +29,8 @@ Rails.application.routes.draw do
 
         put 'release_tags'
         patch 'release_tags'
+
+        delete 'version/:version', to: 'purls#withdraw_version'
       end
     end
   end

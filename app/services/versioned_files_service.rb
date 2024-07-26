@@ -33,6 +33,12 @@ class VersionedFilesService
     StacksLinkAction.new(version: head_version, object: @object).call
   end
 
+  # Withdraw a version.
+  # @param version [String] the version number
+  def withdraw(version:)
+    WithdrawAction.new(version:, object: @object).call
+  end
+
   # Migrate from unversioned to versioned layout.
   # @param version_metadata [VersionedFilesService::VersionsManifest::VersionMetadata] the metadata for the version
   def migrate(version_metadata:)

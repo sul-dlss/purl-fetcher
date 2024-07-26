@@ -16,8 +16,10 @@ class ReleaseService
   def release(actions)
     # add the release tags, and reuse tags if already associated with this PURL
     purl.refresh_release_tags(actions)
-    write_meta_json
     purl.save!
+
+    write_meta_json
+
     purl.produce_indexer_log_message
   end
 
@@ -33,8 +35,7 @@ class ReleaseService
   private
 
   def write_purl_meta_json
-    file_path = File.join(purl.purl_druid_path, 'meta.json')
-    File.write(file_path, meta_json)
+    File.write(meta_json_path, meta_json)
   end
 
   def meta_json
@@ -44,5 +45,9 @@ class ReleaseService
       searchworks: purl.true_targets.include?('Searchworks'),
       earthworks: purl.true_targets.include?('Earthworks')
     }.to_json
+  end
+
+  def meta_json_path
+    File.join(purl.purl_druid_path, 'meta.json')
   end
 end

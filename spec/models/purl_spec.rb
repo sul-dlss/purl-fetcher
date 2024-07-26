@@ -142,4 +142,19 @@ RSpec.describe Purl do
       expect { mark_deleted }.to change { purl.collections.count }.from(1).to(0)
     end
   end
+
+  describe '#refresh_release_tags' do
+    subject(:purl) { build(:purl) }
+
+    it 'does not duplicate tags for existing release targets' do
+      purl.refresh_release_tags('index' => ['Searchworks'], 'delete' => [])
+      expect(purl.release_tags).to contain_exactly(an_object_having_attributes(name: 'Searchworks', release_type: true))
+
+      purl.refresh_release_tags('index' => ['Searchworks'], 'delete' => [])
+      expect(purl.release_tags).to contain_exactly(an_object_having_attributes(name: 'Searchworks', release_type: true))
+
+      purl.refresh_release_tags('index' => [], 'delete' => ['Searchworks'])
+      expect(purl.release_tags).to contain_exactly(an_object_having_attributes(name: 'Searchworks', release_type: false))
+    end
+  end
 end

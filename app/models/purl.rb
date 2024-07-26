@@ -97,7 +97,7 @@ class Purl < ApplicationRecord
   # https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L26
   # @return [Array]
   def true_targets
-    return [] unless deleted_at.nil?
+    return [] if deleted?
 
     release_tags.where(release_type: true).map(&:name) | Settings.always_send_true_targets
   end
@@ -111,10 +111,13 @@ class Purl < ApplicationRecord
   end
 
   # add the release tags, and reuse tags if already associated with this PURL
+  # @param [Hash<String, Array<String>>] actions
   def refresh_release_tags(actions)
     ['index', 'delete'].each do |type|
       actions[type].sort.uniq.each do |property|
-        release_tags << ReleaseTag.for(self, property, type)
+        tag = release_tags.find { |t| t.name == property } || release_tags.build(name: property)
+
+        tag.release_type = type == 'index'
       end
     end
   end

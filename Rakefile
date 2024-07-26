@@ -10,7 +10,7 @@ task default: :ci
 
 task generate_meta_json: :environment do
   Purl.status('public').find_each.with_index do |purl, index|
-    ReleaseService.write_meta_json(purl)
+    ReleaseService.new(purl).write_meta_json
     puts index if (index % 50_000).zero?
   rescue Errno::ENOENT
     puts "No document directory for: #{purl.druid}"

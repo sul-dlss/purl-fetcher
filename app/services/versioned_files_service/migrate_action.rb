@@ -11,23 +11,32 @@ class VersionedFilesService
     def call
       # For each shelved file in the cocina object, make sure there is a content file.
       check_content_files!
-      # For each shelved file, create a hardlink named by md5
-      link_content_files
-      # Write the cocina to cocina path for the version and create a new head cocina symlink.
-      write_cocina(version: 1, cocina: cocina_hash, head_version: true)
-      # Write the public xml to public xml path for the version and create a new head public xml symlink .
-      write_public_xml(version: 1, public_xml:, head_version: true)
-      copy_meta_json
-      # Update the version manifest.
-      version_manifest.update_version(version: 1, version_metadata:)
+
+      create_directory_structure
+
+      VersionedFilesService::Lock.with_lock(@object) do
+        # For each shelved file, create a hardlink named by md5
+        link_content_files
+        # Write the cocina to cocina path for the version and create a new head cocina symlink.
+        write_cocina(version: 1, cocina: cocina_hash, head_version: true)
+        # Write the public xml to public xml path for the version and create a new head public xml symlink .
+        write_public_xml(version: 1, public_xml:, head_version: true)
+        copy_meta_json
+        # Update the version manifest.
+        version_manifest.update_version(version: 1, version_metadata:)
+      end
     end
 
     private
 
     attr_reader :version_metadata
 
-    delegate :content_path, :content_path_for, :stacks_object_path, :meta_json_path,
+    delegate :content_path, :content_path_for, :stacks_object_path, :meta_json_path, :versions_path,
              :write_cocina, :write_public_xml, :version_manifest, :druid, to: :@object
+
+    def create_directory_structure
+      FileUtils.mkdir_p(versions_path)
+    end
 
     def check_content_files!
       shelve_file_map.each_key do |filename|

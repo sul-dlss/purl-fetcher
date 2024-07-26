@@ -27,15 +27,19 @@ class VersionedFilesService
   # @param cocina [Cocina::Models::DRO] the cocina model
   # @param file_transfers [Hash<String, String>] a map of filenames to transfer UUIDs
   def update(version:, version_metadata:, cocina:, file_transfers: {})
-    UpdateAction.new(version:, version_metadata:, cocina:, file_transfers:, object: @object).call
-    StacksLinkAction.new(version:, object: @object).call
+    VersionedFilesService::Lock.with_lock(@object) do
+      UpdateAction.new(version:, version_metadata:, cocina:, file_transfers:, object: @object).call
+      StacksLinkAction.new(version:, object: @object).call
+    end
   end
 
   # Deletes a version.
   # @param version [String] the version number
   def delete(version:)
-    DeleteAction.new(version:, object: @object).call
-    StacksLinkAction.new(version: head_version, object: @object).call
+    VersionedFilesService::Lock.with_lock(@object) do
+      DeleteAction.new(version:, object: @object).call
+      StacksLinkAction.new(version: head_version, object: @object).call
+    end
   end
 
   # Migrate from unversioned to versioned layout.

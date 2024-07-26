@@ -16,6 +16,8 @@ class VersionedFilesService
 
     # @raise [UnexpectedFileTransferError] if a file transfer is missing files or has extra files
     def call
+      # Make sure the shelved files map is valid.
+      validate_file_paths!
       # Make sure that all of the transfer files exist and are supposed to be shelved.
       check_file_transfers!
       # For each shelved file in the cocina object, if there is not a provided content file and a content file does not exist for the file’s md5, raise an error.
@@ -77,6 +79,16 @@ class VersionedFilesService
 
     def shelve_file_map
       @shelve_file_map ||= Cocina.new(hash: cocina.to_h).shelve_file_map
+    end
+
+    def validate_file_paths!
+      test_path = Pathname.new('')
+
+      shelve_file_map.each_key do |filename|
+        shelved_path = test_path / filename
+
+        raise VersionedFilesService::Error, "File #{filename} is invalid." if shelved_path.to_s.starts_with?('../')
+      end
     end
 
     def new_head?

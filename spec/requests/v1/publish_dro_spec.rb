@@ -131,13 +131,12 @@ RSpec.describe 'Publish a DRO' do
     context 'when version files is enabled and must_version is true' do
       let(:must_version) { true }
 
-      let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true) }
+      let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true, versioned_files?: false) }
 
       let(:version_metadata) { VersionedFilesService::VersionMetadata.new(version: 1, withdrawn: false, date: version_date) }
 
       before do
         allow(Settings.features).to receive(:versioned_files).and_return(true)
-        allow(VersionedFilesService).to receive(:versioned_files?).and_return(false, true)
         allow(VersionedFilesService).to receive(:new).and_return(versioned_files_service)
         FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
       end
@@ -165,7 +164,7 @@ RSpec.describe 'Publish a DRO' do
 
       before do
         allow(Settings.features).to receive(:versioned_files).and_return(true)
-        allow(VersionedFilesService).to receive(:versioned_files?).and_return(false, true)
+        allow(versioned_files_service).to receive(:versioned_files?).and_return(false, true)
         allow(VersionedFilesService).to receive(:new).and_return(versioned_files_service)
       end
 

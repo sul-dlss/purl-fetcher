@@ -38,5 +38,16 @@ RSpec.describe ReleaseService do
         )
       end
     end
+
+    context 'when the PURL has a sitemap + searchworks release tag' do
+      it 'writes the meta.json file' do
+        service.release({ 'index' => ['PURL sitemap', 'Searchworks'], 'delete' => [] })
+
+        expect(JSON.parse(File.read("#{purl.purl_druid_path}/meta.json"))).to include(
+          'sitemap' => true,
+          'searchworks' => true
+        )
+      end
+    end
   end
 end

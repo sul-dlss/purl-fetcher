@@ -12,7 +12,7 @@ class UpdateStacksFilesService
   def initialize(cocina_object, file_uploads_map = {})
     @cocina_object = cocina_object
     @file_uploads_map = file_uploads_map
-    @stacks_druid_path = DruidTools::PurlDruid.new(cocina_object.externalIdentifier, Settings.filesystems.stacks_root).path
+    @stacks_druid_path = DruidTools::PurlDruid.new(cocina_object.externalIdentifier, Settings.filesystems.stacks_root).pathname
   end
 
   def write!
@@ -43,7 +43,14 @@ class UpdateStacksFilesService
   def shelve_files
     file_uploads_map.each do |filename, temp_storage_uuid|
       file_path = File.join(Settings.filesystems.transfer, temp_storage_uuid)
-      shelving_path = File.join(stacks_druid_path, filename)
+      shelving_path = stacks_druid_path / filename
+
+      unless shelving_path.to_s.starts_with?(stacks_druid_path.to_s)
+        Honeybadger.notify("Skipping #{filename} because it is outside the object directory")
+
+        next
+      end
+
       FileUtils.mkdir_p(File.dirname(shelving_path))
       FileUtils.mv(file_path, shelving_path)
     end

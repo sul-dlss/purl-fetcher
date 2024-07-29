@@ -11,7 +11,15 @@ class VersionedFilesService
     def call
       FileUtils.mkdir_p(stacks_object_path)
       shelve_file_map.each do |filename, md5|
-        LinkSupport.link(content_path_for(md5:), stacks_object_path.join(filename))
+        file_path = stacks_object_path.join(filename)
+
+        if file_path.to_s.starts_with?(object_path.to_s) || !file_path.to_s.starts_with?(stacks_object_path.to_s)
+          Honeybadger.notify("Skipping #{filename} because it would conflict with the versioned object directory or is otherwise outside the object directory")
+
+          next
+        end
+
+        LinkSupport.link(content_path_for(md5:), file_path)
       end
       recursive_cleanup(stacks_object_path)
     end
@@ -20,7 +28,7 @@ class VersionedFilesService
 
     attr_reader :cocina, :version
 
-    delegate :stacks_object_path, :content_path_for, :cocina_path_for, :object_path, to: :@object
+    delegate :stacks_object_path, :content_path_for, :cocina_path_for, :object_path, :druid, to: :@object
 
     def shelve_file_map
       @shelve_file_map ||= version ? Cocina.new(hash: cocina_hash).shelve_file_map : {}

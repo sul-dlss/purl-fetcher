@@ -26,7 +26,7 @@ RSpec.describe VersionedFilesService do
 
   describe '#update' do
     let(:access_transfer_stage) { 'tmp/access-transfer-stage' }
-    let(:version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+    let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
     before do
       FileUtils.mkdir_p(access_transfer_stage)
@@ -93,7 +93,7 @@ RSpec.describe VersionedFilesService do
 
       it 'raises an error' do
         expect do
-          service.update(version: '1', version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 1, version_metadata:, cocina: dro, file_transfers:)
         end.to raise_error(VersionedFilesService::BadFileTransferError, 'Transfer file for files/file2.txt not found')
       end
 
@@ -166,7 +166,7 @@ RSpec.describe VersionedFilesService do
         end
 
         it 'writes content files and metadata' do
-          service.update(version: '1', version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 1, version_metadata:, cocina: dro, file_transfers:)
 
           # Writes content files
           expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
@@ -184,7 +184,10 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({ versions: { '1': { withdrawn: false, date: version_metadata.date.iso8601 } }, head: '1' }.to_json)
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
+            versions: { 1 => { withdrawn: false, date: version_metadata.date.iso8601 } },
+            head: 1
+          )
 
           # Symlinks to stacks filesystem
           expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")
@@ -253,7 +256,7 @@ RSpec.describe VersionedFilesService do
         ))
         end
 
-        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+        let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
         let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
@@ -322,11 +325,11 @@ RSpec.describe VersionedFilesService do
 
         before do
           write_file_transfers(file_transfers:, access_transfer_stage:)
-          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
+          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do
-          service.update(version: '2', version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 2, version_metadata:, cocina: dro, file_transfers:)
 
           # Writes new content files
           expect(File.read("#{content_path}/6007de4d5abb55f21f652aa61b8f3bbg")).to eq 'file3.txt'
@@ -350,13 +353,13 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.2.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              '1': { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-              '2': { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
+              2 => { withdrawn: false, date: version_metadata.date.iso8601 }
             },
-            head: '2'
-          }.to_json)
+            head: 2
+          )
 
           # Symlinks to stacks filesystem
           expect(File.exist?("#{stacks_object_path}/file1.txt")).to be false
@@ -413,7 +416,7 @@ RSpec.describe VersionedFilesService do
           ))
         end
 
-        let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+        let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
         let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
@@ -450,7 +453,7 @@ RSpec.describe VersionedFilesService do
         end
 
         before do
-          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
+          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do
@@ -469,12 +472,12 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              '1': { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { withdrawn: false, date: version_metadata.date.iso8601 }
             },
             head: 1
-          }.to_json)
+          )
         end
       end
 
@@ -493,12 +496,12 @@ RSpec.describe VersionedFilesService do
           expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
-          expect(File.read("#{versions_path}/versions.json")).to eq({
+          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              '1': { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { withdrawn: false, date: version_metadata.date.iso8601 }
             },
             head: 1
-          }.to_json)
+          )
         end
       end
     end
@@ -574,7 +577,7 @@ RSpec.describe VersionedFilesService do
         ))
       end
 
-      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
+      let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
       before do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
@@ -593,9 +596,9 @@ RSpec.describe VersionedFilesService do
         expect(File.exist?("#{versions_path}/public.xml")).to be false
 
         # Writes version manifest
-        expect(File.read("#{versions_path}/versions.json")).to eq({
+        expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
           versions: {}
-        }.to_json)
+        )
 
         # Deletes symlinks to stacks filesystem
         expect(File.exist?("#{stacks_object_path}/file2.txt")).to be false
@@ -682,13 +685,13 @@ RSpec.describe VersionedFilesService do
         ))
       end
 
-      let(:initial_version_metadata) { VersionedFilesService::VersionMetadata.new(1, false, DateTime.now) }
-      let(:version_2_metadata) { VersionedFilesService::VersionMetadata.new(2, false, DateTime.now) }
+      let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
+      let(:version_2_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(2, false, DateTime.now) }
 
       before do
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1', version_metadata: initial_version_metadata)
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '2', version_metadata: initial_version_metadata)
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: '3', version_metadata: version_2_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 2, version_metadata: initial_version_metadata)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: 3, version_metadata: version_2_metadata)
         File.write("#{versions_path}/versions.json", {
           versions: {
             1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
@@ -714,13 +717,13 @@ RSpec.describe VersionedFilesService do
         expect(File.exist?("#{versions_path}/public.3.xml")).to be false
 
         # Writes version manifest
-        expect(File.read("#{versions_path}/versions.json")).to eq({
+        expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
           versions: {
-            '1' => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-            '2' => { withdrawn: true, date: initial_version_metadata.date.iso8601 }
+            1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
+            2 => { withdrawn: true, date: initial_version_metadata.date.iso8601 }
           },
           head: 1
-        }.to_json)
+        )
 
         # Deletes symlinks to stacks filesystem
         expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")

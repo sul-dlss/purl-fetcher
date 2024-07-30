@@ -1,6 +1,22 @@
 class VersionedFilesService
   # Class for reading and writing the versions manifest.
   class VersionsManifest
+    def self.read(path)
+      new(path: Pathname.new(path))
+    end
+
+    # @param withdrawn [Boolean] true if the version is withdrawn
+    # @param date [DateTime] the version date
+    VersionMetadata = Struct.new('VersionMetadata', :version, :withdrawn, :date) do
+      def withdrawn?
+        withdrawn
+      end
+
+      def as_json
+        { withdrawn: withdrawn?, date: date.iso8601 }
+      end
+    end
+
     # @param path [Pathname] the path to the versions manifest
     def initialize(path:)
       @path = path
@@ -9,53 +25,21 @@ class VersionedFilesService
     # Update the version manifest to include the given version.
     # @param version [Integer] the version number
     # @param version_metadata [VersionMetadata] the metadata for the version
-    # @param head_version [Boolean] true if the version is the head version
-    def update_version(version:, version_metadata:, head_version: false)
+    def update_version(version:, version_metadata:)
       manifest[:versions] ||= {}
-      manifest[:versions][version] = { withdrawn: version_metadata.withdrawn?, date: version_metadata.date.iso8601 }
+      manifest[:versions][version] = version_metadata.as_json
 
-      manifest[:head] = version if head_version
+      update_head_version if !version_metadata.withdrawn? && (head_version.nil? || version >= head_version)
+
       write!
     end
 
     # Delete the given version from the version manifest.
     # @param version [Integer] the version number
-    # @param new_head_version [String, nil] the new head version number, or nil if the head version should be removed
-    def delete_version(version:, new_head_version: nil)
-      if new_head_version
-        manifest[:head] = new_head_version
-      else
-        manifest.delete(:head)
-      end
-      versions_hash.delete(version)
+    def delete_version(version:)
+      manifest[:versions].delete(version)
+      update_head_version if head_version == version
       write!
-    end
-
-    # @return [Integer] the version number of the head version
-    # @raise [Error] if the head version is not found
-    def head_version
-      return manifest[:head] if head_version?
-
-      raise UnknowVersionError, 'Head version not found'
-    end
-
-    # @return [Boolean] true if there is a head version
-    def head_version?
-      manifest.key?(:head)
-    end
-
-    # @return [Boolean] true if the given version exists (i.e., found in the version manifest)
-    def version?(version:)
-      versions_hash.key?(version)
-    end
-
-    # @return [VersionMetadata] the metadata for the given version
-    # @raise [UnknownVersionError] if the version is not found
-    def version_metadata_for(version:)
-      check_version(version:)
-
-      version_data = versions_hash[version]
-      VersionMetadata.new(version.to_i, version_data[:withdrawn], DateTime.iso8601(version_data[:date]))
     end
 
     # Update the version metadata to indicate that the version is withdrawn.
@@ -66,8 +50,38 @@ class VersionedFilesService
     def withdraw(version:, withdrawn: true)
       check_version(version:)
 
-      versions_hash[version][:withdrawn] = withdrawn
+      manifest[:versions][version][:withdrawn] = withdrawn
+      update_head_version if head_version == version
+
       write!
+    end
+
+    def update_head_version
+      manifest[:head] = version_metadata.reject(&:withdrawn?).max_by(&:version)&.version
+      manifest.delete(:head) if manifest[:head].nil?
+    end
+
+    # @return [Integer] the version number of the head version or nil
+    def head_version
+      manifest[:head]&.to_i
+    end
+
+    def previous_head_version(before:)
+      version_metadata.reject { |x| x.version >= before || x.withdrawn }.last&.version
+    end
+
+    # @return [Boolean] true if the given version exists (i.e., found in the version manifest)
+    def version?(version:)
+      manifest[:versions].key?(version)
+    end
+
+    # @return [VersionMetadata] the metadata for the given version
+    # @raise [UnknownVersionError] if the version is not found
+    def version_metadata_for(version:)
+      check_version(version:)
+
+      version_data = manifest[:versions][version]
+      VersionMetadata.new(version: version.to_i, withdrawn: version_data[:withdrawn], date: DateTime.iso8601(version_data[:date]))
     end
 
     def version_metadata
@@ -77,24 +91,23 @@ class VersionedFilesService
     end
 
     def versions
-      versions_hash.keys
+      manifest[:versions].keys
     end
-
-    private
-
-    attr_reader :path
 
     def manifest
       @manifest ||= (path.exist? ? JSON.parse(@path.read).with_indifferent_access : {}).tap do |manifest|
+        manifest[:$schemaVersion] ||= 1
+
         # json numeric keys are converted to strings, so convert them back to integers
+        manifest[:versions] ||= {}
         manifest[:versions]&.transform_keys!(&:to_i)
         manifest[:head] &&= manifest[:head].to_i
       end
     end
 
-    def versions_hash
-      manifest.fetch(:versions, {})
-    end
+    private
+
+    attr_reader :path
 
     def write!
       FileUtils.mkdir_p(path.dirname)

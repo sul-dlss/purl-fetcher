@@ -40,8 +40,8 @@ RSpec.describe VersionedFilesService::Object do
     end
 
     context 'when the version manifest does not exist' do
-      it 'raises UnknownVersionError' do
-        expect { service.head_version }.to raise_error(VersionedFilesService::UnknowVersionError, 'Head version not found')
+      it 'returns nil' do
+        expect(service.head_version).to be_nil
       end
     end
   end
@@ -84,7 +84,7 @@ RSpec.describe VersionedFilesService::Object do
 
       context 'when a version' do
         it 'returns version metadata' do
-          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionMetadata.new(1, false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
+          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
         end
       end
 
@@ -269,8 +269,8 @@ RSpec.describe VersionedFilesService::Object do
       end
 
       before do
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: '1')
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: '2')
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1)
+        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: 2)
         File.write("#{versions_path}/versions.json", {
           versions: {
             1 => { withdrawn: false, date: DateTime.now.iso8601 },

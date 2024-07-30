@@ -31,7 +31,9 @@ class VersionedFilesService
     delegate :stacks_object_path, :content_path_for, :cocina_path_for, :object_path, :druid, to: :@object
 
     def shelve_file_map
-      @shelve_file_map ||= version ? Cocina.new(hash: cocina_hash).shelve_file_map : {}
+      return {} if version.nil?
+
+      @shelve_file_map ||= Cocina.new(hash: cocina_hash).shelve_file_map
     end
 
     def cocina_hash

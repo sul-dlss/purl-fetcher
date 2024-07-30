@@ -31,7 +31,7 @@ class VersionedFilesService
       # Create a new head public xml symlink if the version is the head version.
       write_public_xml(version:, public_xml:, head_version: new_head?)
       # Update the version manifest.
-      version_manifest.update_version(version:, version_metadata:, head_version: new_head?)
+      version_manifest.update_version(version:, version_metadata:)
       # Delete the content files that aren't referenced by any cocina version files.
       PurgeContentAction.new(object: @object).call
     end
@@ -42,7 +42,7 @@ class VersionedFilesService
 
     delegate :content_md5s, :move_content,
              :write_cocina, :write_public_xml, :version_manifest,
-             :head_version?, :head_version,
+             :head_version,
              to: :@object
 
     def check_content_files!
@@ -92,11 +92,7 @@ class VersionedFilesService
     end
 
     def new_head?
-      if head_version?
-        version.to_i > head_version.to_i
-      else
-        true
-      end
+      head_version.nil? || version > head_version
     end
 
     # @return [Pathname] the path to the transfer file with the given transfer UUID

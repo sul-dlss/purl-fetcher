@@ -15,9 +15,9 @@ class VersionedFilesService
 
       raise VersionedFilesService::Error, "Only head version can be deleted" unless head_version == version
 
-      new_head_version = calculate_new_head_version
+      new_head_version = version_manifest.previous_head_version(before: version)
       # Update the version manifest.
-      version_manifest.delete_version(version:, new_head_version:)
+      version_manifest.delete_version(version:)
       # Delete the cocina version file and set the new head symlink.
       delete_cocina(version:, new_head_version:)
       # Delete the public xml version file and set the new head symlink.
@@ -30,10 +30,6 @@ class VersionedFilesService
 
     attr_reader :version
 
-    delegate :head_version, :delete_cocina, :delete_public_xml, :version_manifest, :version_metadata, :version?, to: :@object
-
-    def calculate_new_head_version
-      head_version == 1 ? nil : version_metadata.reject { |x| x.version == @version || x.withdrawn }.last&.version
-    end
+    delegate :head_version, :delete_cocina, :delete_public_xml, :version_manifest, :version?, to: :@object
   end
 end

@@ -21,7 +21,7 @@ class PurlAndStacksService
   # @param must_version [Boolean] true if the versioned layout is required
   def update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
     if use_versioned_layout? || must_version
-      version_metadata = VersionedFilesService::VersionMetadata.new(version: version.to_i, withdrawn: false, date: version_date)
+      version_metadata = VersionedFilesService::VersionsManifest::VersionMetadata.new(version: version.to_i, withdrawn: false, date: version_date)
       versioned_files_service.migrate(version_metadata:) unless already_versioned_layout? || new_object?
 
       versioned_files_service.update(version:,

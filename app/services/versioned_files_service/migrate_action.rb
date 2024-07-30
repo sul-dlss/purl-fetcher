@@ -2,7 +2,7 @@ class VersionedFilesService
   # Migrate an object from unversioned to versioned Stacks layout.
   class MigrateAction
     # @param object [VersionedFilesService::Object] the object
-    # @param version_metadata [VersionedFilesService::VersionMetadata] the version metadata
+    # @param version_metadata [ VersionedFilesService::VersionsManifest::VersionMetadata] the version metadata
     def initialize(object:, version_metadata:)
       @object = object
       @version_metadata = version_metadata
@@ -19,7 +19,7 @@ class VersionedFilesService
       write_public_xml(version: 1, public_xml:, head_version: true)
       copy_meta_json
       # Update the version manifest.
-      version_manifest.update_version(version: 1, version_metadata:, head_version: true)
+      version_manifest.update_version(version: 1, version_metadata:)
     end
 
     private

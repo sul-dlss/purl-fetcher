@@ -10,6 +10,10 @@ module V1
       render build_error('400', e, 'Bad request')
     end
 
+    rescue_from VersionedFilesService::Lock::LockError do |e|
+      render build_error('423', e, 'Error acquiring lock')
+    end
+
     # Show the files that we have for this object. Used by DSA to know which files need to be shelved.
     def show
       # Causes a 404 for a deleted item, which might happen if a purl is deleted and then reused.

@@ -128,6 +128,24 @@ RSpec.describe 'Publish a DRO' do
       end
     end
 
+    context 'when versioned files is enabled and object is locked' do
+      before do
+        allow(Settings.features).to receive(:versioned_files).and_return(true)
+        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/versions')
+
+        f = File.open("tmp/stacks/bc/123/df/4567/bc123df4567/versions/.lock", File::RDWR | File::CREAT)
+        f.flock(File::LOCK_EX)
+      end
+
+      it 'returns an HTTP 423 ("Locked") error' do
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+
+        expect(response).to have_http_status(:locked)
+      end
+    end
+
     context 'when version files is enabled and must_version is true' do
       let(:must_version) { true }
 

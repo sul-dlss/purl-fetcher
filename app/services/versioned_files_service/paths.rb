@@ -66,6 +66,12 @@ class VersionedFilesService
       content_path.join(md5)
     end
 
+    # @return [Pathname] the path to a lock file for the object
+    # Note that this is the logical path; the path may not exist.
+    def lockfile_path
+      versions_path.join('.lock')
+    end
+
     private
 
     attr_reader :druid

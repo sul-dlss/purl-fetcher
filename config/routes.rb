@@ -29,6 +29,13 @@ Rails.application.routes.draw do
 
         put 'release_tags'
         patch 'release_tags'
+
+        resources :versions, only: [], param: :version do
+          member do
+            match 'withdraw', via: %i[put patch], defaults: { withdrawn: true }, to: 'versions#withdraw'
+            match 'restore', via: %i[put patch], defaults: { withdrawn: false }, to: 'versions#withdraw'
+          end
+        end
       end
     end
   end

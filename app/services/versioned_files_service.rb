@@ -2,8 +2,9 @@
 # This service also creates the external symlinks in stacks or purl filesystems.
 class VersionedFilesService
   class Error < StandardError; end
-  class UnknowVersionError < Error; end
+  class UnknownVersionError < Error; end
   class BadFileTransferError < Error; end
+  class BadRequestError < Error; end
 
   # Return true if the object is in the versioned_files layout.
   def self.versioned_files?(druid:)
@@ -46,5 +47,14 @@ class VersionedFilesService
   # @param version_metadata [VersionedFilesService::VersionsManifest::VersionMetadata] the metadata for the version
   def migrate(version_metadata:)
     MigrateAction.new(version_metadata:, object: @object).call
+  end
+
+  # Withdraw or restore a version.
+  # @param version [String] the version number
+  # @param withdrawn [Boolean] true to withdraw, false to restore
+  def withdraw(version:, withdrawn: true)
+    VersionedFilesService::Lock.with_lock(@object) do
+      WithdrawAction.new(version:, withdrawn:, object: @object).call
+    end
   end
 end

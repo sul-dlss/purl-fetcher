@@ -10,10 +10,6 @@ module V1
       render build_error('400', e, 'Bad request')
     end
 
-    rescue_from VersionedFilesService::Lock::LockError do |e|
-      render build_error('423', e, 'Error acquiring lock')
-    end
-
     # Show the files that we have for this object. Used by DSA to know which files need to be shelved.
     def show
       # Causes a 404 for a deleted item, which might happen if a purl is deleted and then reused.
@@ -74,23 +70,6 @@ module V1
     # @return [Hash<String, String>] is a map of filenames to temporary UUIDs
     def file_uploads
       resource_params[:file_uploads].to_h
-    end
-
-    # JSON-API error response. See https://jsonapi.org/.
-    def build_error(error_code, err, msg)
-      {
-        json: {
-          errors: [
-            {
-              status: error_code,
-              title: msg,
-              detail: err.message
-            }
-          ]
-        },
-        content_type: 'application/json',
-        status: error_code
-      }
     end
 
     def version_date

@@ -1,6 +1,10 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery unless: -> { request.format.json? }, with: :exception
 
+  rescue_from VersionedFilesService::Lock::LockError do |e|
+    render build_error('423', e, 'Error acquiring lock')
+  end
+
   private
 
   def page_params
@@ -17,5 +21,22 @@ class ApplicationController < ActionController::Base
     druid = params[:druid]
     druid = "druid:#{druid}" unless druid&.start_with?('druid:')
     druid
+  end
+
+  # JSON-API error response. See https://jsonapi.org/.
+  def build_error(error_code, err, msg)
+    {
+      json: {
+        errors: [
+          {
+            status: error_code,
+            title: msg,
+            detail: err.message
+          }
+        ]
+      },
+      content_type: 'application/json',
+      status: error_code
+    }
   end
 end

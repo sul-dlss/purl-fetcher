@@ -273,6 +273,23 @@ This tells purl-fetcher to update the cache of release tags and puts messages on
 `204 Accepted`
 `true`
 
+#### PUT `/v1/purls/:druid/versions/:version/withdraw` and PUT `/v1/purls/:druid/versions/:version/restore`
+
+##### Parameters
+
+| Name      | Located In | Description                                                                                                                                           | Required | Schema                         | Default |
+| --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------ | ------- |
+| `druid`   | url        | object identifier                                                                                                                                     | Yes      | string eg(`druid:bc123df4567`) | null    |
+| `version` | url       | version to be changed | Yes      | object                         | null    |
+
+##### Summary
+
+Withdraw / restore a version of an item
+
+##### Example Response
+
+`204 No Content`
+
 ## Administration
 
 ### Reindexing

@@ -526,7 +526,7 @@ RSpec.describe VersionedFilesService do
       end
 
       it 'raises an error' do
-        expect { service.delete(version: 2) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
+        expect { service.delete(version: 2) }.to raise_error(VersionedFilesService::UnknownVersionError, 'Version 2 not found')
       end
     end
 
@@ -729,6 +729,22 @@ RSpec.describe VersionedFilesService do
         expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")
         expect(File.exist?("#{stacks_object_path}/files/file2.txt")).to be false
       end
+    end
+  end
+
+  describe '#withdraw' do
+    let(:action) { instance_double(VersionedFilesService::WithdrawAction, call: nil) }
+
+    before do
+      allow(VersionedFilesService::WithdrawAction).to receive(:new).and_return(action)
+      allow(VersionedFilesService::Lock).to receive(:with_lock).and_yield
+    end
+
+    it 'invokes the withdraw action' do
+      expect(service.withdraw(version: 1)).to be_nil
+
+      expect(VersionedFilesService::WithdrawAction).to have_received(:new).with(version: 1, withdrawn: true, object: VersionedFilesService::Object)
+      expect(VersionedFilesService::Lock).to have_received(:with_lock).with(VersionedFilesService::Object)
     end
   end
 end

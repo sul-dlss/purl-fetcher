@@ -115,7 +115,7 @@ class VersionedFilesService
     end
 
     def check_version(version:)
-      raise UnknowVersionError, "Version #{version} not found" unless version?(version:)
+      raise UnknownVersionError, "Version #{version} not found" unless version?(version:)
     end
   end
 end

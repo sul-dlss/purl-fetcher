@@ -90,14 +90,14 @@ RSpec.describe VersionedFilesService::Object do
 
       context 'when not a version' do
         it 'raises UnknownVersionError' do
-          expect { service.version_metadata_for(version: 2) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
+          expect { service.version_metadata_for(version: 2) }.to raise_error(VersionedFilesService::UnknownVersionError, 'Version 2 not found')
         end
       end
     end
 
     context 'when the version manifest does not exist' do
       it 'raises UnknownVersionError' do
-        expect { service.version_metadata_for(version: 1) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 1 not found')
+        expect { service.version_metadata_for(version: 1) }.to raise_error(VersionedFilesService::UnknownVersionError, 'Version 1 not found')
       end
     end
   end
@@ -132,14 +132,14 @@ RSpec.describe VersionedFilesService::Object do
 
       context 'when not a version' do
         it 'raises UnknownVersionError' do
-          expect { service.withdraw(version: 2) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 2 not found')
+          expect { service.withdraw(version: 2) }.to raise_error(VersionedFilesService::UnknownVersionError, 'Version 2 not found')
         end
       end
     end
 
     context 'when the version manifest does not exist' do
       it 'raises UnknownVersionError' do
-        expect { service.withdraw(version: 1) }.to raise_error(VersionedFilesService::UnknowVersionError, 'Version 1 not found')
+        expect { service.withdraw(version: 1) }.to raise_error(VersionedFilesService::UnknownVersionError, 'Version 1 not found')
       end
     end
   end

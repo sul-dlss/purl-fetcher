@@ -8,10 +8,10 @@ class VersionedFilesService
       @object = object
     end
 
-    # @raise [UnknowVersionError] if the version is not found
+    # @raise [UnknownVersionError] if the version is not found
     # @raise [Error] if the version is not the head version
     def call
-      raise VersionedFilesService::UnknowVersionError, "Version #{version} not found" unless version?(version:)
+      raise VersionedFilesService::UnknownVersionError, "Version #{version} not found" unless version?(version:)
 
       raise VersionedFilesService::Error, "Only head version can be deleted" unless head_version == version
 

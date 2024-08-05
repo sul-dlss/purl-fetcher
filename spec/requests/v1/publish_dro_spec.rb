@@ -264,55 +264,55 @@ RSpec.describe 'Publish a DRO' do
         expect(File).not_to exist('tmp/stacks/bc/123/df/4567/file3.txt')
       end
     end
-  end
 
-  context 'when no files' do
-    let(:file_uploads) { {} }
-    let(:contains) { [] }
+    context 'when no files' do
+      let(:file_uploads) { {} }
+      let(:contains) { [] }
 
-    context 'when versioned files is enabled' do
-      before do
-        allow(Settings.features).to receive(:versioned_files).and_return(true)
+      context 'when versioned files is enabled' do
+        before do
+          allow(Settings.features).to receive(:versioned_files).and_return(true)
+        end
+
+        it 'creates the cocina json file for the resource' do
+          put "/v1/purls/#{druid}",
+              params: request,
+              headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+          expect(response).to be_created
+          expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
+          expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
+        end
       end
 
-      it 'creates the cocina json file for the resource' do
+      context 'when legacy_purl is enabled' do
+        before do
+          allow(Settings.features).to receive(:legacy_purl).and_return(true)
+        end
+
+        it 'creates the cocina json file for the resource' do
+          put "/v1/purls/#{druid}",
+              params: request,
+              headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+          expect(response).to be_created
+          expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+          expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+        end
+      end
+    end
+
+    context 'when file listed in the file_uploads is not found in structural' do
+      let(:file_uploads) { { 'xfile2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a' } }
+
+      it 'returns 400' do
         put "/v1/purls/#{druid}",
             params: request,
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-        expect(response).to be_created
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
+        expect(response).to have_http_status(:bad_request)
+        response_json = response.parsed_body
+        expect(response_json['errors'][0]['title']).to eq 'Bad request'
+        expect(response_json['errors'][0]['detail']).to eq 'Files in file_uploads not in cocina object'
       end
     end
-
-    context 'when legacy_purl is enabled' do
-      before do
-        allow(Settings.features).to receive(:legacy_purl).and_return(true)
-      end
-
-      it 'creates the cocina json file for the resource' do
-        put "/v1/purls/#{druid}",
-            params: request,
-            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-        expect(response).to be_created
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
-      end
-    end
+    # rubocop:enable Style/StringConcatenation
   end
-
-  context 'when file listed in the file_uploads is not found in structural' do
-    let(:file_uploads) { { 'xfile2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a' } }
-
-    it 'returns 400' do
-      put "/v1/purls/#{druid}",
-          params: request,
-          headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-      expect(response).to have_http_status(:bad_request)
-      response_json = response.parsed_body
-      expect(response_json['errors'][0]['title']).to eq 'Bad request'
-      expect(response_json['errors'][0]['detail']).to eq 'Files in file_uploads not in cocina object'
-    end
-  end
-  # rubocop:enable Style/StringConcatenation
 end

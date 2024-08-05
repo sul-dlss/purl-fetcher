@@ -59,11 +59,10 @@ RSpec.describe V1::PurlsController do
       end
     end
 
-    context 'with an existing unversioned item' do
-      let(:purl_object) { create(:purl) }
-      let(:druid) { purl_object.druid }
+    context 'with an existing item' do
       let(:purl_druid_path) { purl_object.purl_druid_path }
       let(:meta_path) { Pathname.new(purl_druid_path) / 'meta.json' }
+      let(:purl_object) { create(:purl, druid:) }
 
       before do
         FileUtils.rm_r(purl_druid_path) if File.directory?(purl_druid_path)
@@ -74,45 +73,71 @@ RSpec.describe V1::PurlsController do
         FileUtils.rm_rf(purl_druid_path)
       end
 
-      it 'puts a Kafka message on the queue for indexing' do
-        expect { put("/v1/purls/#{druid}/release_tags", params: data, headers:) }.to change(meta_path, :exist?)
-          .from(false).to(true)
-        expect(response).to have_http_status(:accepted)
+      context 'with an existing unversioned item' do
+        let(:purl_object) { create(:purl) }
+        let(:druid) { purl_object.druid }
 
-        expect(Racecar).to have_received(:produce_sync)
-          .with(key: druid, topic: 'testing_topic', value: purl_object.as_public_json.to_json)
-      end
-    end
+        it 'puts a Kafka message on the queue for indexing' do
+          expect { put("/v1/purls/#{druid}/release_tags", params: data, headers:) }.to change(meta_path, :exist?)
+            .from(false).to(true)
+          expect(response).to have_http_status(:accepted)
 
-    context 'with an existing versioned item' do
-      let(:purl_object) { create(:purl, druid:) }
-      let(:druid) { 'druid:bc123df4567' }
-      let(:purl_druid_path) { purl_object.purl_druid_path }
-      let(:meta_path) { Pathname.new(purl_druid_path) / 'meta.json' }
-
-      let(:stacks_path) { Pathname.new('tmp/stacks') }
-      let(:stacks_meta_path) { stacks_path / 'bc/123/df/4567/bc123df4567/versions/meta.json' }
-
-      before do
-        allow(Settings.features).to receive(:legacy_purl).and_return(true)
-        allow(Settings.filesystems).to receive(:stacks_root).and_return(stacks_path.to_s)
-
-        FileUtils.mkdir_p(purl_druid_path)
-        FileUtils.mkdir_p(stacks_meta_path.dirname)
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: druid, topic: 'testing_topic', value: purl_object.as_public_json.to_json)
+        end
       end
 
-      after do
-        FileUtils.rm_rf(stacks_path)
-        FileUtils.rm_rf(purl_druid_path)
+      context 'with an existing versioned item' do
+        let(:druid) { 'druid:bc123df4567' }
+
+        let(:stacks_path) { Pathname.new('tmp/stacks') }
+        let(:stacks_meta_path) { stacks_path / 'bc/123/df/4567/bc123df4567/versions/meta.json' }
+
+        before do
+          allow(Settings.features).to receive(:legacy_purl).and_return(true)
+          allow(Settings.filesystems).to receive(:stacks_root).and_return(stacks_path.to_s)
+
+          FileUtils.mkdir_p(stacks_meta_path.dirname)
+        end
+
+        after do
+          FileUtils.rm_rf(stacks_path)
+        end
+
+        it 'puts a Kafka message on the queue for indexing' do
+          expect { put("/v1/purls/#{druid}/release_tags", params: data, headers:) }.to change(meta_path, :exist?)
+            .from(false).to(true).and change(stacks_meta_path, :exist?).from(false).to(true)
+          expect(response).to have_http_status(:accepted)
+
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: druid, topic: 'testing_topic', value: purl_object.as_public_json.to_json)
+        end
       end
 
-      it 'puts a Kafka message on the queue for indexing' do
-        expect { put("/v1/purls/#{druid}/release_tags", params: data, headers:) }.to change(meta_path, :exist?)
-          .from(false).to(true).and change(stacks_meta_path, :exist?).from(false).to(true)
-        expect(response).to have_http_status(:accepted)
+      context 'with an existing versioned item that is being unreleased' do
+        let(:druid) { 'druid:bc123df4567' }
+        let(:data) { { actions: { 'index' => [], 'delete' => ['Searchworks'] } }.to_json }
+        let(:stacks_path) { Pathname.new('tmp/stacks') }
+        let(:stacks_meta_path) { stacks_path / 'bc/123/df/4567/bc123df4567/versions/meta.json' }
 
-        expect(Racecar).to have_received(:produce_sync)
-          .with(key: druid, topic: 'testing_topic', value: purl_object.as_public_json.to_json)
+        before do
+          allow(Settings.features).to receive(:legacy_purl).and_return(true)
+          allow(Settings.filesystems).to receive(:stacks_root).and_return(stacks_path.to_s)
+
+          FileUtils.mkdir_p(stacks_meta_path.dirname)
+          purl_object.release_tags.create(name: "Searchworks", release_type: true)
+        end
+
+        after do
+          FileUtils.rm_rf(stacks_path)
+        end
+
+        it 'puts a Kafka message on the queue for indexing' do
+          expect { put("/v1/purls/#{druid}/release_tags", params: data, headers:) }.to change(meta_path, :exist?)
+            .from(false).to(true).and change(stacks_meta_path, :exist?).from(false).to(true)
+          expect(response).to have_http_status(:accepted)
+          expect(purl_object.reload.release_tags.first.release_type).to be false
+        end
       end
     end
 

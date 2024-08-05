@@ -5,7 +5,7 @@ class Purl < ApplicationRecord
            through: :constituent_memberships, source: :child
   has_many :parent_memberships, class_name: 'ConstituentMembership', inverse_of: :child, dependent: :destroy
   has_many :parents, through: :parent_memberships, source: :parent
-  has_many :release_tags, dependent: :destroy
+  has_many :release_tags, dependent: :destroy, autosave: true # Allows updated tags to save
   has_one :public_json, dependent: :destroy
 
   accepts_nested_attributes_for :public_json, update_only: true

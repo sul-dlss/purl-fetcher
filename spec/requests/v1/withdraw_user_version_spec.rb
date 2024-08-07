@@ -14,8 +14,8 @@ RSpec.describe 'Withdraw a user version' do
   let(:versions_data) do
     {
       versions: {
-        '1' => { withdrawn: false, date: DateTime.now.iso8601 },
-        '2' => { withdrawn: false, date: DateTime.now.iso8601 }
+        '1' => { state: 'available', date: DateTime.now.iso8601 },
+        '2' => { state: 'available', date: DateTime.now.iso8601 }
       },
       head: 2
     }
@@ -38,7 +38,7 @@ RSpec.describe 'Withdraw a user version' do
 
         expect(response).to have_http_status(:no_content)
         versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-        expect(versions_data['versions']['1']['withdrawn']).to be true
+        expect(versions_data['versions']['1']['state']).to eq 'withdrawn'
       end
     end
 
@@ -105,8 +105,8 @@ RSpec.describe 'Withdraw a user version' do
       let(:versions_data) do
         {
           versions: {
-            '1' => { withdrawn: true, date: DateTime.now.iso8601 },
-            '2' => { withdrawn: false, date: DateTime.now.iso8601 }
+            '1' => { state: 'withdrawn', date: DateTime.now.iso8601 },
+            '2' => { state: 'available', date: DateTime.now.iso8601 }
           },
           head: 2
         }
@@ -118,7 +118,7 @@ RSpec.describe 'Withdraw a user version' do
 
         expect(response).to have_http_status(:no_content)
         versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-        expect(versions_data['versions']['1']['withdrawn']).to be false
+        expect(versions_data['versions']['1']['state']).to eq 'available'
       end
     end
   end

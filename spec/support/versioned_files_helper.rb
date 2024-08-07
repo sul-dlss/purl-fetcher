@@ -2,7 +2,7 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/ParameterLists
 def write_version(content_path:, versions_path:, stacks_object_path:, cocina_object:,
-                  version_metadata: VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now),
+                  version_metadata: VersionedFilesService::VersionsManifest::VersionMetadata.new(1, 'available', DateTime.now),
                   version: 1)
   # Write original content files and symlink to stacks filesystem
   FileUtils.mkdir_p(content_path)
@@ -24,7 +24,7 @@ def write_version(content_path:, versions_path:, stacks_object_path:, cocina_obj
   File.write("#{versions_path}/public.#{version}.xml", PublicXmlWriter.generate(cocina_object))
   FileUtils.rm_rf("#{versions_path}/public.xml")
   File.link("#{versions_path}/public.#{version}.xml", "#{versions_path}/public.xml")
-  File.write("#{versions_path}/versions.json", { versions: { version => { withdrawn: false, date: version_metadata.date.iso8601 } }, head: version }.to_json)
+  File.write("#{versions_path}/versions.json", { versions: { version => { state: 'available', date: version_metadata.date.iso8601 } }, head: version }.to_json)
 end
 # rubocop:enable Metrics/AbcSize
 # rubocop:enable Metrics/ParameterLists

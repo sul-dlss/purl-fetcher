@@ -7,13 +7,21 @@ class VersionedFilesService
 
     # @param withdrawn [Boolean] true if the version is withdrawn
     # @param date [DateTime] the version date
-    VersionMetadata = Struct.new('VersionMetadata', :version, :withdrawn, :date) do
+    VersionMetadata = Struct.new('VersionMetadata', :version, :state, :date) do
       def withdrawn?
-        withdrawn
+        state == 'withdrawn'
+      end
+
+      def permanently_withdrawn?
+        state == 'permanently_withdrawn'
+      end
+
+      def available?
+        state == 'available'
       end
 
       def as_json
-        { withdrawn: withdrawn?, date: date.iso8601 }
+        { state:, date: date&.iso8601 }.compact
       end
     end
 
@@ -50,7 +58,7 @@ class VersionedFilesService
     def withdraw(version:, withdrawn: true)
       check_version(version:)
 
-      manifest[:versions][version][:withdrawn] = withdrawn
+      manifest[:versions][version][:state] = withdrawn ? 'withdrawn' : 'available'
       update_head_version if head_version == version
 
       write!
@@ -67,7 +75,7 @@ class VersionedFilesService
     end
 
     def previous_head_version(before:)
-      version_metadata.reject { |x| x.version >= before || x.withdrawn }.last&.version
+      version_metadata.reject { |x| x.version >= before || !x.available? }.last&.version
     end
 
     # @return [Boolean] true if the given version exists (i.e., found in the version manifest)
@@ -81,7 +89,7 @@ class VersionedFilesService
       check_version(version:)
 
       version_data = manifest[:versions][version]
-      VersionMetadata.new(version: version.to_i, withdrawn: version_data[:withdrawn], date: DateTime.iso8601(version_data[:date]))
+      VersionMetadata.new(version: version.to_i, state: version_data[:state], date: DateTime.iso8601(version_data[:date]))
     end
 
     def version_metadata

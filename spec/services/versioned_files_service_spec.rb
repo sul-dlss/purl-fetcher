@@ -508,29 +508,7 @@ RSpec.describe VersionedFilesService do
   end
 
   describe '#delete' do
-    context 'when not the head' do
-      before do
-        FileUtils.mkdir_p(versions_path.to_s)
-        File.write("#{versions_path}/versions.json", { head: '2', versions: { '1': {}, '2': {} } }.to_json)
-      end
-
-      it 'raises an error' do
-        expect { service.delete(version: 1) }.to raise_error(VersionedFilesService::Error, 'Only head version can be deleted')
-      end
-    end
-
-    context 'when deleting a version that does not exist' do
-      before do
-        FileUtils.mkdir_p(versions_path.to_s)
-        File.write("#{versions_path}/versions.json", { head: '1', versions: { '1': {} } }.to_json)
-      end
-
-      it 'raises an error' do
-        expect { service.delete(version: 2) }.to raise_error(VersionedFilesService::UnknownVersionError, 'Version 2 not found')
-      end
-    end
-
-    context 'when deleting a version 1 head' do
+    context 'when deleting an object with one version' do
       let(:initial_dro) do
         build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
         Cocina::Models::DROStructural.new(
@@ -583,8 +561,8 @@ RSpec.describe VersionedFilesService do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
       end
 
-      it 'update content files and metadata' do
-        service.delete(version: 1)
+      it 'removes the content files and metadata' do
+        service.delete
         # Deletes content files
         expect(File.exist?("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to be false
         expect(File.exist?("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to be false
@@ -606,7 +584,7 @@ RSpec.describe VersionedFilesService do
       end
     end
 
-    context 'when deleting a subsequent version head' do
+    context 'when deleting an object with multiple versions' do
       let(:initial_dro) do
         build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
         Cocina::Models::DROStructural.new(
@@ -702,18 +680,18 @@ RSpec.describe VersionedFilesService do
         }.to_json)
       end
 
-      it 'update content files and metadata' do
-        service.delete(version: 3)
+      it 'removes the content files and metadata' do
+        service.delete
         # Deletes content files
-        expect(File.exist?("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to be true
+        expect(File.exist?("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to be false
         expect(File.exist?("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to be false
 
         # Deletes metadata
-        expect(File.read("#{versions_path}/cocina.1.json")).to eq initial_dro.to_json
-        expect("#{versions_path}/cocina.json").to link_to("#{versions_path}/cocina.1.json")
-        expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
-        expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
+        expect(File.exist?("#{versions_path}/cocina.2.json")).to be false
         expect(File.exist?("#{versions_path}/cocina.3.json")).to be false
+        expect(File.exist?("#{versions_path}/cocina.3.json")).to be false
+        expect(File.exist?("#{versions_path}/public.1.xml")).to be false
+        expect(File.exist?("#{versions_path}/public.2.xml")).to be false
         expect(File.exist?("#{versions_path}/public.3.xml")).to be false
 
         # Writes version manifest

@@ -5,6 +5,7 @@ class VersionedFilesService
   class UnknownVersionError < Error; end
   class BadFileTransferError < Error; end
   class BadRequestError < Error; end
+  class PurgeError < Error; end
 
   # Return true if the object is in the versioned_files layout.
   def self.versioned_files?(druid:)
@@ -34,13 +35,9 @@ class VersionedFilesService
     end
   end
 
-  # Deletes a version.
-  # @param version [String] the version number
-  def delete(version:)
-    VersionedFilesService::Lock.with_lock(@object) do
-      DeleteAction.new(version:, object: @object).call
-      StacksLinkAction.new(version: head_version, object: @object).call
-    end
+  # Deletes all versions.
+  def delete
+    DeleteAction.new(object: @object).call
   end
 
   # Migrate from unversioned to versioned layout.

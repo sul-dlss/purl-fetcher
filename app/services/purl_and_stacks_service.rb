@@ -44,18 +44,7 @@ class PurlAndStacksService
 
   # Delete the PURL and Stacks files.
   def delete
-    if versioned_files_enabled? && already_versioned_layout?
-      begin
-        FileUtils.rm_rf(versioned_files_service.stacks_object_path)
-      rescue VersionedFilesService::UnknownVersionError
-        # This shouldn't happen, but in case it does it can be ignored.
-        # In theory, it could happen if delete is called multiple times and the Purl DB record is out of sync with
-        # the PURL file system.
-      end
-
-    else
-      UpdateStacksFilesService.delete!(purl.cocina_object)
-    end
+    UpdateStacksFilesService.delete!(purl.cocina_object)
     UpdatePurlMetadataService.new(purl).delete! if legacy_purl_enabled?
   end
 

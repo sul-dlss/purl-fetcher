@@ -20,7 +20,7 @@ class VersionedFilesService
     object_path.exist?
   end
 
-  delegate :head_version, :object_path, :stacks_object_path, to: :@object
+  delegate :head_version, :object_path, to: :@object
 
   # Creates or updates a version.
   # @param version [String] the version number

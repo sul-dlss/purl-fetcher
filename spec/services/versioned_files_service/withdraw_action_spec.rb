@@ -19,9 +19,9 @@ RSpec.describe VersionedFilesService::WithdrawAction do
   let(:versions_data) do
     {
       versions: {
-        '1' => { withdrawn: true, date: DateTime.now.iso8601 },
-        '2' => { withdrawn: false, date: DateTime.now.iso8601 },
-        '3' => { withdrawn: false, date: DateTime.now.iso8601 }
+        '1' => { state: 'withdrawn', date: DateTime.now.iso8601 },
+        '2' => { state: 'available', date: DateTime.now.iso8601 },
+        '3' => { state: 'available', date: DateTime.now.iso8601 }
       },
       head: 3
     }
@@ -57,7 +57,7 @@ RSpec.describe VersionedFilesService::WithdrawAction do
       action.call
 
       versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-      expect(versions_data['versions']['2']['withdrawn']).to be true
+      expect(versions_data['versions']['2']['state']).to eq 'withdrawn'
     end
   end
 
@@ -69,7 +69,7 @@ RSpec.describe VersionedFilesService::WithdrawAction do
       action.call
 
       versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-      expect(versions_data['versions']['1']['withdrawn']).to be false
+      expect(versions_data['versions']['1']['state']).to eq 'available'
     end
   end
 end

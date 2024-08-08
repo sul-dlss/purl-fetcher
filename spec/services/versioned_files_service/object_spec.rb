@@ -50,7 +50,7 @@ RSpec.describe VersionedFilesService::Object do
     context 'when the version manifest exists' do
       before do
         FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { versions: { '1': { withdrawn: false, date: '2022-06-26T10:06:45−07:00' } } }
+        manifest = { versions: { '1': { state: 'available', date: '2022-06-26T10:06:45−07:00' } } }
         File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
       end
 
@@ -78,13 +78,14 @@ RSpec.describe VersionedFilesService::Object do
     context 'when the version manifest exists' do
       before do
         FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { versions: { '1' => { withdrawn: false, date: '2022-06-26T10:06:45+07:00' } } }
+        manifest = { versions: { '1' => { state: 'available', date: '2022-06-26T10:06:45+07:00' } } }
         File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
       end
 
       context 'when a version' do
         it 'returns version metadata' do
-          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.iso8601('2022-06-26T10:06:45+07:00'))
+          expect(service.version_metadata_for(version: 1)).to eq VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, state: 'available',
+                                                                                                                              date: DateTime.iso8601('2022-06-26T10:06:45+07:00'))
         end
       end
 
@@ -110,7 +111,7 @@ RSpec.describe VersionedFilesService::Object do
 
       before do
         FileUtils.mkdir_p(File.dirname(versions_manifest_path))
-        manifest = { versions: { '1': { withdrawn: false, date: '2022-06-26T10:06:45+07:00' } } }
+        manifest = { versions: { '1': { state: 'available', date: '2022-06-26T10:06:45+07:00' } } }
         File.write(versions_manifest_path, manifest.to_json)
       end
 
@@ -118,7 +119,7 @@ RSpec.describe VersionedFilesService::Object do
         it 'sets withdrawn to true' do
           service.withdraw(version: 1)
           expect(service.version_metadata_for(version: 1).withdrawn?).to be true
-          expect(versions_manifest[:versions]['1'][:withdrawn]).to be true
+          expect(versions_manifest[:versions]['1'][:state]).to eq 'withdrawn'
         end
       end
 
@@ -126,7 +127,7 @@ RSpec.describe VersionedFilesService::Object do
         it 'sets withdrawn to false' do
           service.withdraw(version: 1, withdrawn: false)
           expect(service.version_metadata_for(version: 1).withdrawn?).to be false
-          expect(versions_manifest[:versions]['1'][:withdrawn]).to be false
+          expect(versions_manifest[:versions]['1'][:state]).to eq 'available'
         end
       end
 
@@ -273,8 +274,8 @@ RSpec.describe VersionedFilesService::Object do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: 2)
         File.write("#{versions_path}/versions.json", {
           versions: {
-            1 => { withdrawn: false, date: DateTime.now.iso8601 },
-            2 => { withdrawn: false, date: DateTime.now.iso8601 }
+            1 => { state: 'available', date: DateTime.now.iso8601 },
+            2 => { state: 'available', date: DateTime.now.iso8601 }
           },
           head: '2'
         }.to_json)

@@ -9,7 +9,7 @@ RSpec.describe VersionedFilesService::MigrateAction do
     VersionedFilesService::Object.new(druid)
   end
 
-  let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, withdrawn: false, date: DateTime.now) }
+  let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, state: 'available', date: DateTime.now) }
 
   let(:druid) { 'druid:bc123df4567' }
 
@@ -113,7 +113,7 @@ RSpec.describe VersionedFilesService::MigrateAction do
 
     # Writes version manifest
     expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
-      versions: { 1 => { withdrawn: false, date: version_metadata.date.iso8601 } },
+      versions: { 1 => { state: 'available', date: version_metadata.date.iso8601 } },
       head: 1
     )
   end

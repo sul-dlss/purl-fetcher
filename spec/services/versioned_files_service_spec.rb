@@ -26,7 +26,7 @@ RSpec.describe VersionedFilesService do
 
   describe '#update' do
     let(:access_transfer_stage) { 'tmp/access-transfer-stage' }
-    let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
+    let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, state: 'available', date: DateTime.now) }
 
     before do
       FileUtils.mkdir_p(access_transfer_stage)
@@ -185,7 +185,7 @@ RSpec.describe VersionedFilesService do
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
-            versions: { 1 => { withdrawn: false, date: version_metadata.date.iso8601 } },
+            versions: { 1 => { state: 'available', date: version_metadata.date.iso8601 } },
             head: 1
           )
 
@@ -355,8 +355,8 @@ RSpec.describe VersionedFilesService do
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-              2 => { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { state: 'available', date: initial_version_metadata.date.iso8601 },
+              2 => { state: 'available', date: version_metadata.date.iso8601 }
             },
             head: 2
           )
@@ -474,7 +474,7 @@ RSpec.describe VersionedFilesService do
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              1 => { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { state: 'available', date: version_metadata.date.iso8601 }
             },
             head: 1
           )
@@ -498,7 +498,7 @@ RSpec.describe VersionedFilesService do
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
             versions: {
-              1 => { withdrawn: false, date: version_metadata.date.iso8601 }
+              1 => { state: 'available', date: version_metadata.date.iso8601 }
             },
             head: 1
           )
@@ -694,9 +694,9 @@ RSpec.describe VersionedFilesService do
         write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: 3, version_metadata: version_2_metadata)
         File.write("#{versions_path}/versions.json", {
           versions: {
-            1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-            2 => { withdrawn: true, date: initial_version_metadata.date.iso8601 },
-            3 => { withdrawn: false, date: version_2_metadata.date.iso8601 }
+            1 => { state: 'available', date: initial_version_metadata.date.iso8601 },
+            2 => { state: 'withdrawn', date: initial_version_metadata.date.iso8601 },
+            3 => { state: 'available', date: version_2_metadata.date.iso8601 }
           },
           head: 3
         }.to_json)
@@ -719,8 +719,8 @@ RSpec.describe VersionedFilesService do
         # Writes version manifest
         expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
           versions: {
-            1 => { withdrawn: false, date: initial_version_metadata.date.iso8601 },
-            2 => { withdrawn: true, date: initial_version_metadata.date.iso8601 }
+            1 => { state: 'available', date: initial_version_metadata.date.iso8601 },
+            2 => { state: 'withdrawn', date: initial_version_metadata.date.iso8601 }
           },
           head: 1
         )

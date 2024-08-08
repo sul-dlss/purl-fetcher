@@ -17,8 +17,7 @@ class VersionedFilesService
 
     delegate :content_md5s, :move_content, :delete_content, to: :contents
 
-    delegate :write_cocina, :write_public_xml,
-             :delete_cocina, :delete_public_xml, to: :metadata
+    delegate :write_cocina, :write_public_xml, to: :metadata
 
     # @return [Pathname] the path to the Stacks object directory
     # Note that this is the logical path; the path may not exist.
@@ -40,13 +39,6 @@ class VersionedFilesService
       versions.flat_map { |version| Cocina.for(druid:, version:).files_by_md5 }.uniq
     end
 
-    def purge
-      raise VersionedFilesService::PurgeError, "Cannot purge object with versions - #{versions}" unless versions.empty?
-
-      unlink_data_files
-      purge_path(object_path)
-    end
-
     private
 
     # @return [VersionedfilesService::Paths] the paths
@@ -62,26 +54,6 @@ class VersionedFilesService
     # @return [VersionedfilesService::Contents] the contents
     def contents
       @contents ||= Contents.new(paths:)
-    end
-
-    def unlink_data_files
-      # Delete the vesion and meta json files, and the .lock file
-      versions_manifest_path.unlink if versions_manifest_path.exist?
-      meta_json_path.unlink if meta_json_path.exist?
-      lockfile_path.unlink if lockfile_path.exist?
-    end
-
-    # Remove the object directory and any empty parent directories
-    def purge_path(path)
-      path.children.each do |child|
-        break unless child.directory? # Not try to remove files
-
-        child.rmtree if child.children.empty?
-      end
-      return if path.children.any?
-
-      path.rmtree
-      purge_path(path.parent)
     end
   end
 end

@@ -5,7 +5,6 @@ class VersionedFilesService
   class UnknownVersionError < Error; end
   class BadFileTransferError < Error; end
   class BadRequestError < Error; end
-  class PurgeError < Error; end
 
   # Return true if the object is in the versioned_files layout.
   def self.versioned_files?(druid:)

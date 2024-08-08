@@ -682,30 +682,8 @@ RSpec.describe VersionedFilesService do
 
       it 'removes the content files and metadata' do
         service.delete
-        # Deletes content files
-        expect(File.exist?("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to be false
-        expect(File.exist?("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to be false
-
-        # Deletes metadata
-        expect(File.exist?("#{versions_path}/cocina.2.json")).to be false
-        expect(File.exist?("#{versions_path}/cocina.3.json")).to be false
-        expect(File.exist?("#{versions_path}/cocina.3.json")).to be false
-        expect(File.exist?("#{versions_path}/public.1.xml")).to be false
-        expect(File.exist?("#{versions_path}/public.2.xml")).to be false
-        expect(File.exist?("#{versions_path}/public.3.xml")).to be false
-
-        # Writes version manifest
-        expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
-          versions: {
-            1 => { state: 'available', date: initial_version_metadata.date.iso8601 },
-            2 => { state: 'withdrawn', date: initial_version_metadata.date.iso8601 }
-          },
-          head: 1
-        )
-
-        # Deletes symlinks to stacks filesystem
-        expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")
-        expect(File.exist?("#{stacks_object_path}/files/file2.txt")).to be false
+        # Deletes stacks filesystem
+        expect(File.exist?(stacks_object_path)).to be false
       end
     end
   end

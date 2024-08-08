@@ -42,14 +42,6 @@ class VersionedFilesService
       write!
     end
 
-    # Delete the given version from the version manifest.
-    # @param version [Integer] the version number
-    def delete_version(version:)
-      manifest[:versions].delete(version)
-      update_head_version if head_version == version
-      write!
-    end
-
     # Update the version metadata to indicate that the version is withdrawn.
     # Note that this does not actually delete the version or any files.
     # @param version [Integer] the version number
@@ -72,10 +64,6 @@ class VersionedFilesService
     # @return [Integer] the version number of the head version or nil
     def head_version
       manifest[:head]&.to_i
-    end
-
-    def previous_head_version(before:)
-      version_metadata.reject { |x| x.version >= before || !x.available? }.last&.version
     end
 
     # @return [Boolean] true if the given version exists (i.e., found in the version manifest)

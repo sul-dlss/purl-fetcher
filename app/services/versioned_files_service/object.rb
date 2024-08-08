@@ -17,8 +17,7 @@ class VersionedFilesService
 
     delegate :content_md5s, :move_content, :delete_content, to: :contents
 
-    delegate :write_cocina, :write_public_xml,
-             :delete_cocina, :delete_public_xml, to: :metadata
+    delegate :write_cocina, :write_public_xml, to: :metadata
 
     # @return [Pathname] the path to the Stacks object directory
     # Note that this is the logical path; the path may not exist.

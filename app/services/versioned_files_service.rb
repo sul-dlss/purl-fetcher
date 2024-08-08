@@ -34,15 +34,6 @@ class VersionedFilesService
     end
   end
 
-  # Deletes a version.
-  # @param version [String] the version number
-  def delete(version:)
-    VersionedFilesService::Lock.with_lock(@object) do
-      DeleteAction.new(version:, object: @object).call
-      StacksLinkAction.new(version: head_version, object: @object).call
-    end
-  end
-
   # Migrate from unversioned to versioned layout.
   # @param version_metadata [VersionedFilesService::VersionsManifest::VersionMetadata] the metadata for the version
   def migrate(version_metadata:)

@@ -32,8 +32,8 @@ module V1
 
       @purl.mark_deleted
 
-      # TODO: Once DSA is providing the version, || '1' can be removed.
-      PurlAndStacksService.delete(purl: @purl, version: params[:version]&.to_i || 1)
+      UpdatePurlMetadataService.new(@purl).delete! if Settings.features.legacy_purl
+      UpdateStacksFilesService.delete!(@purl.cocina_object)
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
 

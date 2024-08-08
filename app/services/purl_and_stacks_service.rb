@@ -1,9 +1,5 @@
 # Facade around updating PURL and Stacks files.
 class PurlAndStacksService
-  def self.delete(purl:, version:)
-    new(purl:).delete(version:)
-  end
-
   def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:, must_version:) # rubocop:disable Metrics/ParameterLists
     new(purl:).update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
   end
@@ -40,24 +36,6 @@ class PurlAndStacksService
       UpdateStacksFilesService.write!(cocina_object, file_uploads) unless cocina_object.collection?
       UpdatePurlMetadataService.new(purl).write!
     end
-  end
-
-  # Delete the PURL and Stacks files.
-  # @param version [String] the version number
-  def delete(version:)
-    if versioned_files_enabled? && already_versioned_layout?
-      begin
-        versioned_files_service.delete(version:)
-      rescue VersionedFilesService::UnknownVersionError
-        # This shouldn't happen, but in case it does it can be ignored.
-        # In theory, it could happen if delete is called multiple times and the Purl DB record is out of sync with
-        # the PURL file system.
-      end
-
-    else
-      UpdateStacksFilesService.delete!(purl.cocina_object)
-    end
-    UpdatePurlMetadataService.new(purl).delete! if legacy_purl_enabled?
   end
 
   # Withdraw or restore a version.

@@ -1,9 +1,5 @@
 # Facade around updating PURL and Stacks files.
 class PurlAndStacksService
-  def self.delete(purl:)
-    new(purl:).delete
-  end
-
   def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:, must_version:) # rubocop:disable Metrics/ParameterLists
     new(purl:).update(cocina_object:, file_uploads:, version:, version_date:, must_version:)
   end
@@ -40,12 +36,6 @@ class PurlAndStacksService
       UpdateStacksFilesService.write!(cocina_object, file_uploads) unless cocina_object.collection?
       UpdatePurlMetadataService.new(purl).write!
     end
-  end
-
-  # Delete the PURL and Stacks files.
-  def delete
-    UpdateStacksFilesService.delete!(purl.cocina_object)
-    UpdatePurlMetadataService.new(purl).delete! if legacy_purl_enabled?
   end
 
   # Withdraw or restore a version.

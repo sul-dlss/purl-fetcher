@@ -32,7 +32,8 @@ module V1
 
       @purl.mark_deleted
 
-      PurlAndStacksService.delete(purl: @purl)
+      UpdatePurlMetadataService.new(@purl).delete! if Settings.features.legacy_purl
+      UpdateStacksFilesService.delete!(@purl.cocina_object)
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
 

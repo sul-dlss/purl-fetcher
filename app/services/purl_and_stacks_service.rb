@@ -46,7 +46,7 @@ class PurlAndStacksService
   def delete
     if versioned_files_enabled? && already_versioned_layout?
       begin
-        versioned_files_service.delete
+        FileUtils.rm_rf(versioned_files_service.stacks_object_path)
       rescue VersionedFilesService::UnknownVersionError
         # This shouldn't happen, but in case it does it can be ignored.
         # In theory, it could happen if delete is called multiple times and the Purl DB record is out of sync with

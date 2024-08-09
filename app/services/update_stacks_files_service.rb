@@ -5,10 +5,6 @@ class UpdateStacksFilesService
     new(...).write!
   end
 
-  def self.delete!(...)
-    new(...).delete!
-  end
-
   def initialize(cocina_object, file_uploads_map = {})
     @cocina_object = cocina_object
     @file_uploads_map = file_uploads_map
@@ -19,10 +15,6 @@ class UpdateStacksFilesService
     check_files_in_structural
     shelve_files
     unshelve_removed_files(filenames_to_keep: cocina_filenames)
-  end
-
-  def delete!
-    unshelve_removed_files(filenames_to_keep: [])
   end
 
   private

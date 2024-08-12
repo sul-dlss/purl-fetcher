@@ -7,7 +7,7 @@ require 'net/http'
 require 'equivalent-xml/rspec_matchers'
 require 'capybara/rspec'
 require 'capybara/rails'
-require 'cocina/rspec'
+require 'factory_bot_rails'
 require 'json'
 # Add additional requires below this line. Rails is not loaded until this point!
 
@@ -28,6 +28,7 @@ Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 ActiveRecord::Migration.maintain_test_schema!
 
 RSpec.configure do |config|
+  config.include FactoryBot::Syntax::Methods
   config.include Capybara::DSL
 
   # RSpec Rails can automatically mix in different behaviours to your tests
@@ -52,3 +53,4 @@ RSpec.configure do |config|
   config.global_fixtures = :all
 
 end
+require 'cocina/rspec'

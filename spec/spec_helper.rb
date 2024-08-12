@@ -1,9 +1,7 @@
 require 'simplecov'
 SimpleCov.start 'rails'
-require 'factory_bot_rails'
 
 RSpec.configure do |config|
-  config.include FactoryBot::Syntax::Methods
   config.expect_with :rspec do |expectations|
     # This option will default to `true` in RSpec 4. It makes the `description`
     # and `failure_message` of custom matchers include text for helper methods

@@ -10,6 +10,8 @@ class PublicJson < ApplicationRecord
   end
 
   def cocina_hash
+    return {} unless data_type == 'cocina' # Legacy metadata (xml), doesn't set this
+
     JSON.parse(data)
   end
 end

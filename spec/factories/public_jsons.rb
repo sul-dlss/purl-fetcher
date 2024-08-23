@@ -1,5 +1,7 @@
 FactoryBot.define do
   factory :public_json do
+    data_type { 'cocina' }
+
     data do
       Cocina::RSpec::Factories.build(:dro_with_metadata, id: purl.druid)
                               .new(access: { view: 'world' },

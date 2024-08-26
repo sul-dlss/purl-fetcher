@@ -89,11 +89,7 @@ RSpec.describe 'Publish a DRO' do
       FileUtils.rm_rf(Settings.filesystems.stacks_root)
     end
 
-    context 'when versioned files is enabled and object does not already exist' do
-      before do
-        allow(Settings.features).to receive(:versioned_files).and_return(true)
-      end
-
+    context 'when the object does not already exist' do
       # rubocop:disable RSpec/ExpectActual
       it 'creates the resource' do
         put "/v1/purls/#{druid}",
@@ -108,9 +104,8 @@ RSpec.describe 'Publish a DRO' do
       # rubocop:enable RSpec/ExpectActual
     end
 
-    context 'when versioned files is enabled and object already exists' do
+    context 'when the object already exists' do
       before do
-        allow(Settings.features).to receive(:versioned_files).and_return(true)
         FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
       end
 
@@ -128,9 +123,8 @@ RSpec.describe 'Publish a DRO' do
       end
     end
 
-    context 'when versioned files is enabled and object is locked' do
+    context 'when the object is locked' do
       before do
-        allow(Settings.features).to receive(:versioned_files).and_return(true)
         FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/versions')
 
         f = File.open("tmp/stacks/bc/123/df/4567/bc123df4567/versions/.lock", File::RDWR | File::CREAT)
@@ -146,7 +140,7 @@ RSpec.describe 'Publish a DRO' do
       end
     end
 
-    context 'when version files is enabled and must_version is true' do
+    context 'when must_version is true' do
       let(:must_version) { true }
 
       let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true, versioned_files?: false) }
@@ -154,7 +148,6 @@ RSpec.describe 'Publish a DRO' do
       let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, state: 'available', date: version_date) }
 
       before do
-        allow(Settings.features).to receive(:versioned_files).and_return(true)
         allow(VersionedFilesService).to receive(:new).and_return(versioned_files_service)
         FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567')
       end
@@ -173,7 +166,7 @@ RSpec.describe 'Publish a DRO' do
       end
     end
 
-    context 'when version files is enabled and must_version is true but a new object' do
+    context 'when must_version is true but a new object' do
       let(:must_version) { true }
 
       let(:versioned_files_service) { instance_double(VersionedFilesService, migrate: true, update: true) }
@@ -181,7 +174,6 @@ RSpec.describe 'Publish a DRO' do
       let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, state: 'available', date: version_date) }
 
       before do
-        allow(Settings.features).to receive(:versioned_files).and_return(true)
         allow(versioned_files_service).to receive(:versioned_files?).and_return(false, true)
         allow(VersionedFilesService).to receive(:new).and_return(versioned_files_service)
       end
@@ -200,28 +192,9 @@ RSpec.describe 'Publish a DRO' do
       end
     end
 
-    context 'when versioned files is not enabled' do
-      before do
-        allow(Settings.features).to receive(:versioned_files).and_return(false)
-      end
-
-      it 'creates the resource in unversioned layout' do
-        put "/v1/purls/#{druid}",
-            params: request,
-            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-        expect(response).to be_created
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-        expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/file2.txt')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/files/file2.txt')
-        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
-        expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
-      end
-    end
-
     context 'when legacy purl is enabled' do
       before do
-        allow(Settings.features).to receive_messages(versioned_files: true, legacy_purl: true)
+        allow(Settings.features).to receive_messages(legacy_purl: true)
       end
 
       it 'created the resource' do
@@ -236,7 +209,7 @@ RSpec.describe 'Publish a DRO' do
 
     context 'when legacy purl is not enabled' do
       before do
-        allow(Settings.features).to receive_messages(versioned_files: true, legacy_purl: false)
+        allow(Settings.features).to receive_messages(legacy_purl: false)
       end
 
       it 'creates the cocina json file for the resource' do
@@ -269,19 +242,13 @@ RSpec.describe 'Publish a DRO' do
       let(:file_uploads) { {} }
       let(:contains) { [] }
 
-      context 'when versioned files is enabled' do
-        before do
-          allow(Settings.features).to receive(:versioned_files).and_return(true)
-        end
-
-        it 'creates the cocina json file for the resource' do
-          put "/v1/purls/#{druid}",
-              params: request,
-              headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-          expect(response).to be_created
-          expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-          expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
-        end
+      it 'creates the cocina json file for the resource' do
+        put "/v1/purls/#{druid}",
+            params: request,
+            headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+        expect(response).to be_created
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
       end
 
       context 'when legacy_purl is enabled' do

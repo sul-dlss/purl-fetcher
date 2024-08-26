@@ -22,25 +22,6 @@ RSpec.describe 'Unpublish a Purl' do
     context 'when the druid exists' do
       let!(:purl_object) { create(:purl, druid:) }
 
-      context 'when versioned files is not enabled' do
-        before do
-          allow(Settings.features).to receive(:versioned_files).and_return(false)
-          File.write("#{legacy_stacks_path}/file3.txt", 'hello world')
-        end
-
-        it 'marks the purl as deleted and removes files' do
-          expect(File).to exist("#{legacy_stacks_path}/file3.txt")
-
-          delete("/purls/#{druid}", headers:)
-
-          expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
-          expect(Racecar).to have_received(:produce_sync)
-            .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
-          expect(File).not_to exist("#{legacy_stacks_path}/file3.txt")
-          expect(File).not_to be_symlink("#{legacy_stacks_path}/file3.txt")
-        end
-      end
-
       context 'when versioned files is enabled' do
         let(:stacks_path) { "#{Settings.filesystems.stacks_root}/bb/050/dj/7711/bb050dj7711" }
         let(:content_path) { "#{stacks_path}/content" }
@@ -54,8 +35,6 @@ RSpec.describe 'Unpublish a Purl' do
         let(:versions_json_path) { "#{versions_path}/versions.json" }
 
         before do
-          allow(Settings.features).to receive(:versioned_files).and_return(true)
-
           FileUtils.mkdir_p(content_path)
           File.write(file_content_path, 'hello world')
           File.link(file_content_path, legacy_file_path)

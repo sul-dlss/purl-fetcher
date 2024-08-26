@@ -54,30 +54,20 @@ class PurlAndStacksService
 
   delegate :druid, to: :purl
 
-  def versioned_files_enabled?
-    Settings.features.versioned_files
-  end
-
   def legacy_purl_enabled?
     Settings.features.legacy_purl
   end
 
   def use_versioned_layout?
-    return false unless versioned_files_enabled?
-
-    # Use versioned layout (1) if the object is already using the versioned layout; (2) if the object is new; or
+    # Use versioned layout in any of these situations:
+    # (1) if the object is already using the versioned layout
+    # (2) if the object is new
     # (3) if the object is using the unversioned layout, but DSA indicates that the object is versioned.
     # 3 may be the case for existing H2 objects, as they were previously unversioned but versions are being added.
 
     # TODO: Support DSA indicating if an object is versioned.
 
-    # Is it already in versioned layout?
-    return true if already_versioned_layout?
-
-    # Is it a new object?
-    return true if new_object?
-
-    false
+    already_versioned_layout? || new_object?
   end
 
   def new_object?

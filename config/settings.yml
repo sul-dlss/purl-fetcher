@@ -17,7 +17,6 @@ filesystems:
   transfer: /access-transfer-stage
 
 features:
-  versioned_files: false
   legacy_purl: true
 
 purl:

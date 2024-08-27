@@ -170,12 +170,16 @@ RSpec.describe VersionedFilesService::StacksLinkAction do
                                                               'file2.txt' => '3e25960a79dbc69b674cd4ec67a72c62',
                                                               'files/file2.txt' => '5997de4d5abb55f21f652aa61b8f3aaf',
                                                               'bc123df4567/invalid.json' => '3e25960a79dbc69b674cd4ec67a72c62',
+                                                              'bc123df4567_1/valid.json' => '3e25960a79dbc69b674cd4ec67a72c62',
+                                                              'bc123df4567' => '3e25960a79dbc69b674cd4ec67a72c62',
+                                                              'bc123df4567_2' => '3e25960a79dbc69b674cd4ec67a72c62',
                                                               '/tmp/abc' => '3e25960a79dbc69b674cd4ec67a72c62'
                                                             })
     end
 
     after do
       FileUtils.rm_rf(stacks_object_path)
+      FileUtils.rm_rf('/tmp/abc')
     end
 
     it 'does not create files that conflict with the AWFL layout' do
@@ -185,6 +189,8 @@ RSpec.describe VersionedFilesService::StacksLinkAction do
 
       expect(File.exist?("#{stacks_object_path}/file2.txt")).to be true
       expect(File.exist?("#{stacks_object_path}/files/file2.txt")).to be true
+      expect(File.exist?("#{stacks_object_path}/bc123df4567_1/valid.json")).to be true
+      expect(File.exist?("#{stacks_object_path}/bc123df4567_2")).to be true
 
       expect(File.exist?("#{stacks_object_path}/bc123df4567/invalid.json")).to be false
 

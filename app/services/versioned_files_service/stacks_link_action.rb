@@ -13,7 +13,7 @@ class VersionedFilesService
       shelve_file_map.each do |filename, md5|
         file_path = stacks_object_path.join(filename)
 
-        if file_path.to_s.starts_with?(object_path.to_s) || !file_path.to_s.starts_with?(stacks_object_path.to_s)
+        if filename == druid || filename.start_with?("#{druid}/") || !file_path.to_s.starts_with?(stacks_object_path.to_s)
           Honeybadger.notify("Skipping #{filename} because it would conflict with the versioned object directory or is otherwise outside the object directory")
 
           next

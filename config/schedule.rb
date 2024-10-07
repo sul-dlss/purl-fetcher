@@ -19,6 +19,11 @@
 
 # Learn more: http://github.com/javan/whenever
 
+# Load rubyconfig gem so that we have access to env-specific settings
+require 'config'
+
+Config.load_and_set_settings(Config.setting_files('config', 'production'))
+
 # Purging transfer files that have become orphaned to avoid filling storage.
 every 1.days do
   runner "`find #{Settings.filesystems.transfer} -type f -mtime +7 -exec rm {} +`"

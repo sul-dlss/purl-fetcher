@@ -38,6 +38,10 @@ class FilesByMd5Service
   end
 
   def unversioned_files_by_md5
+    # Check for handling purls mistakenly lacking a PublicJson record. Remove check once all have been republished.
+    # See https://github.com/sul-dlss/dor-services-app/issues/5181
+    return [] unless purl.public_json
+
     cocina = VersionedFilesService::Cocina.new(hash: purl.public_json.cocina_hash)
     cocina.files_by_md5.select { |md5_file| check_exists(versioned_files_object.stacks_object_path.join(md5_file.values.first)) }
   end

@@ -24,12 +24,17 @@ class VersionedFilesService
 
     # @return [Array<Hash<String, String>>] array of hashes with md5 as key and filename as value for shelved files
     # For example: [
-    #   { "5b79c8570b7ef582735f912aa24ce5f2" => "2542A.tiff" },
-    #   { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => "2542A.jp2" }
+    #   { "5b79c8570b7ef582735f912aa24ce5f2" => { "filename" => "2542A.tiff", "size" => 456 } },
+    #   { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => { "filename" => "2542A.jp2", "size" => 123 } }
     # ]
-    def files_by_md5
-      @files_by_md5 ||= shelved_files.map do |file|
-        { md5_for(file) => file.fetch('filename') }
+    def file_details_by_md5
+      @file_details_by_md5 ||= shelved_files.map do |file|
+        {
+          md5_for(file) => {
+            'filename' => file.fetch('filename'),
+            'size' => file.fetch('size')
+          }
+        }
       end
     end
 

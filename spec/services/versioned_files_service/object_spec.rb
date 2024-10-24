@@ -193,6 +193,7 @@ RSpec.describe VersionedFilesService::Object do
                     type: Cocina::Models::ObjectType.file,
                     label: 'the regular file',
                     filename: 'file2.txt',
+                    size: 9, # write_version uses the file name for the file content
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
@@ -207,6 +208,7 @@ RSpec.describe VersionedFilesService::Object do
                     type: Cocina::Models::ObjectType.file,
                     label: 'a file only in version 1',
                     filename: 'files/file0.txt',
+                    size: 15, # write_version uses the file name for the file content
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '3497de4d5abb55f21f652aa61b8f3abd' }
@@ -239,6 +241,7 @@ RSpec.describe VersionedFilesService::Object do
                     type: Cocina::Models::ObjectType.file,
                     label: 'the regular file',
                     filename: 'file2.txt',
+                    size: 9, # write_version uses the file name for the file content
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
@@ -253,6 +256,7 @@ RSpec.describe VersionedFilesService::Object do
                     type: Cocina::Models::ObjectType.file,
                     label: 'a file only in version 2',
                     filename: 'files/file2.txt',
+                    size: 15, # write_version uses the file name for the file content
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
@@ -282,10 +286,10 @@ RSpec.describe VersionedFilesService::Object do
       end
 
       it 'returns array of files by md5' do
-        expect(service.files_by_md5).to eq [
-          { "3e25960a79dbc69b674cd4ec67a72c62" => "file2.txt" },
-          { "3497de4d5abb55f21f652aa61b8f3abd" => "files/file0.txt" },
-          { "5997de4d5abb55f21f652aa61b8f3aaf" => "files/file2.txt" }
+        expect(service.file_details_by_md5).to eq [
+          { "3e25960a79dbc69b674cd4ec67a72c62" => { "filename" => "file2.txt", "size" => 9 } },
+          { "3497de4d5abb55f21f652aa61b8f3abd" => { "filename" => "files/file0.txt", "size" => 15 } },
+          { "5997de4d5abb55f21f652aa61b8f3aaf" => { "filename" => "files/file2.txt", "size" => 15 } }
         ]
       end
     end

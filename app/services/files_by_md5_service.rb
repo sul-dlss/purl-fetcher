@@ -30,12 +30,12 @@ class FilesByMd5Service
   delegate :druid, to: :purl
 
   def versioned_files_by_md5
-    correct_and_present_file_details = versioned_files_object.file_details_by_md5.select do |md5_file_details|
-      md5_filename = versioned_files_object.content_path_for(md5: md5_file_details.keys.first)
-      md5_filesize = md5_file_details.values.first['size']
+    correct_and_present_files = versioned_files_object.file_details_by_md5.select do |file_details|
+      md5_filename = versioned_files_object.content_path_for(md5: file_details.md5)
+      md5_filesize = file_details.filesize
       check_exists_and_complete(md5_filename, md5_filesize)
     end
-    filenames_by_md5(correct_and_present_file_details)
+    filenames_by_md5(correct_and_present_files)
   end
 
   def versioned_files_object
@@ -48,18 +48,17 @@ class FilesByMd5Service
     return [] unless purl.public_json
 
     cocina = VersionedFilesService::Cocina.new(hash: purl.public_json.cocina_hash)
-    correct_and_present_file_details = cocina.file_details_by_md5.select do |md5_file_details|
-      md5_filename = versioned_files_object.stacks_object_path.join(md5_file_details.values.first['filename'])
-      md5_filesize = md5_file_details.values.first['size']
+    correct_and_present_files = cocina.file_details_by_md5.select do |file_details|
+      md5_filename = versioned_files_object.stacks_object_path.join(file_details.filename)
+      md5_filesize = file_details.filesize
       check_exists_and_complete(md5_filename, md5_filesize)
     end
-    filenames_by_md5(correct_and_present_file_details)
+    filenames_by_md5(correct_and_present_files)
   end
 
-  def filenames_by_md5(files)
-    files.map do |md5_file_details|
-      md5 = md5_file_details.keys.first
-      { md5 => md5_file_details[md5]['filename'] }
+  def filenames_by_md5(file_details_list)
+    file_details_list.map do |file_details|
+      { file_details.md5 => file_details.filename }
     end
   end
 

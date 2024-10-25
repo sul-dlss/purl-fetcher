@@ -287,9 +287,9 @@ RSpec.describe VersionedFilesService::Object do
 
       it 'returns array of files by md5' do
         expect(service.file_details_by_md5).to eq [
-          { "3e25960a79dbc69b674cd4ec67a72c62" => { "filename" => "file2.txt", "size" => 9 } },
-          { "3497de4d5abb55f21f652aa61b8f3abd" => { "filename" => "files/file0.txt", "size" => 15 } },
-          { "5997de4d5abb55f21f652aa61b8f3aaf" => { "filename" => "files/file2.txt", "size" => 15 } }
+          VersionedFilesService::Cocina::FileDetails.new(md5: '3e25960a79dbc69b674cd4ec67a72c62', filename: 'file2.txt', filesize: 9),
+          VersionedFilesService::Cocina::FileDetails.new(md5: '3497de4d5abb55f21f652aa61b8f3abd', filename: 'files/file0.txt', filesize: 15),
+          VersionedFilesService::Cocina::FileDetails.new(md5: '5997de4d5abb55f21f652aa61b8f3aaf', filename: 'files/file2.txt', filesize: 15)
         ]
       end
     end

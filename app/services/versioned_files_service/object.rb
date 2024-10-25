@@ -30,13 +30,11 @@ class VersionedFilesService
       @version_manifest ||= VersionsManifest.new(path: paths.versions_manifest_path)
     end
 
-    # @return [Array<Hash<String, String>>] array of hashes with md5 as key and filename as value for shelved files for all versions.
-    # For example: [
-    #   { "5b79c8570b7ef582735f912aa24ce5f2" => "2542A.tiff" },
-    #   { "cd5ca5c4666cfd5ce0e9dc8c83461d7a" => "2542A.jp2" }
-    # ]
-    def files_by_md5
-      versions.flat_map { |version| Cocina.for(druid:, version:).files_by_md5 }.uniq
+    # @return [Array<VersionedFilesService::Cocina::FileDetails>] array of hashes with md5 as key and filename as value for shelved files for all versions.
+    # For example: [#<struct Struct::FileDetails md5="5b79c8570b7ef582735f912aa24ce5f2", filename="2542A.tiff", filesize=456>,
+    #               #<struct Struct::FileDetails md5="cd5ca5c4666cfd5ce0e9dc8c83461d7a", filename="2542A.jp2", filesize=123>]
+    def file_details_by_md5
+      versions.flat_map { |version| Cocina.for(druid:, version:).file_details_by_md5 }.uniq
     end
 
     private

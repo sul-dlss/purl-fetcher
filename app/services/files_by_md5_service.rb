@@ -30,7 +30,12 @@ class FilesByMd5Service
   delegate :druid, to: :purl
 
   def versioned_files_by_md5
-    versioned_files_object.files_by_md5.select { |md5_file| check_exists(versioned_files_object.content_path_for(md5: md5_file.keys.first)) }
+    correct_and_present_files = versioned_files_object.file_details_by_md5.select do |file_details|
+      md5_filename = versioned_files_object.content_path_for(md5: file_details.md5)
+      md5_filesize = file_details.filesize
+      check_exists_and_complete(md5_filename, md5_filesize)
+    end
+    filenames_by_md5(correct_and_present_files)
   end
 
   def versioned_files_object
@@ -43,15 +48,35 @@ class FilesByMd5Service
     return [] unless purl.public_json
 
     cocina = VersionedFilesService::Cocina.new(hash: purl.public_json.cocina_hash)
-    cocina.files_by_md5.select { |md5_file| check_exists(versioned_files_object.stacks_object_path.join(md5_file.values.first)) }
+    correct_and_present_files = cocina.file_details_by_md5.select do |file_details|
+      md5_filename = versioned_files_object.stacks_object_path.join(file_details.filename)
+      md5_filesize = file_details.filesize
+      check_exists_and_complete(md5_filename, md5_filesize)
+    end
+    filenames_by_md5(correct_and_present_files)
   end
 
-  def check_exists(path)
-    if path.exist?
-      true
-    else
-      Honeybadger.notify("File missing from shelves", context: { path: path.to_s, druid: })
-      false
+  def filenames_by_md5(file_details_list)
+    file_details_list.map do |file_details|
+      { file_details.md5 => file_details.filename }
     end
+  end
+
+  def check_exists_and_complete(path, expected_size)
+    context = { path: path.to_s, druid:, expected_size: }
+
+    unless path.exist?
+      Honeybadger.notify("File missing from shelves", context:)
+      return false
+    end
+
+    actual_size = File.size(path)
+    if actual_size != expected_size
+      context[:actual_size] = actual_size
+      Honeybadger.notify("File path present on shelves but file isn't the expected size. It's likely a bug shelved the wrong content.", context:)
+      return false
+    end
+
+    true
   end
 end

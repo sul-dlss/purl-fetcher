@@ -1,3 +1,5 @@
+require 'benchmark'
+
 class VersionedFilesService
   # Support for managing content files.
   class Contents
@@ -14,8 +16,13 @@ class VersionedFilesService
     end
 
     def move_content(md5:, source_path:)
-      FileUtils.mkdir_p(content_path)
-      FileUtils.mv(source_path, content_path_for(md5:))
+      t1 = Benchmark.realtime do
+        FileUtils.mkdir_p(content_path)
+      end
+      t2 = Benchmark.realtime do
+        FileUtils.mv(source_path, content_path_for(md5:))
+      end
+      Rails.logger.info("move_content: mkdir_p: #{t1}, mv: #{t2}")
     end
 
     def delete_content(md5:)

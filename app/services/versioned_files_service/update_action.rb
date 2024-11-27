@@ -40,7 +40,7 @@ class VersionedFilesService
 
     attr_reader :version, :version_metadata, :cocina, :file_transfers
 
-    delegate :content_md5s, :move_content,
+    delegate :move_content,
              :write_cocina, :write_public_xml, :version_manifest,
              :head_version,
              to: :@object
@@ -74,6 +74,7 @@ class VersionedFilesService
         next if content_md5s.include?(md5)
 
         move_content(source_path: transfer_path_for(transfer_uuid:), md5:)
+        content_md5s << md5
       end
     end
 
@@ -103,6 +104,10 @@ class VersionedFilesService
 
     def transfer_root_path
       @transfer_root_path ||= Pathname.new(Settings.filesystems.transfer)
+    end
+
+    def content_md5s
+      @content_md5s ||= @object.content_md5s
     end
   end
 end

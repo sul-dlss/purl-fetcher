@@ -1,6 +1,4 @@
 # Summary statistics
-require 'csv'
-
 now = Time.current
 puts "Summary report as of #{now.localtime} on #{`hostname`}"
 

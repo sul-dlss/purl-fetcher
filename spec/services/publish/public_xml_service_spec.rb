@@ -301,6 +301,7 @@ RSpec.describe Publish::PublicXmlService do
           <identityMetadata>
             <objectType>collection</objectType>
             <objectLabel>Constituent label &amp; A Special character</objectLabel>
+            <sourceId source="sul">sulcollection:1234</sourceId>
           </identityMetadata>
         XML
         expect(ng_xml.at_xpath('/publicObject/identityMetadata').to_xml).to be_equivalent_to expected

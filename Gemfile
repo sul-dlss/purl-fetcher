@@ -64,7 +64,7 @@ group :development, :test do
   gem "sqlite3", "~> 1.4"
 end
 
-gem 'cocina-models', '~> 0.98.0'
+gem 'cocina-models', '~> 0.99'
 
 gem "racecar"
 

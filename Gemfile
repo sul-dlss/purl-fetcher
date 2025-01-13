@@ -6,7 +6,7 @@ git_source(:github) do |repo_name|
 end
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.2.0"
+gem "rails", "~> 8.0.0"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 6.0"
@@ -61,7 +61,7 @@ group :development, :test do
   gem 'rubocop-capybara', require: false
   gem 'rubocop-factory_bot', require: false
   # Use sqlite3 as the database for Active Record
-  gem "sqlite3", "~> 1.4"
+  gem "sqlite3", ">= 2.1"
 end
 
 gem 'cocina-models', '~> 0.99'

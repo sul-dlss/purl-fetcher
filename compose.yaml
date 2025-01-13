@@ -1,5 +1,3 @@
-version: '2.1'
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:5.5.1
@@ -22,7 +20,7 @@ services:
       - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -30,7 +28,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_JMX_PORT: 9101
-      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
     healthcheck:
       test: nc -z 127.0.0.1 9092
 
@@ -41,7 +39,6 @@ services:
         condition: service_healthy
       zookeeper:
         condition: service_healthy
-
 
   # If you want to run the tests locally with Docker, comment in the tests service.
   # The behaviour, especially of the integration tests, can differ somewhat compared

@@ -15,6 +15,7 @@ class UpdateStacksFilesService
     check_files_in_structural
     shelve_files
     unshelve_removed_files(filenames_to_keep: cocina_filenames)
+    ClearImageserverCache.call(druid: @cocina_object.externalIdentifier, cocina_type: @cocina_object.type, file_names: cocina_filenames)
   end
 
   private

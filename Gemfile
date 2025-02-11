@@ -73,3 +73,5 @@ gem 'whenever', require: false
 gem 'jwt' # json web token
 
 gem "druid-tools", "~> 3.0"
+
+gem "httpx", "~> 1.4"

@@ -21,3 +21,8 @@ features:
 
 purl:
   hostname: purl.stanford.edu
+
+image_server:
+  hostname: https://imageserver
+  user: admin
+  password: admin

@@ -34,6 +34,8 @@ class VersionedFilesService
       version_manifest.update_version(version:, version_metadata:)
       # Delete the content files that aren't referenced by any cocina version files.
       PurgeContentAction.new(object: @object).call
+
+      ClearImageserverCache.call(druid: cocina.externalIdentifier, cocina_type: cocina.type, file_names: file_transfers.keys)
     end
 
     private

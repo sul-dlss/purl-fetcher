@@ -439,7 +439,7 @@ Version 1.0	2007-05-04 Tracy Meehleib <tmee@loc.gov>
 				<xsl:value-of select="mods:displayForm"/>
 				<xsl:text>) </xsl:text>
 			</xsl:if>
-			<xsl:for-each select="mods:role[mods:roleTerm[@type='text']!='creator']">
+			<xsl:for-each select="mods:role[mods:roleTerm[@type='text']!='creator']/mods:roleTerm[@type='text']">
 				<xsl:text> (</xsl:text>
 				<xsl:value-of select="normalize-space(.)"/>
 				<xsl:text>) </xsl:text>

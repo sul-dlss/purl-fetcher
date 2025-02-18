@@ -348,7 +348,7 @@ Version 1.0	2007-05-04 Tracy Meehleib <tmee@loc.gov>
 
 	<xsl:template match="mods:language">
 		<dc:language>
-			<xsl:value-of select="normalize-space(.)"/>
+			<xsl:value-of select="normalize-space(./mods:languageTerm)"/>
 		</dc:language>
 	</xsl:template>
 

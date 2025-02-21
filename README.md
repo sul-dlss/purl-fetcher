@@ -39,7 +39,7 @@ rake db:migrate
 The API communicates with a Kafka broker to dispatch and process updates asynchronously. You can run a Kafka broker locally, or use the provided `docker-compose` configuration:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 Then, in a separate terminal, start a development API server:

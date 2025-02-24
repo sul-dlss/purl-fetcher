@@ -121,6 +121,73 @@ RSpec.describe 'Publish a DRO' do
         expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/file2.txt')
         expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/file2.txt')
       end
+
+      context 'when type is image' do
+        let(:dro) { build(:dro_with_metadata, type: Cocina::Models::ObjectType.image, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
+        let(:file_uploads) { { 'image2.jp2' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a', 'files/image2.jp2' => '7f807e3c-4cde-4b6d-8e76-f24455316a01' } }
+
+        let(:contains) do
+          [
+            Cocina::Models::FileSet.new(
+              externalIdentifier: 'bc123df4567_2',
+              type: Cocina::Models::FileSetType.file,
+              label: 'image file',
+              version: 1,
+              structural: Cocina::Models::FileSetStructural.new(
+                contains: [
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the regular file',
+                    filename: 'image2.jp2',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  ),
+                  Cocina::Models::File.new(
+                    externalIdentifier: '1234',
+                    type: Cocina::Models::ObjectType.file,
+                    label: 'the hierarchical file',
+                    filename: 'files/image2.jp2',
+                    version: 1,
+                    hasMessageDigests: [
+                      { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
+                    ],
+                    administrative: {
+                      publish: true,
+                      shelve: true
+                    }
+                  )
+                ]
+              )
+            )
+          ]
+        end
+
+        it 'purges cached data from the image server' do
+          allow(ClearImageserverCache).to receive(:post_to_server)
+            .and_return(double('Response', status: 200)) # rubocop:disable RSpec/VerifiedDoubles
+          put "/v1/purls/#{druid}",
+              params: request,
+              headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+          expect(response).to be_created
+          expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+          expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+          expect(File).to exist('tmp/stacks/bc/123/df/4567/image2.jp2')
+          expect(File).to exist('tmp/stacks/bc/123/df/4567/files/image2.jp2')
+          expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/image2.jp2')
+          expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/image2.jp2')
+          expect(ClearImageserverCache).to have_received(:post_to_server)
+            .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/image2.jp2\"}")
+          expect(ClearImageserverCache).to have_received(:post_to_server)
+            .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/files/image2.jp2\"}")
+        end
+      end
     end
 
     context 'when the object is locked' do

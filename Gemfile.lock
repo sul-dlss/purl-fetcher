@@ -199,6 +199,9 @@ GEM
     honeybadger (5.26.4)
       logger
       ostruct
+    http-2 (1.0.2)
+    httpx (1.4.0)
+      http-2 (>= 1.0.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
@@ -458,6 +461,7 @@ DEPENDENCIES
   druid-tools (~> 3.0)
   factory_bot_rails
   honeybadger
+  httpx (~> 1.4)
   jbuilder
   jwt
   kaminari

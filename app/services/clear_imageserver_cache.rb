@@ -9,7 +9,7 @@ class ClearImageserverCache
       body = { verb: "PurgeItemFromCache", identifier: }.to_json
 
       response = post_to_server(body)
-      Honeybadger.notify("Unable to clear cache", context: { status: response.status, body: response.body }) unless response.status == 200
+      Honeybadger.notify("Unable to clear cache", context: { status: response.to_s }) if response.error
     end
   end
 

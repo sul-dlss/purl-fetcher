@@ -169,23 +169,59 @@ RSpec.describe 'Publish a DRO' do
           ]
         end
 
-        it 'purges cached data from the image server' do
-          allow(ClearImageserverCache).to receive(:post_to_server)
-            .and_return(double('Response', status: 200)) # rubocop:disable RSpec/VerifiedDoubles
-          put "/v1/purls/#{druid}",
-              params: request,
-              headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
-          expect(response).to be_created
-          expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
-          expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
-          expect(File).to exist('tmp/stacks/bc/123/df/4567/image2.jp2')
-          expect(File).to exist('tmp/stacks/bc/123/df/4567/files/image2.jp2')
-          expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/image2.jp2')
-          expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/image2.jp2')
-          expect(ClearImageserverCache).to have_received(:post_to_server)
-            .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/image2.jp2\"}")
-          expect(ClearImageserverCache).to have_received(:post_to_server)
-            .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/files/image2.jp2\"}")
+        before do
+          allow(ClearImageserverCache).to receive(:post_to_server).and_return(status)
+        end
+
+        context 'when response is success' do
+          let(:status) do
+            instance_double(HTTPX::Response, error: nil)
+          end
+
+          it 'purges cached data from the image server' do
+            put "/v1/purls/#{druid}",
+                params: request,
+                headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+            expect(response).to be_created
+            expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+            expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+            expect(File).to exist('tmp/stacks/bc/123/df/4567/image2.jp2')
+            expect(File).to exist('tmp/stacks/bc/123/df/4567/files/image2.jp2')
+            expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/image2.jp2')
+            expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/image2.jp2')
+            expect(ClearImageserverCache).to have_received(:post_to_server)
+              .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/image2.jp2\"}")
+            expect(ClearImageserverCache).to have_received(:post_to_server)
+              .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/files/image2.jp2\"}")
+          end
+        end
+
+        context 'when response is failure' do
+          let(:status) do
+            instance_double(HTTPX::ErrorResponse, error: HTTPX::HTTPError)
+          end
+
+          before do
+            allow(Honeybadger).to receive(:notify)
+          end
+
+          it 'alerts honeybadger' do
+            put "/v1/purls/#{druid}",
+                params: request,
+                headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
+            expect(response).to be_created
+            expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/cocina.json')
+            expect(File).to exist('tmp/purl_doc_cache/bc/123/df/4567/public')
+            expect(File).to exist('tmp/stacks/bc/123/df/4567/image2.jp2')
+            expect(File).to exist('tmp/stacks/bc/123/df/4567/files/image2.jp2')
+            expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/image2.jp2')
+            expect(File).not_to be_symlink('tmp/stacks/bc/123/df/4567/files/image2.jp2')
+            expect(ClearImageserverCache).to have_received(:post_to_server)
+              .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/image2.jp2\"}")
+            expect(ClearImageserverCache).to have_received(:post_to_server)
+              .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/files/image2.jp2\"}")
+            expect(Honeybadger).to have_received(:notify).twice
+          end
         end
       end
     end

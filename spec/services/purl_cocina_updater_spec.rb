@@ -8,6 +8,7 @@ RSpec.describe PurlCocinaUpdater do
   let(:purl) { create(:purl) }
   let(:cocina) do
     build(:dro, id: purl.druid,
+                type: Cocina::Models::ObjectType.image,
                 collection_ids: ['druid:xb432gf1111'])
   end
 
@@ -26,6 +27,10 @@ RSpec.describe PurlCocinaUpdater do
     it "adds collection memberships" do
       expect(purl.collections.pluck(:druid)).to eq ["druid:xb432gf1111"]
       expect(purl.constituents).to be_empty
+    end
+
+    it "sets the content type" do
+      expect(purl.content_type).to eq "image"
     end
 
     context 'when the data has constituents' do

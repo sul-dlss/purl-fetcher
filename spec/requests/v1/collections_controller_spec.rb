@@ -12,5 +12,11 @@ RSpec.describe V1::CollectionsController do
       data = JSON.parse(response.body, symbolize_names: true)
       expect(data[:purls].pluck(:druid)).to match_array(purls.map(&:druid))
     end
+
+    it 'purls have content type' do
+      get "/collections/#{collection.druid}/purls"
+      data = JSON.parse(response.body, symbolize_names: true)
+      expect(data[:purls].pluck(:content_type)).to match_array(purls.map(&:content_type))
+    end
   end
 end

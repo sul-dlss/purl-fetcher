@@ -9,8 +9,8 @@ module Authenticated
   def check_auth_token
     token = decoded_auth_token
 
-    # Temporarily disable in production to allow updated client and keys to be rolled out.
-    return if Rails.env.production?
+    # Disabled in local dev
+    return if Rails.env.development?
 
     return render json: { error: 'Not Authorized' }, status: :unauthorized unless token
 

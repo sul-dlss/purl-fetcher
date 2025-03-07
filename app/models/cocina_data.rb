@@ -27,6 +27,11 @@ class CocinaData
     cocina_object.collection? ? 'collection' : 'item'
   end
 
+  # @return [String] The content type
+  def content_type
+    Cocina::ToXml::ContentType.map(cocina_object.type) if cocina_object.dro?
+  end
+
   # @return [Array<String>] The collections the item is a member of
   def collections
     # see https://github.com/sul-dlss/dor-services-app/blob/f51bbcea710b7612f251a3922c5164ec69ba39aa/app/services/published_relationships_filter.rb#L31

@@ -6,6 +6,7 @@ FactoryBot.define do
 
     title { 'Some test object' }
     object_type { 'item' }
+    content_type { 'image' }
     published_at { 1.day.ago }
     public_json { association :public_json, purl: instance }
 

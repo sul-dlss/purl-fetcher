@@ -31,6 +31,7 @@ class PurlCocinaUpdater
       druid: cocina_data.canonical_druid,
       title:,
       object_type: cocina_data.object_type,
+      content_type: cocina_data.content_type,
       catkey: cocina_data.catkey,
       published_at: Time.current,
       cocina_object: cocina_data.cocina_object,

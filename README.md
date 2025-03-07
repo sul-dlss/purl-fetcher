@@ -53,14 +53,21 @@ bin/rails server
 You can make requests to the API using `curl` or a similar tool. To add an object to the database, you can first download its public Cocina JSON from production PURL:
 
 ```bash
-curl https://purl.stanford.edu/bb112zx3193.json > bb112zx3193.json
+curl https://purl.stanford.edu/bb086vv5589.json > bb086vv5589.json
 ```
 
-Then, you can use the `POST /purls/:druid` endpoint to add the object to the database:
+Modify the JSON to send the object with key "object":
+```json
+{"object": <paste the contents of bb086vv5589.json here>}
+```
+
+Then, you can use the `POST /v1/resources` endpoint to add the object to the database:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @bb112zx3193.json http://localhost:3000/purls/bb112zx3193
+curl -X POST -H "Content-Type: application/json" -d @bb086vv5589.json http://localhost:3000/v1/resources.json
 ```
+
+The API will respond with an error because the associated files were not also supplied, but the object will still be added to the database.
 
 After the object has been added, it will be added to the Kafka topic for indexing.
 

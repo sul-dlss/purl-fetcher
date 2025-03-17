@@ -14,6 +14,7 @@ class Purl < ApplicationRecord
   validates :druid, uniqueness: true
 
   scope :object_type, ->(object_type) { where object_type: }
+  scope :content_type, ->(content_type) { where content_type: }
 
   scope :membership, lambda { |membership|
     case membership['membership']
@@ -74,7 +75,7 @@ class Purl < ApplicationRecord
     data = if deleted?
              as_json(only: %i[druid])
            else
-             as_json(only: %i[druid object_type title catkey], methods: %i[true_targets false_targets]).tap do |d|
+             as_json(only: %i[druid object_type content_type title catkey], methods: %i[true_targets false_targets]).tap do |d|
                d[:collections] = collections.pluck(:druid)
              end
            end

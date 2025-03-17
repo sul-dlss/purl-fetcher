@@ -5,6 +5,7 @@ FactoryBot.define do
     data do
       Cocina::RSpec::Factories.build(:dro_with_metadata, id: purl.druid)
                               .new(access: { view: 'world' },
+                                   type: Cocina::Models::ObjectType.image,
                                    structural: {
                                      contains: [
                                        {

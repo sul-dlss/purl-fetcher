@@ -7,7 +7,6 @@ class VersionedFilesService
     # @param object [VersionedFilesService::Object] the object to lock
     # @yield the block to execute while the object
     def self.with_lock(object, &)
-      Rails.logger.info("Locking #{object.druid}: #{object.lockfile_path}")
       FileUtils.mkdir_p(object.lockfile_path.dirname)
 
       f = File.open(object.lockfile_path, File::RDWR | File::CREAT)
@@ -20,7 +19,6 @@ class VersionedFilesService
         yield
       ensure
         f.flock File::LOCK_UN
-        Rails.logger.info("Unlocked #{object.druid}: #{object.lockfile_path}")
       end
     end
   end

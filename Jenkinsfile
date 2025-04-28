@@ -24,7 +24,7 @@ pipeline {
           export DEPLOY=1
 
           # Load RVM
-          rvm use 3.0.1@purl-fetcher --create
+          rvm use 3.4.1@purl-fetcher --create
           gem install bundler
 
           bundle config --global gems.contribsys.com $SIDEKIQ_PRO_SECRET
@@ -70,7 +70,7 @@ pipeline {
           export REVISION=$TAG_NAME
 
           # Load RVM
-          rvm use 3.0.1@purl-fetcher --create
+          rvm use 3.4.1@purl-fetcher --create
           gem install bundler
 
           bundle config --global gems.contribsys.com $SIDEKIQ_PRO_SECRET

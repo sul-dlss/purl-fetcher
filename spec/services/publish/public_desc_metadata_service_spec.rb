@@ -305,4 +305,21 @@ RSpec.describe Publish::PublicDescMetadataService do
       end
     end
   end
+
+  describe 'with digital serials data' do
+    let(:identification) { { catalogLinks: [{ catalog: 'folio', catalogRecordId: 'a1234', partLabel: 'May 2025', sortKey: '2025.05', refresh: true }], sourceId: 'sul:123' } }
+    let(:description) do
+      { title: [{ structuredValue: [{ value: 'stuff', type: 'main title' }] }], purl: 'https://purl.stanford.edu/bc123df4567' }
+    end
+    let(:public_mods) do
+      service.ng_xml
+    end
+
+    it 'adds the digital serials data to titleInfo' do
+      title = public_mods.search('//xmlns:titleInfo/xmlns:title')
+      part_label = public_mods.search('//xmlns:titleInfo/xmlns:partNumber')
+      expect(title.first.content).to eq('stuff')
+      expect(part_label.first.content).to eq('May 2025')
+    end
+  end
 end

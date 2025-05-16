@@ -326,6 +326,9 @@ RSpec.describe VersionedFilesService do
         before do
           write_file_transfers(file_transfers:, access_transfer_stage:)
           write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+
+          # for the test to succeed this file should be overwritten by the call to service.update
+          File.write("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62", "file2.txt-xxx")
         end
 
         it 'writes content files and metadata' do
@@ -420,7 +423,7 @@ RSpec.describe VersionedFilesService do
 
         let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
-        # One one unchanged file (file2.txt), one deleted file (file1.txt).
+        # One unchanged file (file2.txt), one deleted file (file1.txt).
         let(:structural) do
           Cocina::Models::DROStructural.new(
             contains: [

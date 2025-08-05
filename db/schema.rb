@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_06_225944) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_04_161625) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -95,6 +95,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_06_225944) do
     t.string "catkey"
     t.integer "version"
     t.string "content_type"
+    t.index ["content_type"], name: "index_purls_on_content_type"
     t.index ["deleted_at"], name: "index_purls_on_deleted_at"
     t.index ["druid"], name: "index_purls_on_druid", unique: true
     t.index ["object_type"], name: "index_purls_on_object_type"

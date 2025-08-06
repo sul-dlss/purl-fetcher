@@ -15,6 +15,8 @@ filesystems:
   purl_root: "/purl/document_cache"
   stacks_root: "/stacks"
   transfer: /access-transfer-stage
+  # must be under /stacks because of hardlinking
+  globus_root: "/stacks/globus"
 
 features:
   legacy_purl: true
@@ -26,3 +28,37 @@ image_server:
   hostname: https://imageserver
   user: admin
   password: admin
+
+globus:
+  druid_list: 
+    - bn398fc4306
+    - bf070wx6289
+    - cj061qr5050
+    - dc156hp0190
+    - dv883vb9686
+    - jc488jb7715
+    - jf301dx7536
+    - jn859kj8079
+    - km388vz4371
+    - kp222tm1554
+    - kt396gb0630
+    - mv327tb8364
+    - nk828sc2920
+    - pp371jh5722
+    - qw012qy2533
+    - rz763kn3821
+    - sd922db3535
+    - sf888mq5505
+    - sm043zf7254
+    - sr325xz9271
+    - td676xr4322
+    - vf806tr8954
+    - vg497cb6002
+    - vk217bh4910
+    - vn158kj2087
+    - wb363nt3637
+    - wm135gp2721
+    - wn364wz7925
+    - wq693ff9381
+    - zg292rq7608
+    - zs631wn7371

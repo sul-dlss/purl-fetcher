@@ -11,4 +11,29 @@ RSpec.describe VersionMigrationItem do
       expect(described_class.last.status).to eq 'not_analyzed'
     end
   end
+
+  describe '.analyze_purls' do
+    let(:legacy_druid) { 'druid:bc123df4567' }
+    let(:versioned_druid) { 'druid:dk120qp2074' }
+    let(:not_found_druid) { 'druid:zz699qf3055' }
+
+    before do
+      FileUtils.mkdir_p DruidTools::PurlDruid.new(legacy_druid, Settings.filesystems.stacks_root).pathname.to_s
+
+      path = VersionedFilesService::Paths.new(druid: versioned_druid)
+      FileUtils.mkdir_p path.versions_path
+      FileUtils.touch path.versions_manifest_path
+
+      described_class.create(druid: legacy_druid, status: 'not_analyzed')
+      described_class.create(druid: versioned_druid, status: 'not_analyzed')
+      described_class.create(druid: not_found_druid, status: 'not_analyzed')
+      described_class.analyze_purls
+    end
+
+    it 'analyzes every record' do
+      expect(described_class.find_by(druid: legacy_druid).status).to eq 'found_legacy'
+      expect(described_class.find_by(druid: versioned_druid).status).to eq 'found_version'
+      expect(described_class.find_by(druid: not_found_druid).status).to eq 'error'
+    end
+  end
 end

@@ -34,7 +34,11 @@ class VersionedFilesService
     # For example: [#<struct Struct::FileDetails md5="5b79c8570b7ef582735f912aa24ce5f2", filename="2542A.tiff", filesize=456>,
     #               #<struct Struct::FileDetails md5="cd5ca5c4666cfd5ce0e9dc8c83461d7a", filename="2542A.jp2", filesize=123>]
     def file_details_by_md5
-      versions.flat_map { |version| Cocina.for(druid:, version:).file_details_by_md5 }.uniq
+      versions.flat_map { |version| file_details_by_md5_for_version(druid, version) }.uniq
+    end
+
+    def file_details_by_md5_for_version(druid, version)
+      Cocina.for(druid:, version:).file_details_by_md5
     end
 
     private

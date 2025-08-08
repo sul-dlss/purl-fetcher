@@ -8,7 +8,9 @@ class VersionedFilesService
 
     def link_all_druids
       @druid_list.each do |druid|
-        link_druid(druid)
+        # rubocop:disable Rails/Output
+        puts(Benchmark.measure { link_druid(druid) })
+        # rubocop:enable Rails/Output
       end
     end
 

@@ -12,9 +12,19 @@ class VersionedFilesService
       end
     end
 
+    # This method can take up to 1 minute to run for druids with many files.
+    # For example bf070wx6289 has 36,789 files and took 58 seconds to run linking.
     def link_druid(druid)
       object = VersionedFilesService::Object.new(druid)
       link_globus_files(object)
+    end
+
+    def globus_path_for(druid)
+      DruidTools::PurlDruid.new(druid, @globus_root).pathname
+    end
+
+    def globus_druid?(druid)
+      @druid_list.include?(druid)
     end
 
     private
@@ -32,10 +42,6 @@ class VersionedFilesService
         globus_file_path = globus_path / file.filename
         LinkSupport.link(source_file_path, globus_file_path)
       end
-    end
-
-    def globus_path_for(druid)
-      DruidTools::PurlDruid.new(druid, @globus_root).pathname
     end
   end
 end

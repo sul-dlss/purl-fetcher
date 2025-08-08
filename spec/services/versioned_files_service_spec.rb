@@ -4,17 +4,19 @@ require 'rails_helper'
 
 RSpec.describe VersionedFilesService do
   let(:service) { described_class.new(druid:) }
-  let(:druid) { 'druid:bc123df4567' }
+  # Use a globus druid for testing
+  let(:druid) { 'druid:bf070wx6289' }
 
   let(:purl_pathname) { 'tmp/purl_root' }
   let(:stacks_pathname) { 'tmp/stacks' }
+  let(:globus_pathname) { 'tmp/stacks/globus' }
 
-  let(:content_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/content" }
-  let(:versions_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions" }
-  let(:stacks_object_path) { "#{stacks_pathname}/bc/123/df/4567" }
+  let(:content_path) { "#{stacks_pathname}/bf/070/wx/6289/bf070wx6289/content" }
+  let(:versions_path) { "#{stacks_pathname}/bf/070/wx/6289/bf070wx6289/versions" }
+  let(:stacks_object_path) { "#{stacks_pathname}/bf/070/wx/6289" }
 
   before do
-    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, purl_root: purl_pathname)
+    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, purl_root: purl_pathname, globus_root: globus_pathname)
     FileUtils.rm_rf(stacks_pathname)
     FileUtils.rm_rf(purl_pathname)
   end
@@ -55,6 +57,7 @@ RSpec.describe VersionedFilesService do
                     type: Cocina::Models::ObjectType.file,
                     label: 'the regular file',
                     filename: 'file2.txt',
+                    size: 9,
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
@@ -69,6 +72,7 @@ RSpec.describe VersionedFilesService do
                     type: Cocina::Models::ObjectType.file,
                     label: 'the hierarchical file',
                     filename: 'files/file2.txt',
+                    size: 9,
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
@@ -115,6 +119,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'not shelved file',
                       filename: 'not_shelved.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '4f25960a79dbc69b674cd4ec67a72c73' }
@@ -129,6 +134,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the regular file',
                       filename: 'file2.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
@@ -143,6 +149,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the hierarchical file',
                       filename: 'files/file2.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
@@ -160,6 +167,8 @@ RSpec.describe VersionedFilesService do
         end
 
         let(:file_transfers) { { 'file2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a', 'files/file2.txt' => '7f807e3c-4cde-4b6d-8e76-f24455316a01' } }
+
+        let(:globus_object_path) { "#{globus_pathname}/bf/070/wx/6289" }
 
         before do
           write_file_transfers(file_transfers:, access_transfer_stage:)
@@ -192,6 +201,10 @@ RSpec.describe VersionedFilesService do
           # Symlinks to stacks filesystem
           expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")
           expect("#{stacks_object_path}/files/file2.txt").to link_to("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")
+
+          # Hardlinks to globus filesystem
+          expect(File).to exist("#{globus_object_path}/file2.txt")
+          expect(File).to exist("#{globus_object_path}/files/file2.txt")
         end
       end
 
@@ -212,6 +225,7 @@ RSpec.describe VersionedFilesService do
                     type: Cocina::Models::ObjectType.file,
                     label: 'the to be removed file',
                     filename: 'file1.txt',
+                    size: 9,
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '327d41a48b459a2807d750324bd864ce' }
@@ -226,6 +240,7 @@ RSpec.describe VersionedFilesService do
                     type: Cocina::Models::ObjectType.file,
                     label: 'the regular file',
                     filename: 'file2.txt',
+                    size: 9,
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
@@ -240,6 +255,7 @@ RSpec.describe VersionedFilesService do
                     type: Cocina::Models::ObjectType.file,
                     label: 'the hierarchical file',
                     filename: 'files/file2.txt',
+                    size: 9,
                     version: 1,
                     hasMessageDigests: [
                       { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
@@ -276,6 +292,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the regular file',
                       filename: 'file2.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '4f35960a79dbc69b674cd4ec67a72d73' }
@@ -290,6 +307,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the hierarchical file',
                       filename: 'files/file2.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '5997de4d5abb55f21f652aa61b8f3aaf' }
@@ -304,6 +322,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the new file',
                       filename: 'file3.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '6007de4d5abb55f21f652aa61b8f3bbg' }
@@ -386,6 +405,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the to be removed file',
                       filename: 'file1.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '327d41a48b459a2807d750324bd864ce' }
@@ -400,6 +420,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the regular file',
                       filename: 'file2.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }
@@ -436,6 +457,7 @@ RSpec.describe VersionedFilesService do
                       type: Cocina::Models::ObjectType.file,
                       label: 'the regular file',
                       filename: 'file2.txt',
+                      size: 9,
                       version: 1,
                       hasMessageDigests: [
                         { type: 'md5', digest: '3e25960a79dbc69b674cd4ec67a72c62' }

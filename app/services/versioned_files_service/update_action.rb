@@ -36,6 +36,8 @@ class VersionedFilesService
       PurgeContentAction.new(object: @object).call
 
       ClearImageserverCache.call(druid: cocina.externalIdentifier, cocina_type: cocina.type, file_names: file_transfers.keys)
+
+      update_globus_links
     end
 
     private
@@ -46,6 +48,22 @@ class VersionedFilesService
              :write_cocina, :write_public_xml, :version_manifest,
              :head_version,
              to: :@object
+
+    def update_globus_links
+      return unless Settings.filesystems.globus_root
+
+      druid_id = DruidTools::Druid.new(@object.druid).id
+      globus_service = VersionedFilesService::Globus.new
+
+      return unless globus_service.globus_druid?(druid_id)
+
+      # Remove existing Globus hardlinks or files for the druid
+      # E.g. delete /stacks/globus/bf/070/wx/6289/
+      FileUtils.rm_rf(globus_service.globus_path_for(druid_id))
+
+      # Create new Globus links for the druid
+      globus_service.link_druid(druid_id)
+    end
 
     def check_content_files!
       shelve_file_map.each do |filename, md5|

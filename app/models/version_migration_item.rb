@@ -1,6 +1,6 @@
 class VersionMigrationItem < ApplicationRecord
   validates :status, inclusion: { in: ['not_analyzed', 'error', 'found_legacy', 'found_legacy_collection',
-                                       'found_legacy_metadata_only', 'found_version', 'migrated'] }
+                                       'found_legacy_metadata_only', 'found_version', 'migrated', 'cleaned'] }
 
   def self.create_all
     Purl.where(deleted_at: nil).find_each do |purl|

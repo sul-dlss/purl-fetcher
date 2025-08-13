@@ -57,11 +57,17 @@ module Publish
     def add_doi
       return unless cocina_object.dro? && cocina_object.identification.doi
 
-      identifier = doc.create_element('identifier', xmlns: MODS_NS)
-      identifier.content = "https://doi.org/#{cocina_object.identification.doi}"
-      identifier['type'] = 'doi'
-      identifier['displayLabel'] = 'DOI'
-      doc.root << identifier
+      doi_node = doc.xpath('/xmlns:mods/xmlns:identifier[@type="doi"]').first
+      if doi_node
+        doi_node['displayLabel'] = 'DOI'
+        doi_node.content = "https://doi.org/#{doi_node.content}" unless doi_node.content.starts_with?('https')
+      else
+        identifier = doc.create_element('identifier', xmlns: MODS_NS)
+        identifier.content = "https://doi.org/#{cocina_object.identification.doi}"
+        identifier['type'] = 'doi'
+        identifier['displayLabel'] = 'DOI'
+        doc.root << identifier
+      end
     end
 
     # expand constituent relations into relatedItem references -- see JUMBO-18

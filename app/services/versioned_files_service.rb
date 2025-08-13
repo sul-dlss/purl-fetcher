@@ -30,7 +30,6 @@ class VersionedFilesService
   def update(version:, version_metadata:, cocina:, file_transfers: {})
     VersionedFilesService::Lock.with_lock(@object) do
       UpdateAction.new(version:, version_metadata:, cocina:, file_transfers:, object: @object).call
-      StacksLinkAction.new(version:, object: @object).call
     end
   end
 

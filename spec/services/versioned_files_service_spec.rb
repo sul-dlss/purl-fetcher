@@ -198,13 +198,9 @@ RSpec.describe VersionedFilesService do
             head: 1
           )
 
-          # Symlinks to stacks filesystem
-          expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")
-          expect("#{stacks_object_path}/files/file2.txt").to link_to("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")
-
           # Hardlinks to globus filesystem
-          expect(File).to exist("#{globus_object_path}/file2.txt")
-          expect(File).to exist("#{globus_object_path}/files/file2.txt")
+          expect("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62").to link_to "#{globus_object_path}/file2.txt"
+          expect("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf").to link_to "#{globus_object_path}/files/file2.txt"
         end
       end
 
@@ -379,12 +375,6 @@ RSpec.describe VersionedFilesService do
             },
             head: 2
           )
-
-          # Symlinks to stacks filesystem
-          expect(File.exist?("#{stacks_object_path}/file1.txt")).to be false
-          expect("#{stacks_object_path}/file2.txt").to link_to("#{content_path}/4f35960a79dbc69b674cd4ec67a72d73")
-          expect("#{stacks_object_path}/files/file2.txt").to link_to("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")
-          expect("#{stacks_object_path}/file3.txt").to link_to("#{content_path}/6007de4d5abb55f21f652aa61b8f3bbg")
         end
       end
 

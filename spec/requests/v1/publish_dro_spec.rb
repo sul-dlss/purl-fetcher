@@ -90,7 +90,6 @@ RSpec.describe 'Publish a DRO' do
     end
 
     context 'when the object does not already exist' do
-      # rubocop:disable RSpec/ExpectActual
       it 'creates the resource' do
         put "/v1/purls/#{druid}",
             params: request,
@@ -98,10 +97,9 @@ RSpec.describe 'Publish a DRO' do
         expect(response).to be_created
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
-        expect('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62').to link_to('tmp/stacks/bc/123/df/4567/file2.txt')
-        expect('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf').to link_to('tmp/stacks/bc/123/df/4567/files/file2.txt')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
+        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
       end
-      # rubocop:enable RSpec/ExpectActual
     end
 
     context 'when the object already exists' do

@@ -10,7 +10,7 @@ RSpec.describe Publish::PublicDescMetadataService do
   let(:cocina) do
     Cocina::Models.build({
                            type: "https://cocina.sul.stanford.edu/models/book",
-                           externalIdentifier: "druid:bc123df4567",
+                           externalIdentifier: druid,
                            label: "Test DRO",
                            version: 1,
                            access:,
@@ -20,6 +20,7 @@ RSpec.describe Publish::PublicDescMetadataService do
                            structural:
                          })
   end
+  let(:druid) { "druid:bc123df4567" }
 
   let(:access) { {} }
   let(:identification) { { sourceId: 'sul:123' } }
@@ -151,7 +152,25 @@ RSpec.describe Publish::PublicDescMetadataService do
       service.ng_xml
     end
 
-    it 'adds the doi in identityMetadata' do
+    let(:description) do
+      {
+        title: [{ value: 'Best Thesis Ever' }],
+        purl: 'https://purl.stanford.edu/ty606df5808',
+        identifier: [
+          {
+            value: '10.80343/ty606df5808',
+            type: 'DOI',
+            source: {
+              code: 'doi'
+            }
+          }
+        ]
+      }
+    end
+
+    let(:druid) { "druid:ty606df5808" }
+
+    it 'adds the doi to mods:identifier' do
       expect(public_mods.xpath('//xmlns:identifier[@type="doi"]').to_xml).to eq(
         '<identifier type="doi" displayLabel="DOI">https://doi.org/10.80343/ty606df5808</identifier>'
       )

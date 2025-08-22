@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_05_160756) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_22_200623) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -113,15 +113,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_05_160756) do
     t.index ["name", "purl_id"], name: "index_release_tags_on_name_and_purl_id", unique: true
     t.index ["purl_id"], name: "index_release_tags_on_purl_id"
     t.index ["release_type"], name: "index_release_tags_on_release_type"
-  end
-
-  create_table "version_migration_items", force: :cascade do |t|
-    t.string "druid", null: false
-    t.string "status", default: "not_analyzed", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["druid"], name: "index_version_migration_items_on_druid", unique: true
-    t.index ["status"], name: "index_version_migration_items_on_status"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

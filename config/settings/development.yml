@@ -3,4 +3,5 @@ hmac_secret: "my$ecretK3y"
 # Mounted filesystems
 filesystems:
   purl_root: "tmp/purl_doc_cache"
-  stacks_root: "tmp/stacks"
+  stacks_root: /Users/jcoyne85/workspace/sul-dlss/purl/spec/fixtures/document_cache
+  #"tmp/stacks"

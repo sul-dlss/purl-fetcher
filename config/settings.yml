@@ -30,7 +30,7 @@ image_server:
   password: admin
 
 globus:
-  druid_list: 
+  druid_list:
     - bn398fc4306
     - bf070wx6289
     - cj061qr5050

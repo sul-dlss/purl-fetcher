@@ -28,3 +28,7 @@ Config.load_and_set_settings(Config.setting_files('config', 'production'))
 every 1.days do
   runner "`find #{Settings.filesystems.transfer} -type f -mtime +7 -exec rm {} +`"
 end
+
+every :sunday, at: '12pm' do
+  rake "audit:files"
+end

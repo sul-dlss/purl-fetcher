@@ -33,12 +33,6 @@ class VersionedFilesService
     end
   end
 
-  # Migrate from unversioned to versioned layout.
-  # @param version_metadata [VersionedFilesService::VersionsManifest::VersionMetadata] the metadata for the version
-  def migrate(version_metadata:)
-    MigrateAction.new(version_metadata:, object: @object).call
-  end
-
   # Withdraw or restore a version.
   # @param version [String] the version number
   # @param withdrawn [Boolean] true to withdraw, false to restore

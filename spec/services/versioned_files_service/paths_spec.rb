@@ -6,12 +6,10 @@ RSpec.describe VersionedFilesService::Paths do
   let(:service) { described_class.new(druid:) }
   let(:druid) { 'druid:bc123df4567' }
 
-  let(:purl_pathname) { 'tmp/purl_root' }
   let(:stacks_pathname) { 'tmp/stacks' }
 
   before do
-    allow(Settings.filesystems).to receive_messages(purl_root: purl_pathname,
-                                                    stacks_root: stacks_pathname)
+    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname)
   end
 
   describe '#object_path' do

@@ -7,7 +7,6 @@ RSpec.describe VersionedFilesService do
   # Use a globus druid for testing
   let(:druid) { 'druid:bf070wx6289' }
 
-  let(:purl_pathname) { 'tmp/purl_root' }
   let(:stacks_pathname) { 'tmp/stacks' }
   let(:globus_pathname) { 'tmp/stacks/globus' }
 
@@ -16,14 +15,12 @@ RSpec.describe VersionedFilesService do
   let(:stacks_object_path) { "#{stacks_pathname}/bf/070/wx/6289" }
 
   before do
-    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, purl_root: purl_pathname, globus_root: globus_pathname)
+    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, globus_root: globus_pathname)
     FileUtils.rm_rf(stacks_pathname)
-    FileUtils.rm_rf(purl_pathname)
   end
 
   after do
     FileUtils.rm_rf(stacks_pathname)
-    FileUtils.rm_rf(purl_pathname)
   end
 
   describe '#update' do

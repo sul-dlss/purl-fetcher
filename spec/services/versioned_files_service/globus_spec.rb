@@ -9,7 +9,6 @@ RSpec.describe VersionedFilesService::Globus do
 
   let!(:purl_object) { create(:purl, druid: prefixed_druid) }
 
-  let(:purl_pathname) { 'tmp/purl_root' }
   let(:stacks_pathname) { 'tmp/stacks' }
   let(:globus_pathname) { 'tmp/stacks/globus' }
 
@@ -67,14 +66,12 @@ RSpec.describe VersionedFilesService::Globus do
 
   before do
     FileUtils.rm_rf(stacks_pathname)
-    FileUtils.rm_rf(purl_pathname)
     FileUtils.rm_rf(globus_pathname)
-    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, purl_root: purl_pathname, globus_root: globus_pathname)
+    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, globus_root: globus_pathname)
   end
 
   after do
     FileUtils.rm_rf(stacks_pathname)
-    FileUtils.rm_rf(purl_pathname)
     FileUtils.rm_rf(globus_pathname)
   end
 

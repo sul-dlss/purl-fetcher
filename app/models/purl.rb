@@ -143,11 +143,6 @@ class Purl < ApplicationRecord
     self.collections = consitituent_druids.map { |druid| Purl.find_or_create_by(druid:) }
   end
 
-  # return [String] the Purl path for the cocina object
-  def purl_druid_path
-    DruidTools::PurlDruid.new(druid, Settings.filesystems.purl_root).path
-  end
-
   ##
   # Specify an instance's `deleted_at` attribute which denotes when an object's
   # public xml is gone

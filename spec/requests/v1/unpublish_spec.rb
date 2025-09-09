@@ -5,17 +5,14 @@ RSpec.describe 'Unpublish a Purl' do
   let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
 
   let(:legacy_stacks_path) { "#{Settings.filesystems.stacks_root}/bb/050/dj/7711/" }
-  let(:legacy_purl_path) { "#{Settings.filesystems.purl_root}/bb/050/dj/7711/" }
 
   before do
     allow(Racecar).to receive(:produce_sync)
     FileUtils.mkdir_p legacy_stacks_path
-    FileUtils.mkdir_p legacy_purl_path
   end
 
   after do
     FileUtils.rm_rf legacy_stacks_path
-    FileUtils.rm_rf legacy_purl_path
   end
 
   context 'with valid authorization token' do
@@ -26,7 +23,6 @@ RSpec.describe 'Unpublish a Purl' do
         let(:stacks_path) { "#{Settings.filesystems.stacks_root}/bb/050/dj/7711/bb050dj7711" }
         let(:content_path) { "#{stacks_path}/content" }
         let(:file_content_path) { "#{content_path}/5b79c8570b7ef582735f912aa24ce5f2" }
-        let(:legacy_file_path) { "#{legacy_stacks_path}/file3.txt" }
         let(:versions_path) { "#{stacks_path}/versions" }
         let(:cocina_version_path) { "#{versions_path}/cocina.1.json" }
         let(:cocina_head_version_path) { "#{versions_path}/cocina.json" }
@@ -37,7 +33,6 @@ RSpec.describe 'Unpublish a Purl' do
         before do
           FileUtils.mkdir_p(content_path)
           File.write(file_content_path, 'hello world')
-          File.link(file_content_path, legacy_file_path)
 
           FileUtils.mkdir_p(versions_path)
           File.write(cocina_version_path, 'hello cocina')
@@ -61,33 +56,10 @@ RSpec.describe 'Unpublish a Purl' do
           expect(Racecar).to have_received(:produce_sync)
             .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
           expect(File).not_to exist(file_content_path)
-          expect(File).not_to exist(legacy_file_path)
           expect(File).not_to exist(cocina_version_path)
           expect(File).not_to exist(cocina_head_version_path)
           expect(File).not_to exist(xml_version_path)
           expect(File).not_to exist(xml_head_version_path)
-        end
-      end
-
-      context 'when legacy_purl is enabled' do
-        before do
-          allow(Settings.features).to receive(:legacy_purl).and_return(true)
-          File.write("#{legacy_purl_path}/cocina.json", 'hello cocina')
-          File.write("#{legacy_purl_path}/public", 'hello xml')
-        end
-
-        it 'marks the purl as deleted and removes files' do
-          expect(File).to exist("#{legacy_purl_path}/cocina.json")
-
-          delete("/purls/#{druid}", headers:)
-
-          expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
-          expect(Racecar).to have_received(:produce_sync)
-            .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
-          expect(File).not_to exist("#{legacy_purl_path}/cocina.json")
-          expect(File).not_to be_symlink("#{legacy_purl_path}/cocina.json")
-          expect(File).not_to exist("#{legacy_purl_path}/public")
-          expect(File).not_to be_symlink("#{legacy_purl_path}/public")
         end
       end
 

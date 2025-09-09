@@ -6,7 +6,6 @@ RSpec.describe VersionedFilesService::Object do
   let(:service) { described_class.new(druid) }
   let(:druid) { 'druid:bc123df4567' }
 
-  let(:purl_pathname) { 'tmp/purl_root' }
   let(:stacks_pathname) { 'tmp/stacks' }
 
   let(:content_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/content" }
@@ -16,14 +15,12 @@ RSpec.describe VersionedFilesService::Object do
   let(:public_xml) { 'public xml' }
 
   before do
-    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, purl_root: purl_pathname)
+    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname)
     FileUtils.rm_rf(stacks_pathname)
-    FileUtils.rm_rf(purl_pathname)
   end
 
   after do
     FileUtils.rm_rf(stacks_pathname)
-    FileUtils.rm_rf(purl_pathname)
   end
 
   describe '#head_version' do

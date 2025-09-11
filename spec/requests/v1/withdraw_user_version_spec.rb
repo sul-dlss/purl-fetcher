@@ -87,17 +87,6 @@ RSpec.describe 'Withdraw a user version' do
         expect(response).to have_http_status(:conflict)
       end
     end
-
-    context 'when not versioned layout' do
-      let(:druid) { 'druid:cc123df4567' }
-
-      it 'returns bad request' do
-        put "/v1/purls/#{druid}/versions/1/withdraw",
-            headers: { 'Authorization' => "Bearer #{jwt}" }
-
-        expect(response).to have_http_status(:bad_request)
-      end
-    end
   end
 
   describe 'PUT /v1/purls/:druid/versions/:version/restore' do

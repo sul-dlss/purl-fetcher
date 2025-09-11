@@ -24,19 +24,12 @@ class ReleaseService
   end
 
   def write_meta_json
-    if VersionedFilesService.versioned_files?(druid:)
-      VersionedFilesService::Paths.new(druid:).meta_json_path.write(meta_json)
-      write_purl_meta_json if Settings.features.legacy_purl
-    else
-      write_purl_meta_json
-    end
+    raise "No versioned files found for #{druid}" unless VersionedFilesService.versioned_files?(druid:)
+
+    VersionedFilesService::Paths.new(druid:).meta_json_path.write(meta_json)
   end
 
   private
-
-  def write_purl_meta_json
-    File.write(meta_json_path, meta_json)
-  end
 
   def meta_json
     {
@@ -45,9 +38,5 @@ class ReleaseService
       searchworks: purl.true_targets.include?('Searchworks'),
       earthworks: purl.true_targets.include?('Earthworks')
     }.to_json
-  end
-
-  def meta_json_path
-    File.join(purl.purl_druid_path, 'meta.json')
   end
 end

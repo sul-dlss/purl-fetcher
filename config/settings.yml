@@ -12,14 +12,10 @@ hmac_secret: ~
 
 # Mounted filesystems
 filesystems:
-  purl_root: "/purl/document_cache"
   stacks_root: "/stacks"
   transfer: /access-transfer-stage
   # must be under /stacks because of hardlinking
   globus_root: "/stacks/globus"
-
-features:
-  legacy_purl: true
 
 purl:
   hostname: purl.stanford.edu

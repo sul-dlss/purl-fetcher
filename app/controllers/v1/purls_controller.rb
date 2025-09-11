@@ -21,7 +21,7 @@ module V1
     def create
       PurlCocinaUpdater.new(@purl, @cocina_object, version:).update if version >= @purl.version
 
-      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:, must_version:)
+      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:)
 
       render json: true, location: @purl, status: :created
     end
@@ -32,7 +32,6 @@ module V1
 
       @purl.mark_deleted
 
-      UpdatePurlMetadataService.new(@purl).delete! if Settings.features.legacy_purl
       DarkenService.call(@purl.druid)
       Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
     end
@@ -84,18 +83,11 @@ module V1
       version&.to_i || 1
     end
 
-    def must_version
-      # This allows DSA to indicate that the object must be in the versioned layout.
-      # TODO: This is a temporary parameter until migration is complete.
-      # It is necessary so that DSA that a previously unversioned object now has versions.
-      resource_params[:must_version] || false
-    end
-
     # @return [Hash]
     #   * :file_uploads [Hash<String, String>] map of cocina filenames to staging filenames (UUIDs)
     #   * :version_date [String] the version date (in ISO8601 format)
     #   * :version [String] the version of the item
-    #   * :must_version [String] whether the item must be versioned
+    #   * :must_version [String] obsolete
     #   * :object [Hash] the Cocina data object
     def resource_params
       params.permit(:version_date, :version, :must_version, file_uploads: {}, object: {})

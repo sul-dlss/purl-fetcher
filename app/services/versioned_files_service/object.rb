@@ -7,8 +7,8 @@ class VersionedFilesService
       @druid = druid
     end
 
-    delegate :object_path, :content_path, :versions_path, :head_cocina_path,
-             :cocina_path_for, :head_public_xml_path, :public_xml_path_for,
+    delegate :object_path, :content_path, :versions_path,
+             :cocina_path_for, :public_xml_path_for,
              :versions_manifest_path, :content_path_for, :meta_json_path,
              :lockfile_path, to: :paths
 

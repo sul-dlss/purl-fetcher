@@ -22,8 +22,10 @@ RSpec.describe CocinaObjectStore do
       before do
         # Create the file
         stacks_versions_path = Pathname.new("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
+        manifest = { head: 3 }
         FileUtils.mkdir_p(stacks_versions_path.to_s)
-        File.write("#{stacks_versions_path}/cocina.json", cocina_json)
+        File.write("#{stacks_versions_path}/versions.json", manifest.to_json)
+        File.write("#{stacks_versions_path}/cocina.3.json", cocina_json)
       end
 
       it 'returns a Cocina::Models::DROWithMetadata object' do

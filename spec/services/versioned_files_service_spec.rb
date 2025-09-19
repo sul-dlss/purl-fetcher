@@ -185,9 +185,7 @@ RSpec.describe VersionedFilesService do
 
           # Writes metadata
           expect(File.read("#{versions_path}/cocina.1.json")).to eq dro.to_json
-          expect("#{versions_path}/cocina.json").to link_to("#{versions_path}/cocina.1.json")
           expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
-          expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
@@ -360,9 +358,7 @@ RSpec.describe VersionedFilesService do
           # Writes metadata
           expect(File.exist?("#{versions_path}/cocina.1.json")).to be true
           expect(File.read("#{versions_path}/cocina.2.json")).to eq dro.to_json
-          expect("#{versions_path}/cocina.json").to link_to("#{versions_path}/cocina.2.json")
           expect(File.exist?("#{versions_path}/public.1.xml")).to be true
-          expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.2.xml")
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
@@ -500,9 +496,7 @@ RSpec.describe VersionedFilesService do
 
           # Writes metadata
           expect(File.read("#{versions_path}/cocina.1.json")).to eq collection.to_json
-          expect("#{versions_path}/cocina.json").to link_to("#{versions_path}/cocina.1.json")
           expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
-          expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(

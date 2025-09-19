@@ -37,10 +37,22 @@ RSpec.describe VersionedFilesService::Paths do
   end
 
   describe '#head_cocina_path' do
+    let(:version_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions" }
     let(:path) { service.head_cocina_path.to_s }
 
+    before do
+      # create version manifest to find head version
+      FileUtils.mkdir_p(version_path)
+      manifest = { head: 3 }
+      File.write("#{version_path}/versions.json", manifest.to_json)
+    end
+
+    after do
+      FileUtils.rm_rf(version_path)
+    end
+
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/cocina.json")
+      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/cocina.3.json")
     end
   end
 
@@ -49,14 +61,6 @@ RSpec.describe VersionedFilesService::Paths do
 
     it 'returns the expected path' do
       expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/cocina.2.json")
-    end
-  end
-
-  describe '#head_public_xml_path' do
-    let(:path) { service.head_public_xml_path.to_s }
-
-    it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/public.xml")
     end
   end
 

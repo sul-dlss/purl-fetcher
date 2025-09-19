@@ -92,7 +92,6 @@ RSpec.describe 'Publish a DRO' do
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
       end
@@ -110,7 +109,6 @@ RSpec.describe 'Publish a DRO' do
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
       end
@@ -177,7 +175,6 @@ RSpec.describe 'Publish a DRO' do
                 headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
             expect(response).to be_created
             expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
             expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
             expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
             expect(ClearImageserverCache).to have_received(:post_to_server)
@@ -202,7 +199,6 @@ RSpec.describe 'Publish a DRO' do
                 headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
             expect(response).to be_created
             expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
             expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
             expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
             expect(ClearImageserverCache).to have_received(:post_to_server)
@@ -258,7 +254,6 @@ RSpec.describe 'Publish a DRO' do
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
         expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.json')
       end
     end
 

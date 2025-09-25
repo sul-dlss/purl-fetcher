@@ -25,11 +25,9 @@ class VersionedFilesService
       # For each provided content file, get the md5 from the cocina object. If the content file does not already exist for that md5, then write a new content file named by the md5.
       move_content_files
       # Write the cocina to cocina path for the version (overwriting if already exists).
-      # Create a new head cocina symlink if the version is the head version.
-      write_cocina(version:, cocina:, head_version: new_head?)
+      write_cocina(version:, cocina:)
       # Write the public xml to public xml path for the version (overwriting if already exists).
-      # Create a new head public xml symlink if the version is the head version.
-      write_public_xml(version:, public_xml:, head_version: new_head?)
+      write_public_xml(version:, public_xml:)
       # Update the version manifest.
       version_manifest.update_version(version:, version_metadata:)
       # Delete the content files that aren't referenced by any cocina version files.
@@ -110,10 +108,6 @@ class VersionedFilesService
 
         raise VersionedFilesService::Error, "File #{filename} is invalid." if shelved_path.to_s.starts_with?('../')
       end
-    end
-
-    def new_head?
-      head_version.nil? || version > head_version
     end
 
     # @return [Pathname] the path to the transfer file with the given transfer UUID

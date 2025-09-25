@@ -24,22 +24,15 @@ class VersionedFilesService
       @versions_path ||= object_path.join('versions')
     end
 
-    # @return [Pathname] the path to head cocina.json. This may be a symlink.
-    # Note that this is the logical path; the path may not exist.
+    # @return [Pathname] the path to head version cocina.json.
     def head_cocina_path
-      @head_cocina_path ||= versions_path.join('cocina.json')
+      @head_cocina_path ||= cocina_path_for(version: head_version)
     end
 
     # @return [Pathname] the path to cocina.json for the given version.
     # Note that this is the logical path; the path may not exist.
     def cocina_path_for(version:)
       versions_path.join("cocina.#{version}.json")
-    end
-
-    # @return [Pathname] the path to head public xml file. This may be a symlink.
-    # Note that this is the logical path; the path may not exist.
-    def head_public_xml_path
-      @head_public_xml_path ||= versions_path.join('public.xml')
     end
 
     # @return [Pathname] the path to public xml file for the given version.
@@ -58,6 +51,12 @@ class VersionedFilesService
     # Note that this is the logical path; the path may not exist.
     def meta_json_path
       @meta_json_path ||= versions_path.join('meta.json')
+    end
+
+    # @return [String] head version
+    def head_version
+      version_json = JSON.parse(File.read(versions_manifest_path))
+      version_json['head']
     end
 
     # @return [Pathname] the path to the content file with the given md5

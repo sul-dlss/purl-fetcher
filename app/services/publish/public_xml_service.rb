@@ -23,7 +23,6 @@ module Publish
       pub.add_child(public_rights_metadata)
       pub.add_child(public_relationships.root)
 
-      pub.add_child(DublinCoreService.new(public_cocina, constituents).ng_xml.root)
       pub.add_child(PublicDescMetadataService.new(public_cocina, constituents).ng_xml.root)
       # Note we cannot base this on if an individual object has release tags or not, because the collection may cause one to be generated for an item,
       # so we need to calculate it and then look at the final result.

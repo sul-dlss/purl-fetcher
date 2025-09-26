@@ -217,10 +217,6 @@ RSpec.describe Publish::PublicXmlService do
         expect(ng_xml.at_xpath('/publicObject/mods:mods', 'mods' => 'http://www.loc.gov/mods/v3')).to be
       end
 
-      it 'generated dublin core' do
-        expect(ng_xml.at_xpath('/publicObject/oai_dc:dc', 'oai_dc' => 'http://www.openarchives.org/OAI/2.0/oai_dc/')).to be
-      end
-
       context 'when a member of a collection' do
         let(:structural) do
           {
@@ -293,7 +289,6 @@ RSpec.describe Publish::PublicXmlService do
         expect(ng_xml.at_xpath('/publicObject/rightsMetadata')).to be
         expect(ng_xml.at_xpath('/publicObject/mods:mods', 'mods' => 'http://www.loc.gov/mods/v3')).to be
         expect(ng_xml.at_xpath('/publicObject/rdf:RDF', 'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')).to be
-        expect(ng_xml.at_xpath('/publicObject/oai_dc:dc', 'oai_dc' => 'http://www.openarchives.org/OAI/2.0/oai_dc/')).to be
       end
 
       it 'has identityMetadata without a sourceId' do

@@ -6,7 +6,7 @@ module V1
     before_action :load_cocina_object, only: %i[create]
     before_action :find_purl, except: %i[show]
 
-    rescue_from UpdateStacksFilesService::RequestError, VersionedFilesService::BadFileTransferError do |e|
+    rescue_from VersionedFilesService::BadFileTransferError do |e|
       render build_error('400', e, 'Bad request')
     end
 

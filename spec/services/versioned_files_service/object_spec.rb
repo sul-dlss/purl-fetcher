@@ -271,8 +271,8 @@ RSpec.describe VersionedFilesService::Object do
       end
 
       before do
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1)
-        write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: version_2_dro, version: 2)
+        write_version(content_path:, versions_path:, cocina_object: initial_dro, version: 1)
+        write_version(content_path:, versions_path:, cocina_object: version_2_dro, version: 2)
         File.write("#{versions_path}/versions.json", {
           versions: {
             1 => { state: 'available', date: DateTime.now.iso8601 },

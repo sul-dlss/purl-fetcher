@@ -87,7 +87,7 @@ RSpec.describe VersionedFilesService::Globus do
       cocina_json = create(:public_json, purl: purl_object).data
       File.write("#{versions_path}/cocina.json", cocina_json)
 
-      write_version(content_path: object.content_path, versions_path:, stacks_object_path: object.stacks_object_path, cocina_object: cocina_object)
+      write_version(content_path: object.content_path, versions_path: versions_path, cocina_object: cocina_object)
     end
 
     it 'creates hardlinks in the globus directory' do

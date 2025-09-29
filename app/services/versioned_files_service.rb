@@ -6,18 +6,8 @@ class VersionedFilesService
   class BadFileTransferError < Error; end
   class BadRequestError < Error; end
 
-  # Return true if the object is in the versioned_files layout.
-  def self.versioned_files?(druid:)
-    new(druid:).versioned_files?
-  end
-
   def initialize(druid:)
     @object = VersionedFilesService::Object.new(druid)
-  end
-
-  # Return true if the object is in the versioned_files layout.
-  def versioned_files?
-    object_path.exist?
   end
 
   delegate :head_version, :object_path, to: :@object

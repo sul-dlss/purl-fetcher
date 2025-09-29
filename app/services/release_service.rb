@@ -24,8 +24,6 @@ class ReleaseService
   end
 
   def write_meta_json
-    raise "No versioned files found for #{druid}" unless VersionedFilesService.versioned_files?(druid:)
-
     VersionedFilesService::Paths.new(druid:).meta_json_path.write(meta_json)
   end
 

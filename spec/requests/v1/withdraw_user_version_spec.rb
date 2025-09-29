@@ -4,8 +4,7 @@ RSpec.describe 'Withdraw a user version' do
   let!(:purl_object) { create(:purl, druid:) } # rubocop:disable RSpec/LetSetup
   let(:druid) { 'druid:bc123df4567' }
 
-  let(:stacks_object_path) { 'tmp/stacks/bc/123/df/4567/bc123df4567' }
-  let(:versions_path) { "#{stacks_object_path}/versions" }
+  let(:versions_path) { "tmp/stacks/bc/123/df/4567/bc123df4567/versions" }
 
   let(:object) do
     VersionedFilesService::Object.new(druid)
@@ -27,7 +26,7 @@ RSpec.describe 'Withdraw a user version' do
   end
 
   after do
-    FileUtils.rm_rf(stacks_object_path)
+    FileUtils.rm_rf('tmp/stacks')
   end
 
   describe 'PUT /v1/purls/:druid/versions/:version/withdraw' do

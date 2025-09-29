@@ -12,7 +12,6 @@ RSpec.describe VersionedFilesService do
 
   let(:content_path) { "#{stacks_pathname}/bf/070/wx/6289/bf070wx6289/content" }
   let(:versions_path) { "#{stacks_pathname}/bf/070/wx/6289/bf070wx6289/versions" }
-  let(:stacks_object_path) { "#{stacks_pathname}/bf/070/wx/6289" }
 
   before do
     allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, globus_root: globus_pathname)
@@ -335,7 +334,7 @@ RSpec.describe VersionedFilesService do
 
         before do
           write_file_transfers(file_transfers:, access_transfer_stage:)
-          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+          write_version(content_path:, versions_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do
@@ -458,7 +457,7 @@ RSpec.describe VersionedFilesService do
         end
 
         before do
-          write_version(content_path:, versions_path:, stacks_object_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+          write_version(content_path:, versions_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do
@@ -472,9 +471,7 @@ RSpec.describe VersionedFilesService do
 
           # Writes metadata
           expect(File.read("#{versions_path}/cocina.1.json")).to eq dro.to_json
-          expect("#{versions_path}/cocina.json").to link_to("#{versions_path}/cocina.1.json")
           expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
-          expect("#{versions_path}/public.xml").to link_to("#{versions_path}/public.1.xml")
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(

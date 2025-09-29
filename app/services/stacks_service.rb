@@ -1,5 +1,5 @@
-# Facade around updating PURL and Stacks files.
-class PurlAndStacksService
+# Facade around updating Stacks files.
+class StacksService
   def self.update(purl:, cocina_object:, file_uploads:, version:, version_date:)
     new(purl:).update(cocina_object:, file_uploads:, version:, version_date:)
   end

@@ -12,7 +12,7 @@ module V1
     def withdraw
       return render json: { error: "already deleted" }, status: :conflict if @purl.deleted?
 
-      PurlAndStacksService.withdraw(purl: @purl, version: params[:version], withdrawn: params[:withdrawn])
+      StacksService.withdraw(purl: @purl, version: params[:version], withdrawn: params[:withdrawn])
     end
 
     private

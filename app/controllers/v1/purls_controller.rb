@@ -21,7 +21,7 @@ module V1
     def create
       PurlCocinaUpdater.new(@purl, @cocina_object, version:).update if version >= @purl.version
 
-      PurlAndStacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:)
+      StacksService.update(purl: @purl, cocina_object: @cocina_object, file_uploads:, version:, version_date:)
 
       render json: true, location: @purl, status: :created
     end

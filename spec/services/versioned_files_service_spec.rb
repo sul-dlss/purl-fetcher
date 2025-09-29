@@ -25,6 +25,7 @@ RSpec.describe VersionedFilesService do
   describe '#update' do
     let(:access_transfer_stage) { 'tmp/access-transfer-stage' }
     let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, state: 'available', date: DateTime.now) }
+    let(:compact_cocina) { VersionedFilesService::Metadata.deep_compact_blank(cocina.to_h).to_json }
 
     before do
       FileUtils.mkdir_p(access_transfer_stage)
@@ -36,7 +37,7 @@ RSpec.describe VersionedFilesService do
     end
 
     context 'when missing files' do
-      let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
+      let(:cocina) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
       let(:structural) do
         Cocina::Models::DROStructural.new(
@@ -93,12 +94,12 @@ RSpec.describe VersionedFilesService do
 
       it 'raises an error' do
         expect do
-          service.update(version: 1, version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 1, version_metadata:, cocina:, file_transfers:)
         end.to raise_error(VersionedFilesService::BadFileTransferError, 'Transfer file for files/file2.txt not found')
       end
 
       context 'when writing first version' do
-        let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
+        let(:cocina) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
         let(:structural) do
           Cocina::Models::DROStructural.new(
@@ -171,7 +172,7 @@ RSpec.describe VersionedFilesService do
         end
 
         it 'writes content files and metadata' do
-          service.update(version: 1, version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 1, version_metadata:, cocina:, file_transfers:)
 
           # Writes content files
           expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
@@ -183,7 +184,7 @@ RSpec.describe VersionedFilesService do
           end
 
           # Writes metadata
-          expect(File.read("#{versions_path}/cocina.1.json")).to eq dro.to_json
+          expect(File.read("#{versions_path}/cocina.1.json")).to eq compact_cocina
           expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
@@ -264,7 +265,7 @@ RSpec.describe VersionedFilesService do
 
         let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
-        let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
+        let(:cocina) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
         # One new file (file3.txt), one changed file (file2.txt), one unchanged file (files/file2.txt), one deleted file (file1.txt).
         let(:structural) do
@@ -338,7 +339,7 @@ RSpec.describe VersionedFilesService do
         end
 
         it 'writes content files and metadata' do
-          service.update(version: 2, version_metadata:, cocina: dro, file_transfers:)
+          service.update(version: 2, version_metadata:, cocina:, file_transfers:)
 
           # Writes new content files
           expect(File.read("#{content_path}/6007de4d5abb55f21f652aa61b8f3bbg")).to eq 'file3.txt'
@@ -356,7 +357,7 @@ RSpec.describe VersionedFilesService do
 
           # Writes metadata
           expect(File.exist?("#{versions_path}/cocina.1.json")).to be true
-          expect(File.read("#{versions_path}/cocina.2.json")).to eq dro.to_json
+          expect(File.read("#{versions_path}/cocina.2.json")).to eq compact_cocina
           expect(File.exist?("#{versions_path}/public.1.xml")).to be true
 
           # Writes version manifest
@@ -421,7 +422,7 @@ RSpec.describe VersionedFilesService do
 
         let(:initial_version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(1, false, DateTime.now) }
 
-        let(:dro) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
+        let(:cocina) { build(:dro_with_metadata, id: druid).new(structural:, access: { view: 'world', download: 'world' }) }
 
         # One one unchanged file (file2.txt), one deleted file (file1.txt).
         let(:structural) do
@@ -461,7 +462,7 @@ RSpec.describe VersionedFilesService do
         end
 
         it 'writes content files and metadata' do
-          service.update(version: 1, version_metadata:, cocina: dro, file_transfers: {})
+          service.update(version: 1, version_metadata:, cocina:, file_transfers: {})
 
           # Retains unchanged content files
           expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
@@ -470,7 +471,7 @@ RSpec.describe VersionedFilesService do
           expect(File.exist?("#{content_path}/327d41a48b459a2807d750324bd864ce")).to be false
 
           # Writes metadata
-          expect(File.read("#{versions_path}/cocina.1.json")).to eq dro.to_json
+          expect(File.read("#{versions_path}/cocina.1.json")).to eq compact_cocina
           expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
@@ -484,15 +485,15 @@ RSpec.describe VersionedFilesService do
       end
 
       context 'when a collection' do
-        let(:collection) { build(:collection_with_metadata, id: druid).new(access: { view: 'world' }) }
+        let(:cocina) { build(:collection_with_metadata, id: druid).new(access: { view: 'world' }) }
 
         it 'writes content files and metadata' do
-          service.update(version: 1, version_metadata:, cocina: collection, file_transfers: {})
+          service.update(version: 1, version_metadata:, cocina: cocina, file_transfers: {})
 
           expect(File.exist?(content_path)).to be false
 
           # Writes metadata
-          expect(File.read("#{versions_path}/cocina.1.json")).to eq collection.to_json
+          expect(File.read("#{versions_path}/cocina.1.json")).to eq compact_cocina
           expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest

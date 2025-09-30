@@ -4,15 +4,8 @@ RSpec.describe 'Unpublish a Purl' do
   let(:druid) { 'druid:bb050dj7711' }
   let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } }
 
-  let(:legacy_stacks_path) { "#{Settings.filesystems.stacks_root}/bb/050/dj/7711/" }
-
   before do
     allow(Racecar).to receive(:produce_sync)
-    FileUtils.mkdir_p legacy_stacks_path
-  end
-
-  after do
-    FileUtils.rm_rf legacy_stacks_path
   end
 
   context 'with valid authorization token' do
@@ -25,9 +18,7 @@ RSpec.describe 'Unpublish a Purl' do
         let(:file_content_path) { "#{content_path}/5b79c8570b7ef582735f912aa24ce5f2" }
         let(:versions_path) { "#{stacks_path}/versions" }
         let(:cocina_version_path) { "#{versions_path}/cocina.1.json" }
-        let(:cocina_head_version_path) { "#{versions_path}/cocina.json" }
         let(:xml_version_path) { "#{versions_path}/public.1.xml" }
-        let(:xml_head_version_path) { "#{versions_path}/public.xml" }
         let(:versions_json_path) { "#{versions_path}/versions.json" }
 
         before do
@@ -36,15 +27,12 @@ RSpec.describe 'Unpublish a Purl' do
 
           FileUtils.mkdir_p(versions_path)
           File.write(cocina_version_path, 'hello cocina')
-          File.link(cocina_version_path, cocina_head_version_path)
           File.write(xml_version_path, 'hello public xml')
-          File.link(xml_version_path, xml_head_version_path)
           File.write(versions_json_path, { versions: { '1': { date: '2024' } }, head: "1" }.to_json)
         end
 
         after do
           FileUtils.rm_rf stacks_path
-          FileUtils.rm_rf legacy_stacks_path
         end
 
         it 'marks the purl as deleted and removes files' do
@@ -57,9 +45,7 @@ RSpec.describe 'Unpublish a Purl' do
             .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
           expect(File).not_to exist(file_content_path)
           expect(File).not_to exist(cocina_version_path)
-          expect(File).not_to exist(cocina_head_version_path)
           expect(File).not_to exist(xml_version_path)
-          expect(File).not_to exist(xml_head_version_path)
         end
       end
 

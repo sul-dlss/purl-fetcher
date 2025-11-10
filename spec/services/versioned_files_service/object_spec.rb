@@ -10,7 +10,6 @@ RSpec.describe VersionedFilesService::Object do
 
   let(:content_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/content" }
   let(:versions_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions" }
-  let(:stacks_object_path) { "#{stacks_pathname}/bc/123/df/4567" }
 
   let(:public_xml) { 'public xml' }
 
@@ -161,14 +160,6 @@ RSpec.describe VersionedFilesService::Object do
       it 'returns empty array' do
         expect(service.content_md5s).to eq []
       end
-    end
-  end
-
-  describe '#stacks_object_path' do
-    let(:path) { service.stacks_object_path.to_s }
-
-    it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567")
     end
   end
 

@@ -19,12 +19,6 @@ class VersionedFilesService
 
     delegate :write_cocina, :write_public_xml, to: :metadata
 
-    # @return [Pathname] the path to the Stacks object directory
-    # Note that this is the logical path; the path may not exist.
-    def stacks_object_path
-      DruidTools::PurlDruid.new(druid, Settings.filesystems.stacks_root).pathname
-    end
-
     # @return [VersionedfilesService::VersionsManifest] the versions manifest
     def version_manifest
       @version_manifest ||= VersionsManifest.new(path: paths.versions_manifest_path)

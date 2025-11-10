@@ -21,7 +21,7 @@ class VersionedFilesService
 
     # @return [VersionedfilesService::VersionsManifest] the versions manifest
     def version_manifest
-      @version_manifest ||= VersionsManifest.new(path: paths.versions_manifest_path)
+      @version_manifest ||= VersionsManifest.new(versions_manifest_path: paths.versions_manifest_path)
     end
 
     # @return [Array<VersionedFilesService::Cocina::FileDetails>] array of hashes with md5 as key and filename as value for shelved files for all versions.

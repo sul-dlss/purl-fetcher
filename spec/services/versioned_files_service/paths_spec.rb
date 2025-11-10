@@ -5,18 +5,14 @@ require 'rails_helper'
 RSpec.describe VersionedFilesService::Paths do
   let(:service) { described_class.new(druid:) }
   let(:druid) { 'druid:bc123df4567' }
-
-  let(:stacks_pathname) { 'tmp/stacks' }
-
-  before do
-    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname)
-  end
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
 
   describe '#object_path' do
     let(:path) { service.object_path.to_s }
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567")
+      expect(path).to eq("bc/123/df/4567/bc123df4567")
     end
   end
 
@@ -24,7 +20,7 @@ RSpec.describe VersionedFilesService::Paths do
     let(:path) { service.content_path.to_s }
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/content")
+      expect(path).to eq("bc/123/df/4567/bc123df4567/content")
     end
   end
 
@@ -32,27 +28,29 @@ RSpec.describe VersionedFilesService::Paths do
     let(:path) { service.versions_path.to_s }
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
+      expect(path).to eq("bc/123/df/4567/bc123df4567/versions")
     end
   end
 
   describe '#head_cocina_path' do
-    let(:version_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions" }
+    let(:version_path) { "bc/123/df/4567/bc123df4567/versions" }
     let(:path) { service.head_cocina_path.to_s }
 
     before do
       # create version manifest to find head version
-      FileUtils.mkdir_p(version_path)
-      manifest = { head: 3 }
-      File.write("#{version_path}/versions.json", manifest.to_json)
+      s3_client.put_object(
+        bucket: Settings.s3.bucket,
+        key: "bc/123/df/4567/bc123df4567/versions/versions.json",
+        body: { head: 3 }.to_json
+      )
     end
 
     after do
-      FileUtils.rm_rf(version_path)
+      s3_bucket.clear!
     end
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/cocina.3.json")
+      expect(path).to eq("bc/123/df/4567/bc123df4567/versions/cocina.3.json")
     end
   end
 
@@ -60,7 +58,7 @@ RSpec.describe VersionedFilesService::Paths do
     let(:path) { service.cocina_path_for(version: 2).to_s }
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/cocina.2.json")
+      expect(path).to eq("bc/123/df/4567/bc123df4567/versions/cocina.2.json")
     end
   end
 
@@ -68,7 +66,7 @@ RSpec.describe VersionedFilesService::Paths do
     let(:path) { service.public_xml_path_for(version: 2).to_s }
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/public.2.xml")
+      expect(path).to eq("bc/123/df/4567/bc123df4567/versions/public.2.xml")
     end
   end
 
@@ -76,7 +74,7 @@ RSpec.describe VersionedFilesService::Paths do
     let(:path) { service.versions_manifest_path.to_s }
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json")
+      expect(path).to eq("bc/123/df/4567/bc123df4567/versions/versions.json")
     end
   end
 
@@ -84,7 +82,7 @@ RSpec.describe VersionedFilesService::Paths do
     let(:path) { service.content_path_for(md5: '41446aec93ba8d401a33b46679a7dcaa').to_s }
 
     it 'returns the expected path' do
-      expect(path).to eq("#{stacks_pathname}/bc/123/df/4567/bc123df4567/content/41446aec93ba8d401a33b46679a7dcaa")
+      expect(path).to eq("bc/123/df/4567/bc123df4567/content/41446aec93ba8d401a33b46679a7dcaa")
     end
   end
 end

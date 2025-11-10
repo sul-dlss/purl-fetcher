@@ -1,8 +1,8 @@
 class VersionedFilesService
   # Class for reading and writing the versions manifest.
   class VersionsManifest
-    def self.read(path)
-      new(path: Pathname.new(path))
+    def self.read(versions_manifest_path)
+      new(versions_manifest_path:)
     end
 
     # @param withdrawn [Boolean] true if the version is withdrawn
@@ -25,9 +25,9 @@ class VersionedFilesService
       end
     end
 
-    # @param path [Pathname] the path to the versions manifest
-    def initialize(path:)
-      @path = path
+    # @param versions_manifest_path [String] the s3 key for the versions manifest
+    def initialize(versions_manifest_path:)
+      @versions_manifest_path = versions_manifest_path
     end
 
     # Update the version manifest to include the given version.
@@ -75,7 +75,6 @@ class VersionedFilesService
     # @raise [UnknownVersionError] if the version is not found
     def version_metadata_for(version:)
       check_version(version:)
-
       version_data = manifest[:versions][version]
       VersionMetadata.new(version: version.to_i, state: version_data[:state], date: DateTime.iso8601(version_data[:date]))
     end
@@ -91,7 +90,7 @@ class VersionedFilesService
     end
 
     def manifest
-      @manifest ||= (path.exist? ? JSON.parse(@path.read).with_indifferent_access : {}).tap do |manifest|
+      @manifest ||= retrieve.tap do |manifest|
         manifest[:$schemaVersion] ||= 1
 
         # json numeric keys are converted to strings, so convert them back to integers
@@ -103,11 +102,25 @@ class VersionedFilesService
 
     private
 
-    attr_reader :path
+    def retrieve
+      s3_client = S3ClientFactory.create_client
+      resp = s3_client.get_object(
+        bucket: Settings.s3.bucket,
+        key: @versions_manifest_path.to_s
+      )
+
+      JSON.parse(resp.body.read).with_indifferent_access
+    rescue Aws::S3::Errors::NoSuchKey
+      {}
+    end
 
     def write!
-      FileUtils.mkdir_p(path.dirname)
-      path.write(manifest.to_json)
+      s3_client = S3ClientFactory.create_client
+      s3_client.put_object(
+        bucket: Settings.s3.bucket,
+        key: @versions_manifest_path.to_s,
+        body: manifest.to_json
+      )
     end
 
     def check_version(version:)

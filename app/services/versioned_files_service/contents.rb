@@ -8,18 +8,36 @@ class VersionedFilesService
 
     # @return [Array<String>] the md5s for all content files
     def content_md5s
-      return [] unless content_path.exist?
+      s3_client = S3ClientFactory.create_client
 
-      content_path.children.map { |child| child.basename.to_s }
+      response = s3_client.list_objects_v2(
+        bucket: Settings.s3.bucket,
+        prefix: content_path.to_s
+      )
+      response.contents.map do |object|
+        object.key.delete_prefix("#{content_path}/")
+      end
     end
 
     def move_content(md5:, source_path:)
-      FileUtils.mkdir_p(content_path)
-      FileUtils.mv(source_path, content_path_for(md5:))
+      s3_client = S3ClientFactory.create_client
+      File.open(source_path, 'rb') do |file|
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: content_path_for(md5:).to_s,
+          body: file
+        )
+      end
+      FileUtils.rm(source_path)
     end
 
     def delete_content(md5:)
-      content_path_for(md5:).delete
+      s3_client = S3ClientFactory.create_client
+
+      s3_client.delete_object(
+        bucket: Settings.s3.bucket,
+        key: content_path_for(md5:).to_s
+      )
     end
 
     delegate :content_path_for, :content_path, to: :@paths

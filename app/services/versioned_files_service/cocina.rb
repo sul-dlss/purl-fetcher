@@ -9,9 +9,15 @@ class VersionedFilesService
     # @raise [VersionedFilesService::Error] if the Cocina file is not found
     def self.for(druid:, version:)
       cocina_path = VersionedFilesService::Paths.new(druid:).cocina_path_for(version:)
-      raise VersionedFilesService::Error, "Cocina for version #{version} not found" unless cocina_path.exist?
+      s3_client = S3ClientFactory.create_client
+      resp = s3_client.get_object(
+        bucket: Settings.s3.bucket,
+        key: cocina_path.to_s
+      )
 
-      new(hash: JSON.parse(cocina_path.read))
+      new(hash: JSON.parse(resp.body.read))
+    rescue Aws::S3::Errors::NoSuchKey
+      raise VersionedFilesService::Error, "Cocina for version #{version} not found"
     end
 
     # @param [Hash] hash the cocina hash

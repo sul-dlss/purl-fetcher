@@ -9,7 +9,7 @@ class VersionedFilesService
     # @return [Pathname] the path to the object directory (i.e., the root directory for the object)
     # Note that this is the logical path; the path may not exist.
     def object_path
-      @object_path ||= DruidTools::Druid.new(druid, Settings.filesystems.stacks_root).pathname
+      @object_path ||= DruidTools::Druid.new(druid, nil).pathname
     end
 
     # @return [Pathname] the path to the content directory
@@ -26,7 +26,11 @@ class VersionedFilesService
 
     # @return [Pathname] the path to head version cocina.json.
     def head_cocina_path
-      @head_cocina_path ||= cocina_path_for(version: head_version)
+      @head_cocina_path ||= begin
+        manifest = VersionedFilesService::VersionsManifest.read(versions_manifest_path)
+
+        cocina_path_for(version: manifest.head_version)
+      end
     end
 
     # @return [Pathname] the path to cocina.json for the given version.
@@ -53,12 +57,6 @@ class VersionedFilesService
       @meta_json_path ||= versions_path.join('meta.json')
     end
 
-    # @return [String] head version
-    def head_version
-      version_json = JSON.parse(File.read(versions_manifest_path))
-      version_json['head']
-    end
-
     # @return [Pathname] the path to the content file with the given md5
     # Note that this is the logical path; the path may not exist.
     def content_path_for(md5:)
@@ -68,7 +66,7 @@ class VersionedFilesService
     # @return [Pathname] the path to a lock file for the object
     # Note that this is the logical path; the path may not exist.
     def lockfile_path
-      versions_path.join('.lock')
+      Pathname.new("tmp/locks/#{druid.delete_prefix('druid:')}.lock")
     end
 
     private

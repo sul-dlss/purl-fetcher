@@ -22,8 +22,10 @@ class VersionedFilesService
       check_file_transfers!
       # For each shelved file in the cocina object, if there is not a provided content file and a content file does not exist for the file’s md5, raise an error.
       check_content_files!
+
       # For each provided content file, get the md5 from the cocina object. If the content file does not already exist for that md5, then write a new content file named by the md5.
       move_content_files
+
       # Write the cocina to cocina path for the version (overwriting if already exists).
       write_cocina(version:, cocina: Publish::PublicCocinaGenerator.generate(cocina:))
       # Write the public xml to public xml path for the version (overwriting if already exists).
@@ -35,6 +37,7 @@ class VersionedFilesService
 
       ClearImageserverCache.call(druid: cocina.externalIdentifier, cocina_type: cocina.type, file_names: file_transfers.keys)
 
+      # Copy the updated structure into the globus directory.
       update_globus_links
     end
 
@@ -55,7 +58,7 @@ class VersionedFilesService
 
       return unless globus_service.globus_druid?(druid_id)
 
-      # Remove existing Globus hardlinks or files for the druid
+      # Remove existing Globus files for the druid
       # E.g. delete /stacks/globus/bf/070/wx/6289/
       FileUtils.rm_rf(globus_service.globus_path_for(druid_id))
 

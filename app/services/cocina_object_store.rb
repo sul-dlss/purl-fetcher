@@ -2,9 +2,13 @@ class CocinaObjectStore
   def self.find(druid)
     stacks_path = VersionedFilesService::Paths.new(druid:).head_cocina_path
 
-    raise "No cocina.json found for #{druid} in stacks or purl paths" unless stacks_path.exist?
+    s3_client = S3ClientFactory.create_client
+    resp = s3_client.get_object(
+      bucket: Settings.s3.bucket,
+      key: stacks_path.to_s
+    )
 
-    data_hash = JSON.parse(File.read(stacks_path))
+    data_hash = JSON.parse(resp.body.read)
     Cocina::Models.build(data_hash)
   end
 end

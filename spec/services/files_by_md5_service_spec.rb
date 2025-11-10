@@ -7,17 +7,16 @@ RSpec.describe FilesByMd5Service do
 
   let!(:purl_object) { create(:purl, druid:) }
   let(:druid) { 'druid:bc123df4567' }
-
-  let(:stacks_pathname) { 'tmp/stacks' }
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
 
   before do
-    allow(Settings.filesystems).to receive(:stacks_root).and_return(stacks_pathname)
     allow(Honeybadger).to receive(:notify)
   end
 
   context 'when object is versioned' do
-    let(:content_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/content" }
-    let(:versions_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions" }
+    let(:content_path) { "bc/123/df/4567/bc123df4567/content" }
+    let(:versions_path) { "bc/123/df/4567/bc123df4567/versions" }
 
     let(:dro) do
       build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
@@ -69,11 +68,11 @@ RSpec.describe FilesByMd5Service do
 
     before do
       write_version(content_path:, versions_path:, cocina_object: dro)
-      File.delete("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")
+      VersionedFilesService::Object.new(druid).delete_content(md5: '5997de4d5abb55f21f652aa61b8f3aaf')
     end
 
     after do
-      FileUtils.rm_rf(stacks_pathname)
+      s3_bucket.clear!
     end
 
     it 'returns the files by md5' do

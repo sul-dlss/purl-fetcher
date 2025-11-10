@@ -42,19 +42,18 @@ class FilesByMd5Service
 
   def check_exists_and_complete(path, expected_size)
     context = { path: path.to_s, druid:, expected_size: }
+    s3_client = S3ClientFactory.create_client
+    resp = s3_client.head_object(bucket: Settings.s3.bucket, key: path.to_s)
 
-    unless path.exist?
-      Honeybadger.notify("File missing from shelves", context:)
-      return false
-    end
-
-    actual_size = File.size(path)
-    if actual_size != expected_size
-      context[:actual_size] = actual_size
+    if resp.content_length != expected_size
+      context[:actual_size] = resp.content_length
       Honeybadger.notify("File path present on shelves but file isn't the expected size. It's likely a bug shelved the wrong content.", context:)
       return false
     end
 
     true
+  rescue Aws::S3::Errors::NotFound
+    Honeybadger.notify("File missing from shelves", context:)
+    false
   end
 end

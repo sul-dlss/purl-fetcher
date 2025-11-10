@@ -7,19 +7,18 @@ RSpec.describe VersionedFilesService do
   # Use a globus druid for testing
   let(:druid) { 'druid:bf070wx6289' }
 
-  let(:stacks_pathname) { 'tmp/stacks' }
   let(:globus_pathname) { 'tmp/stacks/globus' }
-
-  let(:content_path) { "#{stacks_pathname}/bf/070/wx/6289/bf070wx6289/content" }
-  let(:versions_path) { "#{stacks_pathname}/bf/070/wx/6289/bf070wx6289/versions" }
+  let(:content_path) { "bf/070/wx/6289/bf070wx6289/content" }
+  let(:versions_path) { "bf/070/wx/6289/bf070wx6289/versions" }
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
 
   before do
-    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname, globus_root: globus_pathname)
-    FileUtils.rm_rf(stacks_pathname)
+    allow(Settings.filesystems).to receive_messages(globus_root: globus_pathname)
   end
 
   after do
-    FileUtils.rm_rf(stacks_pathname)
+    s3_bucket.clear!
   end
 
   describe '#update' do
@@ -175,8 +174,8 @@ RSpec.describe VersionedFilesService do
           service.update(version: 1, version_metadata:, cocina:, file_transfers:)
 
           # Writes content files
-          expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
-          expect(File.read("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to eq 'files/file2.txt'
+          expect(read_file("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
+          expect(read_file("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to eq 'files/file2.txt'
 
           # Deletes transfer files
           file_transfers.each_value do |transfer_uuid|
@@ -184,8 +183,8 @@ RSpec.describe VersionedFilesService do
           end
 
           # Writes metadata
-          expect(File.read("#{versions_path}/cocina.1.json")).to eq compact_cocina
-          expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
+          expect(read_file("#{versions_path}/cocina.1.json")).to eq compact_cocina
+          expect(read_file("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
@@ -193,9 +192,9 @@ RSpec.describe VersionedFilesService do
             head: 1
           )
 
-          # Hardlinks to globus filesystem
-          expect("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62").to link_to "#{globus_object_path}/file2.txt"
-          expect("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf").to link_to "#{globus_object_path}/files/file2.txt"
+          # Writes a copy to the Globus filesystem
+          expect(File.read("#{globus_object_path}/file2.txt")).to eq 'file2.txt'
+          expect(File.read("#{globus_object_path}/files/file2.txt")).to eq 'files/file2.txt'
         end
       end
 
@@ -342,13 +341,13 @@ RSpec.describe VersionedFilesService do
           service.update(version: 2, version_metadata:, cocina:, file_transfers:)
 
           # Writes new content files
-          expect(File.read("#{content_path}/6007de4d5abb55f21f652aa61b8f3bbg")).to eq 'file3.txt'
-          expect(File.read("#{content_path}/4f35960a79dbc69b674cd4ec67a72d73")).to eq 'file2.txt'
+          expect(read_file("#{content_path}/6007de4d5abb55f21f652aa61b8f3bbg")).to eq 'file3.txt'
+          expect(read_file("#{content_path}/4f35960a79dbc69b674cd4ec67a72d73")).to eq 'file2.txt'
 
           # Retains unchanged content files
-          expect(File.read("#{content_path}/327d41a48b459a2807d750324bd864ce")).to eq 'file1.txt'
-          expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
-          expect(File.read("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to eq 'files/file2.txt'
+          expect(read_file("#{content_path}/327d41a48b459a2807d750324bd864ce")).to eq 'file1.txt'
+          expect(read_file("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
+          expect(read_file("#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf")).to eq 'files/file2.txt'
 
           # Deletes transfer files
           file_transfers.each_value do |transfer_uuid|
@@ -356,9 +355,9 @@ RSpec.describe VersionedFilesService do
           end
 
           # Writes metadata
-          expect(File.exist?("#{versions_path}/cocina.1.json")).to be true
-          expect(File.read("#{versions_path}/cocina.2.json")).to eq compact_cocina
-          expect(File.exist?("#{versions_path}/public.1.xml")).to be true
+          expect(read_file("#{versions_path}/cocina.1.json")).to be_present
+          expect(read_file("#{versions_path}/cocina.2.json")).to eq compact_cocina
+          expect(read_file("#{versions_path}/public.1.xml")).to be_present
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
@@ -465,14 +464,14 @@ RSpec.describe VersionedFilesService do
           service.update(version: 1, version_metadata:, cocina:, file_transfers: {})
 
           # Retains unchanged content files
-          expect(File.read("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
+          expect(read_file("#{content_path}/3e25960a79dbc69b674cd4ec67a72c62")).to eq 'file2.txt'
 
           # Deletes unused content files
-          expect(File.exist?("#{content_path}/327d41a48b459a2807d750324bd864ce")).to be false
+          expect { read_file("#{content_path}/327d41a48b459a2807d750324bd864ce") }.to raise_error(Aws::S3::Errors::NoSuchKey)
 
           # Writes metadata
-          expect(File.read("#{versions_path}/cocina.1.json")).to eq compact_cocina
-          expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
+          expect(read_file("#{versions_path}/cocina.1.json")).to eq compact_cocina
+          expect(read_file("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
@@ -490,11 +489,9 @@ RSpec.describe VersionedFilesService do
         it 'writes content files and metadata' do
           service.update(version: 1, version_metadata:, cocina: cocina, file_transfers: {})
 
-          expect(File.exist?(content_path)).to be false
-
           # Writes metadata
-          expect(File.read("#{versions_path}/cocina.1.json")).to eq compact_cocina
-          expect(File.read("#{versions_path}/public.1.xml")).to include 'publicObject'
+          expect(read_file("#{versions_path}/cocina.1.json")).to eq compact_cocina
+          expect(read_file("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
           expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(

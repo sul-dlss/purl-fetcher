@@ -5,3 +5,9 @@ filesystems:
   stacks_root: "tmp/stacks"
   stacks_content_addressable: tmp/stacks/content_addressable
   transfer: tmp/transfer
+
+s3:
+  access_key_id: minio-user
+  secret_access_key: minio-password
+  bucket: stacks-test
+  endpoint: http://localhost:9000

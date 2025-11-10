@@ -10,9 +10,11 @@ class VersionedFilesService
     # @param version [String] the version number
     # @param [Cocina] the cocina object
     def write_cocina(version:, cocina:)
-      FileUtils.mkdir_p(versions_path)
       cocina_path = cocina_path_for(version:)
-      cocina_path.write(self.class.deep_compact_blank(cocina.to_h).to_json)
+      s3_client = S3ClientFactory.create_client
+      s3_client.put_object(bucket: Settings.s3.bucket,
+                           key: cocina_path.to_s,
+                           body: self.class.deep_compact_blank(cocina.to_h).to_json)
     end
 
     def self.deep_compact_blank(node)
@@ -38,9 +40,11 @@ class VersionedFilesService
     # @param version [String] the version number
     # @param [String] the public xml
     def write_public_xml(version:, public_xml:)
-      FileUtils.mkdir_p(versions_path)
       public_xml_path = public_xml_path_for(version:)
-      public_xml_path.write(public_xml)
+      s3_client = S3ClientFactory.create_client
+      s3_client.put_object(bucket: Settings.s3.bucket,
+                           key: public_xml_path.to_s,
+                           body: public_xml)
     end
 
     delegate :cocina_path_for, :public_xml_path_for, :versions_path, to: :@paths

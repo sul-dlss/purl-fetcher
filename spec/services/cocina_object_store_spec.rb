@@ -33,4 +33,26 @@ RSpec.describe CocinaObjectStore do
       end
     end
   end
+
+  describe '.head_cocina_path' do
+    let(:version_path) { "bc/123/df/4567/bc123df4567/versions" }
+    let(:path) { described_class.head_cocina_path(druid).to_s }
+
+    before do
+      # create version manifest to find head version
+      s3_client.put_object(
+        bucket: Settings.s3.bucket,
+        key: "bc/123/df/4567/bc123df4567/versions/versions.json",
+        body: { head: 3 }.to_json
+      )
+    end
+
+    after do
+      s3_bucket.clear!
+    end
+
+    it 'returns the expected path' do
+      expect(path).to eq("bc/123/df/4567/bc123df4567/versions/cocina.3.json")
+    end
+  end
 end

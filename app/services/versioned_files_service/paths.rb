@@ -24,15 +24,6 @@ class VersionedFilesService
       @versions_path ||= object_path.join('versions')
     end
 
-    # @return [Pathname] the path to head version cocina.json.
-    def head_cocina_path
-      @head_cocina_path ||= begin
-        manifest = VersionedFilesService::VersionsManifest.read(versions_manifest_path)
-
-        cocina_path_for(version: manifest.head_version)
-      end
-    end
-
     # @return [Pathname] the path to cocina.json for the given version.
     # Note that this is the logical path; the path may not exist.
     def cocina_path_for(version:)

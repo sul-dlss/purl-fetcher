@@ -1,5 +1,5 @@
 # Write a version of an object. Note that this does not correctly update an existing version.
-# TODO: Migrate to s3
+# rubocop:disable Metrics/AbcSize
 def write_version(content_path:, versions_path:, cocina_object:,
                   version_metadata: VersionedFilesService::VersionsManifest::VersionMetadata.new(1, 'available', DateTime.now),
                   version: 1)
@@ -36,6 +36,7 @@ def write_version(content_path:, versions_path:, cocina_object:,
     body: { versions: { version => { state: 'available', date: version_metadata.date.iso8601 } }, head: version }.to_json
   )
 end
+# rubocop:enable Metrics/AbcSize
 
 def read_file(key)
   s3_client = S3ClientFactory.create_client

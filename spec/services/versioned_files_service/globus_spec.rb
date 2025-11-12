@@ -7,12 +7,9 @@ RSpec.describe VersionedFilesService::Globus do
   let(:druid) { 'bf070wx6289' }
   let(:prefixed_druid) { "druid:#{druid}" }
 
-  let!(:purl_object) { create(:purl, druid: prefixed_druid) }
-
   let(:globus_pathname) { 'tmp/stacks/globus' }
 
   let(:object) { VersionedFilesService::Object.new(druid) }
-  let(:versions_path) { object.versions_path }
   let(:globus_object_path) { "#{globus_pathname}/bf/070/wx/6289" }
 
   let(:cocina_object) do
@@ -80,16 +77,6 @@ RSpec.describe VersionedFilesService::Globus do
     before do
       # Just test one druid, but make sure we can read the list.
       allow(Settings.globus).to receive(:druid_list).and_return([druid])
-
-      manifest = { head: 2 }
-      s3_client.put_object(bucket: Settings.s3.bucket,
-                           key: "#{versions_path}/versions.json",
-                           body: manifest.to_json)
-
-      cocina_json = create(:public_json, purl: purl_object).data
-      s3_client.put_object(bucket: Settings.s3.bucket,
-                           key: "#{versions_path}/cocina.json",
-                           body: cocina_json)
 
       write_version(cocina_object:)
     end

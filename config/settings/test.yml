@@ -2,8 +2,6 @@ hmac_secret: "my$ecretK3y"
 
 # Mounted filesystems
 filesystems:
-  stacks_root: "tmp/stacks"
-  stacks_content_addressable: tmp/stacks/content_addressable
   transfer: tmp/transfer
 
 s3:

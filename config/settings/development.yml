@@ -1,5 +1,1 @@
 hmac_secret: "my$ecretK3y"
-
-# Mounted filesystems
-filesystems:
-  stacks_root: "tmp/stacks"

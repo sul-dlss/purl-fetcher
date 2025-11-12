@@ -1,57 +1,84 @@
 class ObjectStore
+  class NotFoundError < StandardError; end
+
   def initialize(druid:)
     @druid = druid
+    prefix = DruidTools::Druid.new(druid, nil).pathname
+    @storage = S3Store.new(prefix:)
   end
 
-  def get(path, response_target: nil)
-    key = object_path.join(path).to_s
-
-    return s3_client.get_object(bucket:, key:, response_target:) if response_target
-
-    resp = s3_client.get_object(bucket:, key:)
-    resp.body
+  def read_versions
+    get('versions/versions.json')
+  rescue Aws::S3::Errors::NoSuchKey
+    raise NotFoundError, "No versions found for #{druid}"
   end
 
-  def info(path)
-    key = object_path.join(path).to_s
-
-    s3_client.head_object(bucket:, key:)
+  def write_versions(json:)
+    put('versions/versions.json', json)
   end
 
-  def put(path, body)
-    key = object_path.join(path).to_s
-
-    s3_client.put_object(bucket:, key:, body:)
+  def write_meta_json(json:)
+    put('versions/meta.json', json)
   end
 
-  def list_objects(path)
-    prefix = object_path.join(path).to_s
-
-    response = s3_client.list_objects_v2(bucket:, prefix:)
-    response.contents.map do |object|
-      object.key.delete_prefix("#{prefix}/")
-    end
+  def read_meta_json
+    io = get('versions/meta.json')
+    JSON.parse(io.read)
+  rescue Aws::S3::Errors::NoSuchKey
+    raise NotFoundError, "No versions found for #{druid}"
   end
 
-  def delete(path)
-    key = object_path.join(path).to_s
-
-    s3_client.delete_object(bucket:, key:)
+  def write_cocina(version:, json:)
+    put("versions/cocina.#{version}.json", json)
   end
 
-  private
-
-  def bucket
-    Settings.s3.bucket
+  def read_cocina(version:)
+    io = get("versions/cocina.#{version}.json")
+    JSON.parse(io.read)
+  rescue Aws::S3::Errors::NoSuchKey
+    raise NotFoundError, "No cocina found for #{druid}, #{version}"
   end
 
-  # @return [Pathname] the path to the object directory (i.e., the root directory for the object)
-  # Note that this is the logical path; the path may not exist.
-  def object_path
-    @object_path ||= DruidTools::Druid.new(@druid, nil).pathname
+  def content_length(md5:)
+    info("content/#{md5}").content_length
+  rescue Aws::S3::Errors::NotFound
+    raise NotFoundError, "Unable to find content for #{md5}"
   end
 
-  def s3_client
-    @s3_client ||= S3ClientFactory.create_client
+  def write_public_xml(version:, xml:)
+    put("versions/public.#{version}.xml", xml)
   end
+
+  def read_public_xml(version:)
+    io = get("versions/public.#{version}.xml")
+    io.read
+  rescue Aws::S3::Errors::NoSuchKey
+    raise NotFoundError, "No public XML found for #{druid}, #{version}"
+  end
+
+  def write_content(md5:, file:)
+    put("content/#{md5}", file)
+  end
+
+  def read_content(md5:, response_target:)
+    get("content/#{md5}", response_target:)
+  rescue Aws::S3::Errors::NoSuchKey
+    raise NotFoundError, "No content found for #{druid}, #{md5}"
+  end
+
+  def delete_content(md5:)
+    delete("content/#{md5}")
+  end
+
+  def content_md5s
+    list_objects('content')
+  end
+
+  def destroy
+    list_objects('').each { |path| delete(path) }
+  end
+
+  attr_reader :druid
+
+  delegate :put, :get, :delete, :list_objects, :info, to: :@storage, private: true
 end

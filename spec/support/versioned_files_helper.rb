@@ -11,12 +11,12 @@ def write_version(cocina_object:,
 
       md5 = file.hasMessageDigests.first.digest
 
-      object_store.put("content/#{md5}", file.filename)
+      object_store.write_content(md5:, file: file.filename)
     end
   end
-  object_store.put("versions/cocina.#{version}.json", cocina_object.to_json)
-  object_store.put("versions/public.#{version}.xml", PublicXmlWriter.generate(cocina_object))
-  object_store.put("versions/versions.json", { versions: { version => { state: 'available', date: version_metadata.date.iso8601 } }, head: version }.to_json)
+  object_store.write_cocina(version:, json: cocina_object.to_json)
+  object_store.write_public_xml(version:, xml: PublicXmlWriter.generate(cocina_object))
+  object_store.write_versions(json: { versions: { version => { state: 'available', date: version_metadata.date.iso8601 } }, head: version }.to_json)
 end
 
 def read_file(key)

@@ -24,7 +24,7 @@ class ReleaseService
   end
 
   def write_meta_json
-    VersionedFilesService::Paths.new(druid:).meta_json_path.write(meta_json)
+    ObjectStore.new(druid:).write_meta_json(json: meta_json)
   end
 
   private

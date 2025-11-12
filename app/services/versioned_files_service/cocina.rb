@@ -8,11 +8,10 @@ class VersionedFilesService
     # @return [Cocina] the Cocina object
     # @raise [VersionedFilesService::Error] if the Cocina file is not found
     def self.for(druid:, version:)
-      cocina_path = VersionedFilesService::Paths.new(druid:).cocina_path_for(version:)
-      io = ObjectStore.new(druid:).get(cocina_path)
+      hash = ObjectStore.new(druid:).read_cocina(version:)
 
-      new(hash: JSON.parse(io.read))
-    rescue Aws::S3::Errors::NoSuchKey
+      new(hash:)
+    rescue ObjectStore::NotFoundError
       raise VersionedFilesService::Error, "Cocina for version #{version} not found"
     end
 

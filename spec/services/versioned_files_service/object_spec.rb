@@ -6,7 +6,6 @@ RSpec.describe VersionedFilesService::Object do
   let(:service) { described_class.new(druid) }
   let(:druid) { 'druid:bc123df4567' }
 
-  let(:content_path) { "bc/123/df/4567/bc123df4567/content" }
   let(:versions_path) { "bc/123/df/4567/bc123df4567/versions" }
 
   let(:public_xml) { 'public xml' }
@@ -159,8 +158,6 @@ RSpec.describe VersionedFilesService::Object do
 
   describe '#content_mds5' do
     context 'when content files' do
-      let(:content_path) { "bc/123/df/4567/bc123df4567/content" }
-
       before do
         s3_client.put_object(
           bucket: Settings.s3.bucket,
@@ -285,8 +282,8 @@ RSpec.describe VersionedFilesService::Object do
       end
 
       before do
-        write_version(content_path:, versions_path:, cocina_object: initial_dro, version: 1)
-        write_version(content_path:, versions_path:, cocina_object: version_2_dro, version: 2)
+        write_version(cocina_object: initial_dro, version: 1)
+        write_version(cocina_object: version_2_dro, version: 2)
         s3_client.put_object(
           bucket: Settings.s3.bucket,
           key: "#{versions_path}/versions.json",

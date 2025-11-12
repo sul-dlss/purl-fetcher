@@ -91,7 +91,7 @@ RSpec.describe VersionedFilesService::Globus do
                            key: "#{versions_path}/cocina.json",
                            body: cocina_json)
 
-      write_version(content_path: object.content_path, versions_path: versions_path, cocina_object: cocina_object)
+      write_version(cocina_object:)
     end
 
     it 'creates copies in the globus directory' do

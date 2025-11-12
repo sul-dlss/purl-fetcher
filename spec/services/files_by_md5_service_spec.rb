@@ -15,9 +15,6 @@ RSpec.describe FilesByMd5Service do
   end
 
   context 'when object is versioned' do
-    let(:content_path) { "bc/123/df/4567/bc123df4567/content" }
-    let(:versions_path) { "bc/123/df/4567/bc123df4567/versions" }
-
     let(:dro) do
       build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' },
                                                structural:
@@ -68,7 +65,7 @@ RSpec.describe FilesByMd5Service do
     end
 
     before do
-      write_version(content_path:, versions_path:, cocina_object: dro)
+      write_version(cocina_object: dro)
       VersionedFilesService::Object.new(druid).delete_content(md5: '5997de4d5abb55f21f652aa61b8f3aaf')
     end
 

@@ -1,5 +1,5 @@
 # Write a version of an object. Note that this does not correctly update an existing version.
-def write_version(content_path:, versions_path:, cocina_object:,
+def write_version(cocina_object:,
                   version_metadata: VersionedFilesService::VersionsManifest::VersionMetadata.new(1, 'available', DateTime.now),
                   version: 1)
   # Write original content files to s3

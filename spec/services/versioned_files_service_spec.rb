@@ -335,7 +335,7 @@ RSpec.describe VersionedFilesService do
 
         before do
           write_file_transfers(file_transfers:, access_transfer_stage:)
-          write_version(content_path:, versions_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+          write_version(cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do
@@ -458,7 +458,7 @@ RSpec.describe VersionedFilesService do
         end
 
         before do
-          write_version(content_path:, versions_path:, cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
+          write_version(cocina_object: initial_dro, version: 1, version_metadata: initial_version_metadata)
         end
 
         it 'writes content files and metadata' do

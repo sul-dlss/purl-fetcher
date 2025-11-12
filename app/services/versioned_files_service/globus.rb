@@ -38,11 +38,10 @@ class VersionedFilesService
       file_details = object.file_details_by_md5_for_version(object.druid, version)
 
       file_details.each do |file|
-        source_file_path = object.content_path_for(md5: file.md5)
         globus_file_path = globus_path / file.filename
         FileUtils.mkdir_p(globus_file_path.dirname)
 
-        object.object_store.get(source_file_path, response_target: globus_file_path.to_s)
+        object.object_store.read_content(md5: file.md5, response_target: globus_file_path.to_s)
       end
     end
   end

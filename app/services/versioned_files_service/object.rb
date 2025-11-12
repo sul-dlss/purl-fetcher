@@ -7,10 +7,7 @@ class VersionedFilesService
       @druid = druid
     end
 
-    delegate :object_path, :content_path, :versions_path,
-             :cocina_path_for, :public_xml_path_for,
-             :versions_manifest_path, :content_path_for, :meta_json_path,
-             :lockfile_path, to: :paths
+    delegate :meta_json_path, to: :paths
 
     delegate :head_version, :version?, :version_metadata_for, :version_metadata,
              :withdraw, :versions, to: :version_manifest
@@ -18,6 +15,12 @@ class VersionedFilesService
     delegate :content_md5s, :move_content, :delete_content, to: :contents
 
     delegate :write_cocina, :write_public_xml, to: :metadata
+
+    # @return [Pathname] the path to a lock file for the object
+    # Note that this is the logical path; the path may not exist.
+    def lockfile_path
+      Pathname.new("tmp/locks/#{druid.delete_prefix('druid:')}.lock")
+    end
 
     # @return [VersionedfilesService::VersionsManifest] the versions manifest
     def version_manifest
@@ -41,19 +44,14 @@ class VersionedFilesService
 
     private
 
-    # @return [VersionedfilesService::Paths] the paths
-    def paths
-      @paths ||= Paths.new(druid:)
-    end
-
     # @return [VersionedfilesService::Metadata] the metadata
     def metadata
-      @metadata ||= Metadata.new(paths:, object_store:)
+      @metadata ||= Metadata.new(object_store:)
     end
 
     # @return [VersionedfilesService::Contents] the contents
     def contents
-      @contents ||= Contents.new(paths:, object_store:)
+      @contents ||= Contents.new(object_store:)
     end
   end
 end

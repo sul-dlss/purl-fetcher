@@ -23,10 +23,6 @@ RSpec.describe 'Publish a Collection' do
     end
 
     context 'when using the legacy endpoint' do
-      after do
-        FileUtils.rm_rf(Settings.filesystems.stacks_root)
-      end
-
       it 'does not fail' do
         post "/v1/resources",
              params: request,

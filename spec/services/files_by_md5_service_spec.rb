@@ -77,7 +77,7 @@ RSpec.describe FilesByMd5Service do
       expect(files_by_md5).to eq([
                                    { "3e25960a79dbc69b674cd4ec67a72c62" => "file2.txt" }
                                  ])
-      expect(Honeybadger).to have_received(:notify).with("File missing from shelves", context: { path: "content/5997de4d5abb55f21f652aa61b8f3aaf", druid:, expected_size: 15 })
+      expect(Honeybadger).to have_received(:notify).with("File missing from shelves", context: { file_md5: "5997de4d5abb55f21f652aa61b8f3aaf", druid:, expected_size: 15 })
     end
   end
 end

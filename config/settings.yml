@@ -12,7 +12,6 @@ hmac_secret: ~
 
 # Mounted filesystems
 filesystems:
-  stacks_root: "/stacks"
   transfer: /access-transfer-stage
   # must be under /stacks because of hardlinking
   globus_root: "/stacks/globus"

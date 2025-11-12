@@ -99,14 +99,14 @@ class VersionedFilesService
     private
 
     def retrieve
-      io = @object_store.get('versions/versions.json')
+      io = @object_store.read_versions
       JSON.parse(io.read).with_indifferent_access
-    rescue Aws::S3::Errors::NoSuchKey
+    rescue ObjectStore::NotFoundError
       {}
     end
 
     def write!
-      @object_store.put('versions/versions.json', manifest.to_json)
+      @object_store.write_versions(json: manifest.to_json)
     end
 
     def check_version(version:)

@@ -36,18 +36,13 @@ class VersionedFilesService
 
       globus_path = globus_path_for(object.druid)
       file_details = object.file_details_by_md5_for_version(object.druid, version)
-      s3_client = S3ClientFactory.create_client
 
       file_details.each do |file|
         source_file_path = object.content_path_for(md5: file.md5)
         globus_file_path = globus_path / file.filename
         FileUtils.mkdir_p(globus_file_path.dirname)
 
-        s3_client.get_object(
-          bucket: Settings.s3.bucket,
-          key: source_file_path.to_s,
-          response_target: globus_file_path.to_s
-        )
+        object.object_store.get(source_file_path, response_target: globus_file_path.to_s)
       end
     end
   end

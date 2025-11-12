@@ -86,6 +86,7 @@ RSpec.describe VersionedFilesService do
       end
 
       let(:file_transfers) { { 'file2.txt' => 'd7e54aed-c0c4-48af-af93-bc673f079f9a', 'files/file2.txt' => '7f807e3c-4cde-4b6d-8e76-f24455316a01' } }
+      let(:object_store) { ObjectStore.new(druid:) }
 
       before do
         FileUtils.touch("#{access_transfer_stage}/d7e54aed-c0c4-48af-af93-bc673f079f9a")
@@ -187,7 +188,7 @@ RSpec.describe VersionedFilesService do
           expect(read_file("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
-          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
+          expect(VersionedFilesService::VersionsManifest.new(object_store:).manifest).to include(
             versions: { 1 => { state: 'available', date: version_metadata.date.iso8601 } },
             head: 1
           )
@@ -360,7 +361,7 @@ RSpec.describe VersionedFilesService do
           expect(read_file("#{versions_path}/public.1.xml")).to be_present
 
           # Writes version manifest
-          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
+          expect(VersionedFilesService::VersionsManifest.new(object_store:).manifest).to include(
             versions: {
               1 => { state: 'available', date: initial_version_metadata.date.iso8601 },
               2 => { state: 'available', date: version_metadata.date.iso8601 }
@@ -474,7 +475,7 @@ RSpec.describe VersionedFilesService do
           expect(read_file("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
-          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
+          expect(VersionedFilesService::VersionsManifest.new(object_store:).manifest).to include(
             versions: {
               1 => { state: 'available', date: version_metadata.date.iso8601 }
             },
@@ -494,7 +495,7 @@ RSpec.describe VersionedFilesService do
           expect(read_file("#{versions_path}/public.1.xml")).to include 'publicObject'
 
           # Writes version manifest
-          expect(VersionedFilesService::VersionsManifest.read("#{versions_path}/versions.json").manifest).to include(
+          expect(VersionedFilesService::VersionsManifest.new(object_store:).manifest).to include(
             versions: {
               1 => { state: 'available', date: version_metadata.date.iso8601 }
             },

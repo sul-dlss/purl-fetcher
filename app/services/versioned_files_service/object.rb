@@ -21,7 +21,7 @@ class VersionedFilesService
 
     # @return [VersionedfilesService::VersionsManifest] the versions manifest
     def version_manifest
-      @version_manifest ||= VersionsManifest.new(versions_manifest_path: paths.versions_manifest_path)
+      @version_manifest ||= VersionsManifest.new(object_store: object_store)
     end
 
     # @return [Array<VersionedFilesService::Cocina::FileDetails>] array of hashes with md5 as key and filename as value for shelved files for all versions.
@@ -35,6 +35,10 @@ class VersionedFilesService
       Cocina.for(druid:, version:).file_details_by_md5
     end
 
+    def object_store
+      @object_store ||= ObjectStore.new(druid:)
+    end
+
     private
 
     # @return [VersionedfilesService::Paths] the paths
@@ -44,12 +48,12 @@ class VersionedFilesService
 
     # @return [VersionedfilesService::Metadata] the metadata
     def metadata
-      @metadata ||= Metadata.new(paths:)
+      @metadata ||= Metadata.new(paths:, object_store:)
     end
 
     # @return [VersionedfilesService::Contents] the contents
     def contents
-      @contents ||= Contents.new(paths:)
+      @contents ||= Contents.new(paths:, object_store:)
     end
   end
 end

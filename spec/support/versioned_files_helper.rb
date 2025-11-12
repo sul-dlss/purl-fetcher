@@ -1,42 +1,23 @@
 # Write a version of an object. Note that this does not correctly update an existing version.
-# rubocop:disable Metrics/AbcSize
 def write_version(content_path:, versions_path:, cocina_object:,
                   version_metadata: VersionedFilesService::VersionsManifest::VersionMetadata.new(1, 'available', DateTime.now),
                   version: 1)
   # Write original content files to s3
-  s3_client = S3ClientFactory.create_client
+  object_store = ObjectStore.new(druid: cocina_object.externalIdentifier)
 
   cocina_object.structural.contains.each do |file_set|
     file_set.structural.contains.each do |file|
       next unless file.administrative.shelve
 
       md5 = file.hasMessageDigests.first.digest
-      s3_client.put_object(
-        bucket: Settings.s3.bucket,
-        key: "#{content_path}/#{md5}",
-        body: file.filename
-      )
+
+      object_store.put("content/#{md5}", file.filename)
     end
   end
-  s3_client.put_object(
-    bucket: Settings.s3.bucket,
-    key: "#{versions_path}/cocina.#{version}.json",
-    body: cocina_object.to_json
-  )
-
-  s3_client.put_object(
-    bucket: Settings.s3.bucket,
-    key: "#{versions_path}/public.#{version}.xml",
-    body: PublicXmlWriter.generate(cocina_object)
-  )
-
-  s3_client.put_object(
-    bucket: Settings.s3.bucket,
-    key: "#{versions_path}/versions.json",
-    body: { versions: { version => { state: 'available', date: version_metadata.date.iso8601 } }, head: version }.to_json
-  )
+  object_store.put("versions/cocina.#{version}.json", cocina_object.to_json)
+  object_store.put("versions/public.#{version}.xml", PublicXmlWriter.generate(cocina_object))
+  object_store.put("versions/versions.json", { versions: { version => { state: 'available', date: version_metadata.date.iso8601 } }, head: version }.to_json)
 end
-# rubocop:enable Metrics/AbcSize
 
 def read_file(key)
   s3_client = S3ClientFactory.create_client

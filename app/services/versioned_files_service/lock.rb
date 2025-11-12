@@ -7,7 +7,6 @@ class VersionedFilesService
     # @param object [VersionedFilesService::Object] the object to lock
     # @yield the block to execute while the object
     def self.with_lock(object, &)
-      # debugger
       FileUtils.mkdir_p(object.lockfile_path.dirname)
 
       f = File.open(object.lockfile_path, File::RDWR | File::CREAT)

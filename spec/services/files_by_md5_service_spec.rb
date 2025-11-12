@@ -19,7 +19,8 @@ RSpec.describe FilesByMd5Service do
     let(:versions_path) { "bc/123/df/4567/bc123df4567/versions" }
 
     let(:dro) do
-      build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }, structural:
+      build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' },
+                                               structural:
     Cocina::Models::DROStructural.new(
       contains: [
         Cocina::Models::FileSet.new(
@@ -79,7 +80,7 @@ RSpec.describe FilesByMd5Service do
       expect(files_by_md5).to eq([
                                    { "3e25960a79dbc69b674cd4ec67a72c62" => "file2.txt" }
                                  ])
-      expect(Honeybadger).to have_received(:notify).with("File missing from shelves", context: { path: "#{content_path}/5997de4d5abb55f21f652aa61b8f3aaf", druid:, expected_size: 15 })
+      expect(Honeybadger).to have_received(:notify).with("File missing from shelves", context: { path: "content/5997de4d5abb55f21f652aa61b8f3aaf", druid:, expected_size: 15 })
     end
   end
 end

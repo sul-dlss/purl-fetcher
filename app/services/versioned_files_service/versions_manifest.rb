@@ -1,10 +1,6 @@
 class VersionedFilesService
   # Class for reading and writing the versions manifest.
   class VersionsManifest
-    def self.read(versions_manifest_path)
-      new(versions_manifest_path:)
-    end
-
     # @param withdrawn [Boolean] true if the version is withdrawn
     # @param date [DateTime] the version date
     VersionMetadata = Struct.new('VersionMetadata', :version, :state, :date) do
@@ -25,9 +21,9 @@ class VersionedFilesService
       end
     end
 
-    # @param versions_manifest_path [String] the s3 key for the versions manifest
-    def initialize(versions_manifest_path:)
-      @versions_manifest_path = versions_manifest_path
+    # @param object_store [ObjectStoe] the data store for this object
+    def initialize(object_store:)
+      @object_store = object_store
     end
 
     # Update the version manifest to include the given version.
@@ -103,24 +99,14 @@ class VersionedFilesService
     private
 
     def retrieve
-      s3_client = S3ClientFactory.create_client
-      resp = s3_client.get_object(
-        bucket: Settings.s3.bucket,
-        key: @versions_manifest_path.to_s
-      )
-
-      JSON.parse(resp.body.read).with_indifferent_access
+      io = @object_store.get('versions/versions.json')
+      JSON.parse(io.read).with_indifferent_access
     rescue Aws::S3::Errors::NoSuchKey
       {}
     end
 
     def write!
-      s3_client = S3ClientFactory.create_client
-      s3_client.put_object(
-        bucket: Settings.s3.bucket,
-        key: @versions_manifest_path.to_s,
-        body: manifest.to_json
-      )
+      @object_store.put('versions/versions.json', manifest.to_json)
     end
 
     def check_version(version:)

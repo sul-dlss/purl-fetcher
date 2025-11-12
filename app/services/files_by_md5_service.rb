@@ -8,6 +8,7 @@ class FilesByMd5Service
   # @param [Purl] purl
   def initialize(purl:)
     @purl = purl
+    @object_store = ObjectStore.new(druid:)
   end
 
   # @return [Array<Hash<String, String>>] array of hashes with md5 as key and filename as value for shelved files for all versions.
@@ -42,8 +43,7 @@ class FilesByMd5Service
 
   def check_exists_and_complete(path, expected_size)
     context = { path: path.to_s, druid:, expected_size: }
-    s3_client = S3ClientFactory.create_client
-    resp = s3_client.head_object(bucket: Settings.s3.bucket, key: path.to_s)
+    resp = @object_store.info(path)
 
     if resp.content_length != expected_size
       context[:actual_size] = resp.content_length

@@ -6,22 +6,16 @@ class VersionedFilesService
       @druid = druid
     end
 
-    # @return [Pathname] the path to the object directory (i.e., the root directory for the object)
-    # Note that this is the logical path; the path may not exist.
-    def object_path
-      @object_path ||= DruidTools::Druid.new(druid, nil).pathname
-    end
-
     # @return [Pathname] the path to the content directory
     # Note that this is the logical path; the path may not exist.
     def content_path
-      @content_path ||= object_path.join('content')
+      @content_path ||= Pathname.new('content')
     end
 
     # @return [Pathname] the path to the metadata directory
     # Note that this is the logical path; the path may not exist.
     def versions_path
-      @versions_path ||= object_path.join('versions')
+      @versions_path ||= Pathname.new('versions')
     end
 
     # @return [Pathname] the path to cocina.json for the given version.

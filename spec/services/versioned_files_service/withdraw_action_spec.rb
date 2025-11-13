@@ -8,9 +8,11 @@ RSpec.describe VersionedFilesService::WithdrawAction do
   let(:druid) { 'druid:bc123df4567' }
   let(:version) { 2 }
   let(:withdrawn) { true }
-
-  let(:stacks_object_path) { 'tmp/stacks/bc/123/df/4567/bc123df4567' }
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
+  let(:stacks_object_path) { 'bc/123/df/4567/bc123df4567' }
   let(:versions_path) { "#{stacks_object_path}/versions" }
+  let(:versions_manifest_key) { "#{versions_path}/versions.json" }
 
   let(:object) do
     VersionedFilesService::Object.new(druid)
@@ -27,13 +29,24 @@ RSpec.describe VersionedFilesService::WithdrawAction do
     }
   end
 
+  let(:read_version_data) do
+    resp = s3_client.get_object(
+      bucket: Settings.s3.bucket,
+      key: versions_manifest_key
+    )
+    JSON.parse(resp.body.read)
+  end
+
   before do
-    FileUtils.mkdir_p(versions_path)
-    File.write("#{versions_path}/versions.json", versions_data.to_json)
+    s3_client.put_object(
+      bucket: Settings.s3.bucket,
+      key: versions_manifest_key,
+      body: versions_data.to_json
+    )
   end
 
   after do
-    FileUtils.rm_rf(stacks_object_path)
+    s3_bucket.clear!
   end
 
   context 'when version is head' do
@@ -56,8 +69,7 @@ RSpec.describe VersionedFilesService::WithdrawAction do
     it 'withdraws the version' do
       action.call
 
-      versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-      expect(versions_data['versions']['2']['state']).to eq 'withdrawn'
+      expect(read_version_data['versions']['2']['state']).to eq 'withdrawn'
     end
   end
 
@@ -68,8 +80,7 @@ RSpec.describe VersionedFilesService::WithdrawAction do
     it 'restores the version' do
       action.call
 
-      versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-      expect(versions_data['versions']['1']['state']).to eq 'available'
+      expect(read_version_data['versions']['1']['state']).to eq 'available'
     end
   end
 end

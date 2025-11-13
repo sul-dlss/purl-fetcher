@@ -67,14 +67,14 @@ RSpec.describe 'Publish a DRO' do
       contains:
     )
   end
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
 
   context 'when a cocina object is received' do
     let(:transfer_dir) { Rails.root + 'tmp/transfer' }
 
     before do
       FileUtils.rm_rf(transfer_dir)
-      FileUtils.rm_rf(Settings.filesystems.stacks_root)
-
       FileUtils.mkdir_p(transfer_dir)
       File.write(transfer_dir + 'd7e54aed-c0c4-48af-af93-bc673f079f9a', "Hello world")
       File.write(transfer_dir + '7f807e3c-4cde-4b6d-8e76-f24455316a01', "The other one")
@@ -82,7 +82,7 @@ RSpec.describe 'Publish a DRO' do
 
     after do
       FileUtils.rm_rf(transfer_dir)
-      FileUtils.rm_rf(Settings.filesystems.stacks_root)
+      s3_bucket.clear!
     end
 
     context 'when the object does not already exist' do
@@ -91,16 +91,20 @@ RSpec.describe 'Publish a DRO' do
             params: request,
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
+        expect(read_file('bc/123/df/4567/bc123df4567/versions/cocina.1.json')).to be_present
+        expect(read_file('bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')).to be_present
+        expect(read_file('bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')).to be_present
       end
     end
 
     context 'when the object already exists' do
       before do
-        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/versions')
-        FileUtils.mkdir('tmp/stacks/bc/123/df/4567/bc123df4567/content')
+        s3_client.put_object(bucket: Settings.s3.bucket,
+                             key: 'bc/123/df/4567/bc123df4567/versions/cocina.1.json',
+                             body: {}.to_json)
+        s3_client.put_object(bucket: Settings.s3.bucket,
+                             key: 'bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62',
+                             body: 'stuff')
       end
 
       it 'creates the resource' do
@@ -108,9 +112,9 @@ RSpec.describe 'Publish a DRO' do
             params: request,
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
+        expect(read_file('bc/123/df/4567/bc123df4567/versions/cocina.1.json')).to be_present
+        expect(read_file('bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')).to be_present
+        expect(read_file('bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')).to be_present
       end
 
       context 'when type is image' do
@@ -174,9 +178,9 @@ RSpec.describe 'Publish a DRO' do
                 params: request,
                 headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
             expect(response).to be_created
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
+            expect(read_file('bc/123/df/4567/bc123df4567/versions/cocina.1.json')).to be_present
+            expect(read_file('bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')).to be_present
+            expect(read_file('bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')).to be_present
             expect(ClearImageserverCache).to have_received(:post_to_server)
               .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/image2.jp2\"}")
             expect(ClearImageserverCache).to have_received(:post_to_server)
@@ -198,9 +202,9 @@ RSpec.describe 'Publish a DRO' do
                 params: request,
                 headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
             expect(response).to be_created
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')
-            expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')
+            expect(read_file('bc/123/df/4567/bc123df4567/versions/cocina.1.json')).to be_present
+            expect(read_file('bc/123/df/4567/bc123df4567/content/3e25960a79dbc69b674cd4ec67a72c62')).to be_present
+            expect(read_file('bc/123/df/4567/bc123df4567/content/5997de4d5abb55f21f652aa61b8f3aaf')).to be_present
             expect(ClearImageserverCache).to have_received(:post_to_server)
               .with("{\"verb\":\"PurgeItemFromCache\",\"identifier\":\"bc/123/df/4567/image2.jp2\"}")
             expect(ClearImageserverCache).to have_received(:post_to_server)
@@ -212,11 +216,14 @@ RSpec.describe 'Publish a DRO' do
     end
 
     context 'when the object is locked' do
-      before do
-        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/versions')
+      around do |example|
+        FileUtils.mkdir_p('tmp/locks')
 
-        f = File.open("tmp/stacks/bc/123/df/4567/bc123df4567/versions/.lock", File::RDWR | File::CREAT)
-        f.flock(File::LOCK_EX)
+        lock_file = File.open("tmp/locks/bc123df4567.lock", File::RDWR | File::CREAT)
+        lock_file.flock(File::LOCK_EX)
+        example.run
+        lock_file.flock(File::LOCK_UN)
+        lock_file.close
       end
 
       it 'returns an HTTP 423 ("Locked") error' do
@@ -230,17 +237,20 @@ RSpec.describe 'Publish a DRO' do
 
     context 'when file is already in Stacks, but not found in the Cocina object' do
       before do
-        FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/content')
-        File.write('tmp/stacks/bc/123/df/4567/bc123df4567/content/file3.txt', 'hello world')
+        # FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/content')
+        # File.write('tmp/stacks/bc/123/df/4567/bc123df4567/content/file3.txt', 'hello world')
+        s3_client.put_object(bucket: Settings.s3.bucket,
+                             key: 'bc/123/df/4567/bc123df4567/content/file3.txt',
+                             body: 'hello world')
       end
 
       it 'deletes the file' do
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/file3.txt')
+        expect(read_file('bc/123/df/4567/bc123df4567/content/file3.txt')).to be_present
         put "/v1/purls/#{druid}",
             params: request,
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
-        expect(File).not_to exist('tmp/stacks/bc/123/df/4567/bc123df4567/content/file3.txt')
+        expect { read_file('bc/123/df/4567/bc123df4567/content/file3.txt') }.to raise_error(Aws::S3::Errors::NoSuchKey)
       end
     end
 
@@ -253,7 +263,7 @@ RSpec.describe 'Publish a DRO' do
             params: request,
             headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" }
         expect(response).to be_created
-        expect(File).to exist('tmp/stacks/bc/123/df/4567/bc123df4567/versions/cocina.1.json')
+        expect(read_file('bc/123/df/4567/bc123df4567/versions/cocina.1.json')).to be_present
       end
     end
 

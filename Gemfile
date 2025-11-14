@@ -28,7 +28,7 @@ gem 'config'
 
 group :test do
   gem 'capybara'
-  gem 'rspec-rails', '~> 7.1'
+  gem 'rspec-rails', '~> 8.0'
   gem 'simplecov', require: false
 end
 

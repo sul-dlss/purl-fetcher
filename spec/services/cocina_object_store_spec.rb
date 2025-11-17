@@ -3,29 +3,28 @@ require 'rails_helper'
 RSpec.describe CocinaObjectStore do
   let(:druid) { 'druid:bc123df4567' }
   let!(:object) { create(:purl, druid: druid) }
-  let(:stacks_pathname) { 'tmp/stacks' }
   let(:cocina_json) { create(:public_json, purl: object).data }
-
-  before do
-    allow(Settings.filesystems).to receive_messages(
-      stacks_root: stacks_pathname
-    )
-    FileUtils.rm_rf(stacks_pathname)
-  end
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
 
   after do
-    FileUtils.rm_rf(stacks_pathname)
+    s3_bucket.clear!
   end
 
   describe '.find' do
     context 'when the cocina.json exists in the versioned stacks path' do
       before do
         # Create the file
-        stacks_versions_path = Pathname.new("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { head: 3 }
-        FileUtils.mkdir_p(stacks_versions_path.to_s)
-        File.write("#{stacks_versions_path}/versions.json", manifest.to_json)
-        File.write("#{stacks_versions_path}/cocina.3.json", cocina_json)
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "bc/123/df/4567/bc123df4567/versions/versions.json",
+          body: { head: 3 }.to_json
+        )
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "bc/123/df/4567/bc123df4567/versions/cocina.3.json",
+          body: cocina_json
+        )
       end
 
       it 'returns a Cocina::Models::DROWithMetadata object' do

@@ -1,10 +1,8 @@
 class CocinaObjectStore
   def self.find(druid)
-    stacks_path = VersionedFilesService::Paths.new(druid:).head_cocina_path
-
-    raise "No cocina.json found for #{druid} in stacks or purl paths" unless stacks_path.exist?
-
-    data_hash = JSON.parse(File.read(stacks_path))
+    object_store = ObjectStore.new(druid:)
+    version = VersionedFilesService::VersionsManifest.new(object_store:).head_version
+    data_hash = object_store.read_cocina(version:)
     Cocina::Models.build(data_hash)
   end
 end

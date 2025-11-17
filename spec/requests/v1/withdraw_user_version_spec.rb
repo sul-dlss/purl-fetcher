@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Withdraw a user version' do
+  # We override this let variable in other contexts, so we don't want it in the before block.
   let!(:purl_object) { create(:purl, druid:) } # rubocop:disable RSpec/LetSetup
   let(:druid) { 'druid:bc123df4567' }
 
@@ -77,7 +78,7 @@ RSpec.describe 'Withdraw a user version' do
     end
 
     context 'when PURL has been deleted' do
-      let!(:purl_object) { create(:purl, :deleted, druid:) } # rubocop:disable RSpec/LetSetup
+      let!(:purl_object) { create(:purl, :deleted, druid:) }
 
       it 'returns conflict' do
         put "/v1/purls/#{druid}/versions/1/withdraw",

@@ -17,11 +17,10 @@ namespace :audit do
 
     version_manifests.each do |version_file_path|
       object_count += 1
-      expected_files = find_shelved_files_for_all_versions(version_file_path)
+      druid_path = File.dirname(version_file_path).delete_suffix('/versions')
+      expected_files = find_shelved_files_for_all_versions(version_file_path, druid_path)
 
       next if expected_files.empty? # Metadata only object
-
-      druid_path = File.dirname(version_file_path).delete_suffix('/versions')
 
       found_files = Dir.entries("#{druid_path}/content").reject { |f| f.start_with?('.') }.to_set
 
@@ -36,7 +35,7 @@ namespace :audit do
   end
 end
 
-def find_shelved_files_for_all_versions(version_file_path)
+def find_shelved_files_for_all_versions(version_file_path, druid_path)
   version_data = JSON.parse(File.read(version_file_path))
 
   version_data['versions'].keys.flat_map do |version|

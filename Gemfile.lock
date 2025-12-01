@@ -480,6 +480,7 @@ PLATFORMS
 
 DEPENDENCIES
   bootsnap (>= 1.1.0)
+  bundler-audit
   capistrano-bundler
   capistrano-passenger
   capistrano-rails

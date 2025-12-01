@@ -6,28 +6,31 @@ RSpec.describe VersionedFilesService::Object do
   let(:service) { described_class.new(druid) }
   let(:druid) { 'druid:bc123df4567' }
 
-  let(:stacks_pathname) { 'tmp/stacks' }
-
-  let(:content_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/content" }
-  let(:versions_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions" }
+  let(:versions_path) { "bc/123/df/4567/bc123df4567/versions" }
 
   let(:public_xml) { 'public xml' }
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
 
   before do
-    allow(Settings.filesystems).to receive_messages(stacks_root: stacks_pathname)
-    FileUtils.rm_rf(stacks_pathname)
+    s3_bucket.clear!
   end
 
   after do
-    FileUtils.rm_rf(stacks_pathname)
+    s3_client.delete_object(
+      bucket: Settings.s3.bucket,
+      key: "bc/123/df/4567/bc123df4567/versions/versions.json"
+    )
   end
 
   describe '#head_version' do
     context 'when the manifest has the head version' do
       before do
-        FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { head: 3 }
-        File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "bc/123/df/4567/bc123df4567/versions/versions.json",
+          body: { head: 3 }.to_json
+        )
       end
 
       it 'returns the head version' do
@@ -45,9 +48,11 @@ RSpec.describe VersionedFilesService::Object do
   describe '#version?' do
     context 'when the version manifest exists' do
       before do
-        FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { versions: { '1': { state: 'available', date: '2022-06-26T10:06:45−07:00' } } }
-        File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "bc/123/df/4567/bc123df4567/versions/versions.json",
+          body: { versions: { '1': { state: 'available', date: '2022-06-26T10:06:45−07:00' } } }.to_json
+        )
       end
 
       context 'when a version' do
@@ -73,9 +78,11 @@ RSpec.describe VersionedFilesService::Object do
   describe '#version_metadata_for' do
     context 'when the version manifest exists' do
       before do
-        FileUtils.mkdir_p("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions")
-        manifest = { versions: { '1' => { state: 'available', date: '2022-06-26T10:06:45+07:00' } } }
-        File.write("#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json", manifest.to_json)
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "bc/123/df/4567/bc123df4567/versions/versions.json",
+          body: { versions: { '1': { state: 'available', date: '2022-06-26T10:06:45+07:00' } } }.to_json
+        )
       end
 
       context 'when a version' do
@@ -101,14 +108,22 @@ RSpec.describe VersionedFilesService::Object do
 
   describe '#withdraw' do
     context 'when the version manifest exists' do
-      let(:versions_manifest) { JSON.parse(File.read(versions_manifest_path)).with_indifferent_access }
+      let(:versions_manifest) do
+        resp = s3_client.get_object(
+          bucket: Settings.s3.bucket,
+          key: versions_manifest_key
+        )
+        JSON.parse(resp.body.read).with_indifferent_access
+      end
 
-      let(:versions_manifest_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions/versions.json" }
+      let(:versions_manifest_key) { "bc/123/df/4567/bc123df4567/versions/versions.json" }
 
       before do
-        FileUtils.mkdir_p(File.dirname(versions_manifest_path))
-        manifest = { versions: { '1': { state: 'available', date: '2022-06-26T10:06:45+07:00' } } }
-        File.write(versions_manifest_path, manifest.to_json)
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: versions_manifest_key,
+          body: { versions: { '1': { state: 'available', date: '2022-06-26T10:06:45+07:00' } } }.to_json
+        )
       end
 
       context 'when withdrawing' do
@@ -143,12 +158,17 @@ RSpec.describe VersionedFilesService::Object do
 
   describe '#content_mds5' do
     context 'when content files' do
-      let(:content_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/content" }
-
       before do
-        FileUtils.mkdir_p(content_path)
-        FileUtils.touch("#{content_path}/41446aec93ba8d401a33b46679a7dcaa")
-        FileUtils.touch("#{content_path}/dcd10eb5c49038ba0a6edfcf18b6877d")
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "bc/123/df/4567/bc123df4567/content/41446aec93ba8d401a33b46679a7dcaa",
+          body: 'foo'
+        )
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "bc/123/df/4567/bc123df4567/content/dcd10eb5c49038ba0a6edfcf18b6877d",
+          body: 'bar'
+        )
       end
 
       it 'returns the content md5s' do
@@ -262,15 +282,19 @@ RSpec.describe VersionedFilesService::Object do
       end
 
       before do
-        write_version(content_path:, versions_path:, cocina_object: initial_dro, version: 1)
-        write_version(content_path:, versions_path:, cocina_object: version_2_dro, version: 2)
-        File.write("#{versions_path}/versions.json", {
-          versions: {
-            1 => { state: 'available', date: DateTime.now.iso8601 },
-            2 => { state: 'available', date: DateTime.now.iso8601 }
-          },
-          head: '2'
-        }.to_json)
+        write_version(cocina_object: initial_dro, version: 1)
+        write_version(cocina_object: version_2_dro, version: 2)
+        s3_client.put_object(
+          bucket: Settings.s3.bucket,
+          key: "#{versions_path}/versions.json",
+          body: {
+            versions: {
+              1 => { state: 'available', date: DateTime.now.iso8601 },
+              2 => { state: 'available', date: DateTime.now.iso8601 }
+            },
+            head: '2'
+          }.to_json
+        )
       end
 
       it 'returns array of files by md5' do

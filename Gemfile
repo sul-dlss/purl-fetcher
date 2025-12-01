@@ -76,3 +76,5 @@ gem 'jwt' # json web token
 gem "druid-tools", "~> 3.0"
 
 gem "httpx", "~> 1.4"
+
+gem "aws-sdk-s3", "~> 1.203"

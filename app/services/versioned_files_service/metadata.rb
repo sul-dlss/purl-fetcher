@@ -1,18 +1,16 @@
 class VersionedFilesService
   # Support for managing cocina.json and public xml files.
   class Metadata
-    # @param paths [VersionedFilesService::Paths] the paths service
-    def initialize(paths:)
-      @paths = paths
+    # @param object_store [ObjectStore] the object store service
+    def initialize(object_store:)
+      @object_store = object_store
     end
 
     # Write the cocina.json file for a version.
     # @param version [String] the version number
     # @param [Cocina] the cocina object
     def write_cocina(version:, cocina:)
-      FileUtils.mkdir_p(versions_path)
-      cocina_path = cocina_path_for(version:)
-      cocina_path.write(self.class.deep_compact_blank(cocina.to_h).to_json)
+      @object_store.write_cocina(version:, json: self.class.deep_compact_blank(cocina.to_h).to_json)
     end
 
     def self.deep_compact_blank(node)
@@ -38,11 +36,7 @@ class VersionedFilesService
     # @param version [String] the version number
     # @param [String] the public xml
     def write_public_xml(version:, public_xml:)
-      FileUtils.mkdir_p(versions_path)
-      public_xml_path = public_xml_path_for(version:)
-      public_xml_path.write(public_xml)
+      @object_store.write_public_xml(version:, xml: public_xml)
     end
-
-    delegate :cocina_path_for, :public_xml_path_for, :versions_path, to: :@paths
   end
 end

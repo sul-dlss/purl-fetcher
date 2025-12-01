@@ -7,10 +7,7 @@ class VersionedFilesService
       @druid = druid
     end
 
-    delegate :object_path, :content_path, :versions_path,
-             :cocina_path_for, :public_xml_path_for,
-             :versions_manifest_path, :content_path_for, :meta_json_path,
-             :lockfile_path, to: :paths
+    delegate :meta_json_path, to: :paths
 
     delegate :head_version, :version?, :version_metadata_for, :version_metadata,
              :withdraw, :versions, to: :version_manifest
@@ -19,9 +16,15 @@ class VersionedFilesService
 
     delegate :write_cocina, :write_public_xml, to: :metadata
 
+    # @return [Pathname] the path to a lock file for the object
+    # Note that this is the logical path; the path may not exist.
+    def lockfile_path
+      Pathname.new("tmp/locks/#{druid.delete_prefix('druid:')}.lock")
+    end
+
     # @return [VersionedfilesService::VersionsManifest] the versions manifest
     def version_manifest
-      @version_manifest ||= VersionsManifest.new(path: paths.versions_manifest_path)
+      @version_manifest ||= VersionsManifest.new(object_store: object_store)
     end
 
     # @return [Array<VersionedFilesService::Cocina::FileDetails>] array of hashes with md5 as key and filename as value for shelved files for all versions.
@@ -35,21 +38,20 @@ class VersionedFilesService
       Cocina.for(druid:, version:).file_details_by_md5
     end
 
-    private
-
-    # @return [VersionedfilesService::Paths] the paths
-    def paths
-      @paths ||= Paths.new(druid:)
+    def object_store
+      @object_store ||= ObjectStore.new(druid:)
     end
+
+    private
 
     # @return [VersionedfilesService::Metadata] the metadata
     def metadata
-      @metadata ||= Metadata.new(paths:)
+      @metadata ||= Metadata.new(object_store:)
     end
 
     # @return [VersionedfilesService::Contents] the contents
     def contents
-      @contents ||= Contents.new(paths:)
+      @contents ||= Contents.new(object_store:)
     end
   end
 end

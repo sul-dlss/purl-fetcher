@@ -5,11 +5,15 @@ RSpec.describe 'Withdraw a user version' do
   let!(:purl_object) { create(:purl, druid:) } # rubocop:disable RSpec/LetSetup
   let(:druid) { 'druid:bc123df4567' }
 
-  let(:versions_path) { "tmp/stacks/bc/123/df/4567/bc123df4567/versions" }
+  let(:versions_path) { "bc/123/df/4567/bc123df4567/versions" }
+  let(:s3_bucket) { Aws::S3::Bucket.new(Settings.s3.bucket, client: s3_client) }
+  let(:s3_client) { S3ClientFactory.create_client }
 
   let(:object) do
     VersionedFilesService::Object.new(druid)
   end
+
+  let(:versions_manifest_key) { "#{versions_path}/versions.json" }
 
   let(:versions_data) do
     {
@@ -21,13 +25,24 @@ RSpec.describe 'Withdraw a user version' do
     }
   end
 
+  let(:read_version_data) do
+    resp = s3_client.get_object(
+      bucket: Settings.s3.bucket,
+      key: versions_manifest_key
+    )
+    JSON.parse(resp.body.read)
+  end
+
   before do
-    FileUtils.mkdir_p(versions_path)
-    File.write("#{versions_path}/versions.json", versions_data.to_json)
+    s3_client.put_object(
+      bucket: Settings.s3.bucket,
+      key: versions_manifest_key,
+      body: versions_data.to_json
+    )
   end
 
   after do
-    FileUtils.rm_rf('tmp/stacks')
+    s3_bucket.clear!
   end
 
   describe 'PUT /v1/purls/:druid/versions/:version/withdraw' do
@@ -37,8 +52,7 @@ RSpec.describe 'Withdraw a user version' do
             headers: { 'Authorization' => "Bearer #{jwt}" }
 
         expect(response).to have_http_status(:no_content)
-        versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-        expect(versions_data['versions']['1']['state']).to eq 'withdrawn'
+        expect(read_version_data['versions']['1']['state']).to eq 'withdrawn'
       end
     end
 
@@ -106,8 +120,7 @@ RSpec.describe 'Withdraw a user version' do
             headers: { 'Authorization' => "Bearer #{jwt}" }
 
         expect(response).to have_http_status(:no_content)
-        versions_data = JSON.parse(File.read("#{versions_path}/versions.json"))
-        expect(versions_data['versions']['1']['state']).to eq 'available'
+        expect(read_version_data['versions']['1']['state']).to eq 'available'
       end
     end
   end

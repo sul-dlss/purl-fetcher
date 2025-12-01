@@ -60,37 +60,16 @@ RSpec.describe V1::PurlsController do
     end
 
     context 'with an existing item' do
-      let(:paths) { VersionedFilesService::Paths.new(druid: purl_object.druid) }
-      let(:meta_path) { paths.meta_json_path }
-      let(:purl_object) { create(:purl, druid:) }
-
-      before do
-        FileUtils.rm_r(paths.versions_path) if File.directory?(paths.versions_path)
-        FileUtils.mkdir_p(paths.versions_path)
-      end
-
-      after do
-        FileUtils.rm_rf(paths.versions_path)
-      end
+      let!(:purl_object) { create(:purl, druid:) }
+      let(:druid) { 'druid:bc123df4567' }
+      let(:object_store) { ObjectStore.new(druid:) }
 
       context 'with an existing versioned item' do
-        let(:druid) { 'druid:bc123df4567' }
-
-        let(:stacks_path) { Pathname.new('tmp/stacks') }
-
-        before do
-          allow(Settings.filesystems).to receive(:stacks_root).and_return(stacks_path.to_s)
-
-          FileUtils.mkdir_p(meta_path.dirname)
-        end
-
-        after do
-          FileUtils.rm_rf(stacks_path)
-        end
-
         it 'puts a Kafka message on the queue for indexing' do
-          expect { put("/v1/purls/#{druid}/release_tags", params: data, headers:) }.to change(meta_path, :exist?)
-            .from(false).to(true).and change(meta_path, :exist?).from(false).to(true)
+          put("/v1/purls/#{druid}/release_tags", params: data, headers:)
+
+          expect(object_store.read_meta_json).to include({ "searchworks" => true, "earthworks" => false })
+
           expect(response).to have_http_status(:accepted)
 
           expect(Racecar).to have_received(:produce_sync)
@@ -99,24 +78,17 @@ RSpec.describe V1::PurlsController do
       end
 
       context 'with an existing versioned item that is being unreleased' do
-        let(:druid) { 'druid:bc123df4567' }
         let(:data) { { actions: { 'index' => [], 'delete' => ['Searchworks'] } }.to_json }
-        let(:stacks_path) { Pathname.new('tmp/stacks') }
 
         before do
-          allow(Settings.filesystems).to receive(:stacks_root).and_return(stacks_path.to_s)
-
-          FileUtils.mkdir_p(meta_path.dirname)
           purl_object.release_tags.create(name: "Searchworks", release_type: true)
         end
 
-        after do
-          FileUtils.rm_rf(stacks_path)
-        end
-
         it 'puts a Kafka message on the queue for indexing' do
-          expect { put("/v1/purls/#{druid}/release_tags", params: data, headers:) }.to change(meta_path, :exist?)
-            .from(false).to(true).and change(meta_path, :exist?).from(false).to(true)
+          put("/v1/purls/#{druid}/release_tags", params: data, headers:)
+
+          expect(object_store.read_meta_json).to include({ "searchworks" => false, "earthworks" => false })
+
           expect(response).to have_http_status(:accepted)
           expect(purl_object.reload.release_tags.first.release_type).to be false
         end

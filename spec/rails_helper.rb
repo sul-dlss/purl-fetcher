@@ -52,5 +52,15 @@ RSpec.configure do |config|
 
   config.global_fixtures = :all
 
+
+  config.before(:suite) do
+    s3_client = S3ClientFactory.create_client
+    bucket_name = Settings.s3.bucket
+    begin
+      s3_client.create_bucket(bucket: bucket_name)
+    rescue Aws::S3::Errors::BucketAlreadyOwnedByYou
+      # Bucket already exists, do nothing
+    end
+  end
 end
 require 'cocina/rspec'

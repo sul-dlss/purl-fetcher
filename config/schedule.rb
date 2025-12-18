@@ -22,6 +22,8 @@
 # Load rubyconfig gem so that we have access to env-specific settings
 require 'config'
 
+# Allows config from the ENV to be loaded
+require_relative 'initializers/config'
 Config.load_and_set_settings(Config.setting_files('config', 'production'))
 
 # Purging transfer files that have become orphaned to avoid filling storage.

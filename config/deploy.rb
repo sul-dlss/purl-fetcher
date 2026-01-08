@@ -24,4 +24,7 @@ set :honeybadger_env, "#{fetch(:stage)}"
 
 set :whenever_roles, [:cron]
 
+# See https://github.com/capistrano/bundler/pull/137
+set :bundle_version, 4
+
 after 'deploy:published', 'deploy:restart'

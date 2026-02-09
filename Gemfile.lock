@@ -169,7 +169,7 @@ GEM
       dry-types (~> 1.8, >= 1.8.2)
       ice_nine (~> 0.11)
       zeitwerk (~> 2.6)
-    dry-types (1.9.0)
+    dry-types (1.9.1)
       bigdecimal (>= 3.0)
       concurrent-ruby (~> 1.0)
       dry-core (~> 1.0)
@@ -195,7 +195,7 @@ GEM
     honeybadger (6.3.0)
       logger
       ostruct
-    http-2 (1.1.1)
+    http-2 (1.1.2)
     httpx (1.7.2)
       http-2 (>= 1.0.0)
     i18n (1.14.8)
@@ -209,7 +209,7 @@ GEM
     jbuilder (2.14.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
-    json (2.18.0)
+    json (2.18.1)
     jsonpath (1.1.5)
       multi_json
     jwt (3.1.2)
@@ -263,7 +263,7 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     net-ssh (7.3.0)
-    newrelic_rpm (10.0.0)
+    newrelic_rpm (10.1.0)
       logger
     nio4r (2.7.5)
     nokogiri (1.19.0-arm64-darwin)
@@ -371,7 +371,7 @@ GEM
       rspec-mocks (~> 3.13)
       rspec-support (~> 3.13)
     rspec-support (3.13.7)
-    rubocop (1.84.0)
+    rubocop (1.84.1)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -498,4 +498,4 @@ DEPENDENCIES
   whenever
 
 BUNDLED WITH
-  4.0.5
+  4.0.6

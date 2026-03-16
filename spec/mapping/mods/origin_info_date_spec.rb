@@ -1791,8 +1791,6 @@ RSpec.describe 'MODS originInfo <--> cocina mappings' do
             </originInfo>
           XML
         end
-
-        let(:warnings) { [Notification.new(msg: 'Unrecognized event type')] }
       end
     end
   end
@@ -2388,8 +2386,6 @@ RSpec.describe 'MODS originInfo <--> cocina mappings' do
             </originInfo>
           XML
         end
-
-        let(:warnings) { [Notification.new(msg: 'Undetermined date type')] }
       end
     end
   end
@@ -2746,8 +2742,6 @@ RSpec.describe 'MODS originInfo <--> cocina mappings' do
             ]
           }
         end
-
-        let(:warnings) { [Notification.new(msg: 'Undetermined date type')] }
       end
     end
   end

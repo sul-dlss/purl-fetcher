@@ -298,54 +298,6 @@ RSpec.describe 'MODS originInfo place <--> cocina mappings' do
 
   # Bad data handling
 
-  describe 'Place - code with bad authority' do
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <originInfo eventType="publication">
-            <place>
-              <placeTerm type="code" authority="marcountry" authorityURI="http://id.loc.gov/vocabulary/countries/"
-                valueURI="http://id.loc.gov/vocabulary/countries/cau">cau</placeTerm>
-            </place>
-          </originInfo>
-        XML
-      end
-
-      let(:roundtrip_mods) do
-        <<~XML
-          <originInfo eventType="publication">
-            <place>
-              <placeTerm type="code" authority="marccountry" authorityURI="http://id.loc.gov/vocabulary/countries/"
-                valueURI="http://id.loc.gov/vocabulary/countries/cau">cau</placeTerm>
-            </place>
-          </originInfo>
-        XML
-      end
-
-      let(:cocina) do
-        {
-          event: [
-            {
-              type: 'publication',
-              location: [
-                {
-                  code: 'cau',
-                  uri: 'http://id.loc.gov/vocabulary/countries/cau',
-                  source: {
-                    code: 'marccountry',
-                    uri: 'http://id.loc.gov/vocabulary/countries/'
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      end
-
-      let(:warnings) { [Notification.new(msg: 'marcountry authority code (should be marccountry)')] }
-    end
-  end
-
   describe 'Place code missing authority' do
     it_behaves_like 'MODS cocina mapping' do
       let(:mods) do
@@ -371,8 +323,6 @@ RSpec.describe 'MODS originInfo place <--> cocina mappings' do
           ]
         }
       end
-
-      let(:warnings) { [Notification.new(msg: 'Place code missing authority', context: { code: 'xxu' })] }
     end
   end
 

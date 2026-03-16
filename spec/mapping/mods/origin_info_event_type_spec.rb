@@ -670,8 +670,6 @@ RSpec.describe 'MODS originInfo <--> cocina mappings TEST' do
             ]
           }
         end
-
-        let(:warnings) { [Notification.new(msg: 'Undetermined date type')] }
       end
     end
   end

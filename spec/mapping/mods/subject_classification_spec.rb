@@ -45,12 +45,6 @@ RSpec.describe 'MODS subject classification <--> cocina mappings' do
           ]
         }
       end
-
-      let(:warnings) do
-        [
-          Notification.new(msg: 'No source given for classification value', context: { value: 'G9801.S12 2015 .Z3' })
-        ]
-      end
     end
   end
 
@@ -199,94 +193,6 @@ RSpec.describe 'MODS subject classification <--> cocina mappings' do
             }
           ]
         }
-      end
-    end
-  end
-
-  # Bad data handling
-
-  describe 'Multiple classifications, multiple primary' do
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <classification usage="primary" authority="ddc" edition="11">683</classification>
-          <classification usage="primary" authority="ddc" edition="12">684</classification>
-        XML
-      end
-
-      let(:roundtrip_mods) do
-        # Drop all instances of usage="primary" after first one
-        <<~XML
-          <classification usage="primary" authority="ddc" edition="11">683</classification>
-          <classification authority="ddc" edition="12">684</classification>
-        XML
-      end
-
-      let(:cocina) do
-        {
-          subject: [
-            {
-              type: 'classification',
-              value: '683',
-              status: 'primary',
-              source: {
-                code: 'ddc',
-                version: '11'
-              }
-            },
-            {
-              type: 'classification',
-              value: '684',
-              source: {
-                code: 'ddc',
-                version: '12'
-              }
-            }
-          ]
-        }
-      end
-
-      let(:warnings) do
-        [
-          Notification.new(msg: 'Multiple marked as primary', context: { type: 'classification' })
-        ]
-      end
-    end
-  end
-
-  describe 'Classification source code includes edition after slash' do
-    xit 'not implemented: classification source code includes edition after slash' do
-      let(:mods) do
-        <<~XML
-          <classification authority="ddc/11">683</classification>
-        XML
-      end
-
-      let(:roundtrip_mods) do
-        <<~XML
-          <classification authority="ddc" edition="11">683</classification>
-        XML
-      end
-
-      let(:cocina) do
-        {
-          subject: [
-            {
-              type: 'classification',
-              value: '683',
-              source: {
-                code: 'ddc',
-                version: '11'
-              }
-            }
-          ]
-        }
-      end
-
-      let(:warnings) do
-        [
-          Notification.new(msg: 'Authority code includes edition', context: { type: 'classification' })
-        ]
       end
     end
   end

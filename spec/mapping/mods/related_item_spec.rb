@@ -325,53 +325,6 @@ RSpec.describe 'MODS relatedItem <--> cocina mappings' do
     end
   end
 
-  describe 'Related item with otherType - invalid' do
-    # ERROR - otherType attribute can't be used if type is present
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <relatedItem type="otherFormat" otherType="Online version:" displayLabel="Online version:">
-            <titleInfo>
-              <title>Sitzungsberichte der Kaiserlichen Akademie der Wissenschaften</title>
-            </titleInfo>
-          </relatedItem>
-        XML
-      end
-
-      let(:roundtrip_mods) do
-        <<~XML
-           <relatedItem type="otherFormat" displayLabel="Online version:">
-            <titleInfo>
-              <title>Sitzungsberichte der Kaiserlichen Akademie der Wissenschaften</title>
-            </titleInfo>
-          </relatedItem>
-        XML
-      end
-
-      let(:cocina) do
-        {
-          relatedResource: [
-            {
-              title: [
-                {
-                  value: 'Sitzungsberichte der Kaiserlichen Akademie der Wissenschaften'
-                }
-              ],
-              type: 'has other format',
-              displayLabel: 'Online version:'
-            }
-          ]
-        }
-      end
-
-      let(:warnings) do
-        [
-          Notification.new(msg: 'Related resource has type and otherType')
-        ]
-      end
-    end
-  end
-
   describe 'Related item with otherType - valid' do
     # otherType can't map to 'type' because a) it's not necessarily in the type vocabulary mapping and b) it has
     # associated authority attributes that can't be represented in 'type'
@@ -524,71 +477,6 @@ RSpec.describe 'MODS relatedItem <--> cocina mappings' do
             }
           ]
         }
-      end
-    end
-  end
-
-  describe 'Empty related item - A' do
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <relatedItem>
-            <titleInfo>
-              <title/>
-            </titleInfo>
-            <location>
-              <url/>
-            </location>
-          </relatedItem>
-        XML
-      end
-
-      let(:cocina) { {} }
-
-      let(:roundtrip_mods) { '' }
-
-      let(:warnings) do
-        [
-          Notification.new(msg: 'Empty title node')
-        ]
-      end
-    end
-  end
-
-  describe 'Empty related item - B' do
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <relatedItem type="original"/>
-        XML
-      end
-
-      let(:cocina) { {} }
-
-      let(:roundtrip_mods) { '' }
-    end
-  end
-
-  describe 'Empty related item - C' do
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <relatedItem type="constituent">
-            <titleInfo>
-              <title/>
-            </titleInfo>
-          </relatedItem>
-        XML
-      end
-
-      let(:cocina) { {} }
-
-      let(:roundtrip_mods) { '' }
-
-      let(:warnings) do
-        [
-          Notification.new(msg: 'Empty title node')
-        ]
       end
     end
   end

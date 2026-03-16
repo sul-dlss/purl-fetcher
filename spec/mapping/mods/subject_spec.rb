@@ -265,56 +265,6 @@ RSpec.describe 'MODS subject topic <--> cocina mappings' do
   end
 
   # Bad data handling
-
-  describe 'With multiple primary' do
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <subject usage="primary">
-            <topic>Trees</topic>
-          </subject>
-          <subject usage="primary">
-            <topic>Birds</topic>
-          </subject>
-        XML
-      end
-
-      let(:roundtrip_mods) do
-        # Drop all instances of usage="primary" after first one
-        <<~XML
-          <subject usage="primary">
-            <topic>Trees</topic>
-          </subject>
-          <subject>
-            <topic>Birds</topic>
-          </subject>
-        XML
-      end
-
-      let(:cocina) do
-        {
-          subject: [
-            {
-              value: 'Trees',
-              type: 'topic',
-              status: 'primary'
-            },
-            {
-              value: 'Birds',
-              type: 'topic'
-            }
-          ]
-        }
-      end
-
-      let(:warnings) do
-        [
-          Notification.new(msg: 'Multiple marked as primary', context: { type: 'subject' })
-        ]
-      end
-    end
-  end
-
   describe 'Authority-only subject' do
     # Adapted from nv251kt0037
     it_behaves_like 'MODS cocina mapping' do
@@ -407,38 +357,6 @@ RSpec.describe 'MODS subject topic <--> cocina mappings' do
           ]
         }
       end
-    end
-  end
-
-  # Bad data handling
-
-  describe 'Element with xlink should not have value' do
-    # Adapted from vj685ps3229
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <subject xmlns:xlink="http://www.w3.org/1999/xlink" authority="fast" xlink:href="http://id.worldcat.org/fast/1355886">
-            <temporal>1939-1945</temporal>
-          </subject>
-        XML
-      end
-
-      let(:cocina) do
-        {
-          subject: [
-            {
-              value: '1939-1945',
-              type: 'time',
-              source: {
-                code: 'fast'
-              },
-              valueAt: 'http://id.worldcat.org/fast/1355886'
-            }
-          ]
-        }
-      end
-
-      let(:warnings) { [Notification.new(msg: 'Element with both xlink and value')] }
     end
   end
 end

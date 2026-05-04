@@ -9,7 +9,7 @@ class VersionedFilesService
     def self.with_lock(object, &)
       FileUtils.mkdir_p(object.lockfile_path.dirname)
 
-      f = File.open(object.lockfile_path, File::RDWR | File::CREAT)
+      f = File.open(object.lockfile_path, File::RDWR | File::CREAT) # rubocop:disable Style/FileOpen
 
       ret = f.flock(File::LOCK_EX | File::LOCK_NB)
 

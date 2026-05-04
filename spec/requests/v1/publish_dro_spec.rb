@@ -215,7 +215,7 @@ RSpec.describe 'Publish a DRO' do
       before do
         FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/versions')
 
-        f = File.open("tmp/stacks/bc/123/df/4567/bc123df4567/versions/.lock", File::RDWR | File::CREAT)
+        f = File.open("tmp/stacks/bc/123/df/4567/bc123df4567/versions/.lock", File::RDWR | File::CREAT) # rubocop:disable Style/FileOpen
         f.flock(File::LOCK_EX)
       end
 

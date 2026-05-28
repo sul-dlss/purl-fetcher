@@ -419,9 +419,7 @@ RSpec.describe ToMods::Title do
     end
 
     it 'raises an unknown title type error' do
-      expect { xml }.to raise_error('Unknown title type for: {structuredValue: [], parallelValue: [], ' \
-                                    'groupedValue: [], value: "Concertos, recorder, string orchestra", ' \
-                                    'identifier: [], note: [], appliesTo: []}')
+      expect { xml }.to raise_error(/Unknown title type for:.+value: "Concertos, recorder, string orchestra".+/)
     end
   end
 

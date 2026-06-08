@@ -9,7 +9,7 @@ end
 gem "rails", "~> 8.1.0"
 
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", "~> 6.0"
+gem "puma", "~> 8.0"
 
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"

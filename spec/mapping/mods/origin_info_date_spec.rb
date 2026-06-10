@@ -3113,8 +3113,8 @@ RSpec.describe 'MODS originInfo <--> cocina mappings' do
       let(:mods) do
         <<~XML
           <originInfo>
-            <dateCreated keyDate="yes" encoding="edtf" qualifier="approximate" point="start">0</dateCreated>
-            <dateCreated encoding="edtf" qualifier="approximate" point="end">200</dateCreated>
+            <dateCreated keyDate="yes" encoding="edtf" qualifier="approximate" point="start">0000</dateCreated>
+            <dateCreated encoding="edtf" qualifier="approximate" point="end">0200</dateCreated>
           </originInfo>
         XML
       end
@@ -3127,12 +3127,12 @@ RSpec.describe 'MODS originInfo <--> cocina mappings' do
                 {
                   structuredValue: [
                     {
-                      value: '0',
+                      value: '0000',
                       status: 'primary',
                       type: 'start'
                     },
                     {
-                      value: '200',
+                      value: '0200',
                       type: 'end'
                     }
                   ],
@@ -3156,18 +3156,8 @@ RSpec.describe 'MODS originInfo <--> cocina mappings' do
       let(:mods) do
         <<~XML
           <originInfo displayLabel="Place of creation">
-            <dateIssued keyDate="yes" encoding="edtf" point="start">103</dateIssued>
-            <dateIssued encoding="edtf" point="end">111</dateIssued>
-          </originInfo>
-        XML
-      end
-
-      # trailing slash on placeTerm authorityURI
-      let(:roundtrip_mods) do
-        <<~XML
-          <originInfo displayLabel="Place of creation">
-            <dateIssued keyDate="yes" encoding="edtf" point="start">103</dateIssued>
-            <dateIssued encoding="edtf" point="end">111</dateIssued>
+            <dateIssued keyDate="yes" encoding="edtf" point="start">0103</dateIssued>
+            <dateIssued encoding="edtf" point="end">0111</dateIssued>
           </originInfo>
         XML
       end
@@ -3181,12 +3171,12 @@ RSpec.describe 'MODS originInfo <--> cocina mappings' do
                 {
                   structuredValue: [
                     {
-                      value: '103',
+                      value: '0103',
                       status: 'primary',
                       type: 'start'
                     },
                     {
-                      value: '111',
+                      value: '0111',
                       type: 'end'
                     }
                   ],

@@ -11,7 +11,6 @@ RSpec.describe Publish::PublicDescMetadataService do
     Cocina::Models.build({
                            type: "https://cocina.sul.stanford.edu/models/book",
                            externalIdentifier: druid,
-                           label: "Test DRO",
                            version: 1,
                            access:,
                            administrative: { "hasAdminPolicy" => "druid:hy787xj5878" },

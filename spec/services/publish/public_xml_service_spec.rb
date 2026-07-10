@@ -116,7 +116,7 @@ RSpec.describe Publish::PublicXmlService do
 
     context 'produces xml with' do
       let(:public_cocina) do
-        build(:dro, id: druid, label: 'Constituent label &amp; A Special character').new(
+        build(:dro, id: druid).new(
           structural:,
           identification: {
             barcode: '36105132211504',
@@ -156,7 +156,7 @@ RSpec.describe Publish::PublicXmlService do
         expected = <<~XML
           <identityMetadata>
             <objectType>item</objectType>
-            <objectLabel>Constituent label &amp; A Special character</objectLabel>
+            <objectLabel>factory DRO label</objectLabel>
             <sourceId source="sul">sul:123</sourceId>
             <otherId name="catkey">129483625</otherId>
             <otherId name="folio_instance_hrid">a129483625</otherId>
@@ -281,7 +281,7 @@ RSpec.describe Publish::PublicXmlService do
 
     context 'with a collection' do
       let(:public_cocina) do
-        build(:collection, id: druid, label: 'Constituent label &amp; A Special character')
+        build(:collection, id: druid)
       end
 
       it 'publishes the expected datastreams' do
@@ -295,7 +295,7 @@ RSpec.describe Publish::PublicXmlService do
         expected = <<~XML
           <identityMetadata>
             <objectType>collection</objectType>
-            <objectLabel>Constituent label &amp; A Special character</objectLabel>
+            <objectLabel>factory collection label</objectLabel>
             <sourceId source="sul">sulcollection:1234</sourceId>
           </identityMetadata>
         XML
@@ -323,7 +323,6 @@ RSpec.describe Publish::PublicXmlService do
           { cocinaVersion: '0.65.1',
             type: Cocina::Models::ObjectType.image,
             externalIdentifier: 'druid:cg767mn6478',
-            label: "Cover: Carey's American atlas.",
             version: 3,
             access: { view: 'world',
                       download: 'world',
@@ -405,7 +404,6 @@ RSpec.describe Publish::PublicXmlService do
           { cocinaVersion: '0.65.1',
             type: Cocina::Models::ObjectType.image,
             externalIdentifier: 'druid:jw923xn5254',
-            label: "Title Page: Carey's American atlas.",
             version: 3,
             access: { view: 'world',
                       download: 'world',

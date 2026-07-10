@@ -158,7 +158,7 @@ RSpec.describe Cocina::ToXml::ContentMetadataGenerator do
   let(:data) do
     <<~JSON
       { "type":"#{object_type}",
-        "label":"The object label","version":1,"access":{"view":"world","download":"world"},
+        "version":1,"access":{"view":"world","download":"world"},
         "administrative":{"hasAdminPolicy":"druid:dd999df4567"},
         "description":{"title":[{"status":"primary","value":"the object title"}]},
         "identification":{"sourceId":"sul:9999999"},
@@ -687,7 +687,7 @@ RSpec.describe Cocina::ToXml::ContentMetadataGenerator do
       <<~JSON
         { "externalIdentifier":"druid:bc123df5678",
           "type":"#{object_type}",
-          "label":"The object label","version":1,"access":{"view":"world","download":"world"},
+          "version":1,"access":{"view":"world","download":"world"},
           "administrative":{"hasAdminPolicy":"druid:dd999df4567"},
           "description":{
             "title":[{"status":"primary","value":"the object title"}],
@@ -766,7 +766,7 @@ RSpec.describe Cocina::ToXml::ContentMetadataGenerator do
       <<~JSON
         { "externalIdentifier":"druid:bc123df5678",
           "type":"#{object_type}",
-          "label":"The object label","version":1,"access":{"view":"world","download":"world"},
+          "version":1,"access":{"view":"world","download":"world"},
           "administrative":{"hasAdminPolicy":"druid:dd999df4567"},
           "description":{
             "title":[{"status":"primary","value":"the object title"}],
@@ -782,7 +782,6 @@ RSpec.describe Cocina::ToXml::ContentMetadataGenerator do
         externalIdentifier: constituent_druid,
         version: 1,
         type: Cocina::Models::ObjectType.object,
-        label: 'Dummy DRO',
         access: { view: 'world', download: 'world' },
         administrative: { hasAdminPolicy: 'druid:df123cd4567' },
         description: {

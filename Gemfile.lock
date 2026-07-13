@@ -77,7 +77,7 @@ GEM
       uri (>= 0.13.1)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
-    airbrussh (1.6.1)
+    airbrussh (1.6.2)
       sshkit (>= 1.6.1, != 1.7.0)
     ast (2.4.3)
     attr_extras (7.1.0)
@@ -117,7 +117,7 @@ GEM
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
     chronic (0.10.2)
-    cocina-models (0.127.0)
+    cocina-models (0.128.0)
       activesupport
       cocina_display
       deprecation
@@ -159,7 +159,6 @@ GEM
       capistrano-one_time_key (>= 0.2.0)
       capistrano-shared_configs
       ed25519
-    docile (1.4.1)
     drb (2.2.3)
     druid-tools (3.0.0)
     dry-core (1.2.0)
@@ -204,7 +203,7 @@ GEM
     honeybadger (6.9.0)
       logger
       ostruct
-    http-2 (1.2.0)
+    http-2 (1.2.1)
     httpx (1.8.0)
       http-2 (>= 1.2.0)
     i18n (1.15.2)
@@ -222,9 +221,9 @@ GEM
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
     json (2.21.1)
-    jsonschema_rs (0.46.10-arm64-darwin)
+    jsonschema_rs (0.47.0-arm64-darwin)
       bigdecimal (>= 3.1, < 5)
-    jsonschema_rs (0.46.10-x86_64-linux)
+    jsonschema_rs (0.47.0-x86_64-linux)
       bigdecimal (>= 3.1, < 5)
     jwt (3.2.0)
       base64
@@ -349,13 +348,13 @@ GEM
       logger
       prism (>= 1.6.0)
       tsort
-    rdkafka (0.28.0-arm64-darwin)
+    rdkafka (0.29.0-arm64-darwin)
       ffi (~> 1.17.1)
       json (> 2.0)
       logger
       mini_portile2 (~> 2.6)
       rake (> 12)
-    rdkafka (0.28.0-x86_64-linux-gnu)
+    rdkafka (0.29.0-x86_64-linux-gnu)
       ffi (~> 1.17.1)
       json (> 2.0)
       logger
@@ -386,7 +385,7 @@ GEM
       rspec-mocks (>= 3.13.0, < 5.0.0)
       rspec-support (>= 3.13.0, < 5.0.0)
     rspec-support (3.13.7)
-    rubocop (1.88.1)
+    rubocop (1.88.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -410,7 +409,7 @@ GEM
       lint_roller (~> 1.1)
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.47.1, < 2.0)
-    rubocop-rails (2.35.5)
+    rubocop-rails (2.36.0)
       activesupport (>= 4.2.0)
       lint_roller (~> 1.1)
       rack (>= 1.1)
@@ -426,12 +425,7 @@ GEM
       rubocop-rspec (~> 3.5)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
-    simplecov (0.22.0)
-      docile (~> 1.1)
-      simplecov-html (~> 0.11)
-      simplecov_json_formatter (~> 0.1)
-    simplecov-html (0.13.2)
-    simplecov_json_formatter (0.1.4)
+    simplecov (1.0.0)
     sqlite3 (2.9.5-arm64-darwin)
     sqlite3 (2.9.5-x86_64-linux-gnu)
     sshkit (1.25.0)
@@ -514,4 +508,4 @@ DEPENDENCIES
   whenever
 
 BUNDLED WITH
-  4.0.15
+  4.0.16

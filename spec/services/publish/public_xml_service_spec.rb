@@ -156,7 +156,7 @@ RSpec.describe Publish::PublicXmlService do
         expected = <<~XML
           <identityMetadata>
             <objectType>item</objectType>
-            <objectLabel>factory DRO label</objectLabel>
+            <objectLabel>factory DRO title</objectLabel>
             <sourceId source="sul">sul:123</sourceId>
             <otherId name="catkey">129483625</otherId>
             <otherId name="folio_instance_hrid">a129483625</otherId>
@@ -295,7 +295,7 @@ RSpec.describe Publish::PublicXmlService do
         expected = <<~XML
           <identityMetadata>
             <objectType>collection</objectType>
-            <objectLabel>factory collection label</objectLabel>
+            <objectLabel>factory collection title</objectLabel>
             <sourceId source="sul">sulcollection:1234</sourceId>
           </identityMetadata>
         XML

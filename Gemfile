@@ -66,6 +66,7 @@ group :development, :test do
 end
 
 gem 'cocina-models', '~> 0.99'
+gem "cocina_display", "~> 2.8"
 
 gem "racecar"
 
@@ -76,5 +77,3 @@ gem 'jwt' # json web token
 gem "druid-tools", "~> 3.0"
 
 gem "httpx", "~> 1.4"
-
-gem "cocina_display", "~> 2.8"

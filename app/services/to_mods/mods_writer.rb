@@ -26,8 +26,10 @@ module ToMods
       Access.write(xml: xml, access: description.access,
                    purl: description.respond_to?(:purl) ? description.purl : nil)
       AdminMetadata.write(xml: xml, admin_metadata: description.adminMetadata)
-      RelatedResource.write(xml: xml, related_resources: description.relatedResource, druid: druid,
-                            id_generator: id_generator)
+      if description.respond_to?(:relatedResource)
+        RelatedResource.write(xml: xml, related_resources: description.relatedResource, druid: druid,
+                              id_generator: id_generator)
+      end
       Geographic.write(xml: xml, geos: description.geographic, druid: druid) if description.respond_to?(:geographic)
     end
   end

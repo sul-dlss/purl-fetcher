@@ -25,7 +25,7 @@ class VersionedFilesService
       # For each provided content file, get the md5 from the cocina object. If the content file does not already exist for that md5, then write a new content file named by the md5.
       move_content_files
       # Write the cocina to cocina path for the version (overwriting if already exists).
-      write_cocina(version:, cocina: Publish::PublicCocinaGenerator.generate(cocina:))
+      write_cocina(version:, cocina: public_cocina, label:)
       # Write the public xml to public xml path for the version (overwriting if already exists).
       write_public_xml(version:, public_xml:)
       # Update the version manifest.
@@ -122,6 +122,14 @@ class VersionedFilesService
 
     def content_md5s
       @content_md5s ||= @object.content_md5s
+    end
+
+    def public_cocina
+      @public_cocina ||= Publish::PublicCocinaGenerator.generate(cocina:)
+    end
+
+    def label
+      CocinaDisplay::CocinaRecord.new(public_cocina.as_json).label
     end
   end
 end

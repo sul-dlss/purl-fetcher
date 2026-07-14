@@ -25,7 +25,10 @@ RSpec.describe VersionedFilesService do
   describe '#update' do
     let(:access_transfer_stage) { 'tmp/access-transfer-stage' }
     let(:version_metadata) { VersionedFilesService::VersionsManifest::VersionMetadata.new(version: 1, state: 'available', date: DateTime.now) }
-    let(:compact_cocina) { VersionedFilesService::Metadata.deep_compact_blank(cocina.to_h).to_json }
+    let(:compact_cocina) do
+      label = CocinaDisplay::CocinaRecord.new(cocina.as_json).label
+      VersionedFilesService::Metadata.deep_compact_blank(cocina.to_h).merge(label:).to_json
+    end
 
     before do
       FileUtils.mkdir_p(access_transfer_stage)

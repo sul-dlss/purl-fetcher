@@ -9,10 +9,12 @@ class VersionedFilesService
     # Write the cocina.json file for a version.
     # @param version [String] the version number
     # @param [Cocina] the cocina object
-    def write_cocina(version:, cocina:)
+    # @param label [String] the label to merge into the cocina hash
+    def write_cocina(version:, cocina:, label:)
       FileUtils.mkdir_p(versions_path)
       cocina_path = cocina_path_for(version:)
-      cocina_path.write(self.class.deep_compact_blank(cocina.to_h).to_json)
+      cocina_hash = self.class.deep_compact_blank(cocina.to_h).merge(label:)
+      cocina_path.write(cocina_hash.to_json)
     end
 
     def self.deep_compact_blank(node)

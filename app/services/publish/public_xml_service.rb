@@ -76,7 +76,7 @@ module Publish
         <<~XML
           <identityMetadata>
             <objectType>#{public_cocina.collection? ? 'collection' : 'item'}</objectType>
-            <objectLabel>#{public_cocina.label}</objectLabel>
+            <objectLabel>#{label}</objectLabel>
             #{nodes.join("\n")}
           </identityMetadata>
         XML
@@ -98,6 +98,10 @@ module Publish
           type: public_cocina.type
         )
       )
+    end
+
+    def label
+      CocinaDisplay::CocinaRecord.new(public_cocina.to_h.deep_stringify_keys).display_title
     end
   end
 end

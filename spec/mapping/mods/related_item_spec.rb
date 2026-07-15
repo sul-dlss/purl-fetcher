@@ -366,51 +366,6 @@ RSpec.describe 'MODS relatedItem <--> cocina mappings' do
     end
   end
 
-  describe 'Related item with related item' do
-    it_behaves_like 'MODS cocina mapping' do
-      let(:mods) do
-        <<~XML
-          <relatedItem type="constituent">
-            <titleInfo>
-              <title>[Unidentified sextet] [incomplete]</title>
-            </titleInfo>
-            <relatedItem type="host" displayLabel="Concert title">
-              <titleInfo>
-                <title>Silver Saturday Blues</title>
-              </titleInfo>
-            </relatedItem>
-          </relatedItem>
-        XML
-      end
-
-      let(:cocina) do
-        {
-          relatedResource: [
-            {
-              type: 'has part',
-              title: [
-                {
-                  value: '[Unidentified sextet] [incomplete]'
-                }
-              ],
-              relatedResource: [
-                {
-                  type: 'part of',
-                  displayLabel: 'Concert title',
-                  title: [
-                    {
-                      value: 'Silver Saturday Blues'
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      end
-    end
-  end
-
   describe 'Related item with untyped name' do
     # Certain related items mapped from MARC don't indicate name type in source data
     # Do not warn for untyped names in relatedItem

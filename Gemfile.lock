@@ -131,7 +131,7 @@ GEM
       super_diff
       thor
       zeitwerk (~> 2.1)
-    cocina_display (2.8.0)
+    cocina_display (2.9.0)
       activesupport (>= 7)
       edtf (~> 3.2)
       geo_coord (~> 0.2)
@@ -221,7 +221,7 @@ GEM
     jbuilder (2.15.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
-    json (2.20.0)
+    json (2.21.1)
     jsonschema_rs (0.46.10-arm64-darwin)
       bigdecimal (>= 3.1, < 5)
     jsonschema_rs (0.46.10-x86_64-linux)
@@ -482,6 +482,7 @@ DEPENDENCIES
   capistrano-rails
   capybara
   cocina-models (~> 0.99)
+  cocina_display (~> 2.8)
   config
   debug
   dlss-capistrano (~> 6.0)

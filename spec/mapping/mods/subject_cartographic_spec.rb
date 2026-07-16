@@ -74,7 +74,7 @@ RSpec.describe 'MODS subject cartographic <--> cocina mappings' do
               <coordinates>E 72°34ʹ58ʺ--E 73°52ʹ24ʺ/S 52°54ʹ8ʺ--S 53°11ʹ42ʺ</coordinates>
             </cartographics>
           </subject>
-          <subject authority="EPSG" valueURI="http://opengis.net/def/crs/EPSG/0/4326" displayLabel="WGS84">
+          <subject valueURI="http://opengis.net/def/crs/EPSG/0/4326" displayLabel="WGS84">
             <cartographics>
               <projection>EPSG::4326</projection>
             </cartographics>
@@ -98,7 +98,7 @@ RSpec.describe 'MODS subject cartographic <--> cocina mappings' do
               type: 'map projection',
               uri: 'http://opengis.net/def/crs/EPSG/0/4326',
               source: {
-                code: 'EPSG'
+                value: 'EPSG'
               },
               displayLabel: 'WGS84'
             }

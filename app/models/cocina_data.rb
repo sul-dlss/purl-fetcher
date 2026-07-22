@@ -50,7 +50,7 @@ class CocinaData
   end
 
   def dro?
-    !collection?
+    Cocina::Models::DRO::TYPES.include?(data_hash['type'])
   end
 
   def catalog_record_ids(catalog)

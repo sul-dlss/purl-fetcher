@@ -54,11 +54,10 @@ class Purl < ApplicationRecord
 
   def cocina_object=(cocina_object)
     self.public_json = PublicJson.new(data: cocina_object.to_json, data_type: 'cocina')
-    @cocina_object = cocina_object
   end
 
   def cocina_object
-    @cocina_object ||= Cocina::Models.build(public_json.cocina_hash)
+    public_json.cocina_hash
   end
 
   # Sends a message to the indexer_topic, which will cause this object to be reindexed

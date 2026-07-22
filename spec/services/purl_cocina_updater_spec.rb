@@ -20,7 +20,7 @@ RSpec.describe PurlCocinaUpdater do
     end
 
     it "updates the stored data" do
-      expect(purl.cocina_object).to eq cocina
+      expect(purl.cocina_object).to eq cocina.to_h.deep_stringify_keys
       expect(purl.public_json.data).to eq cocina.to_json
     end
 

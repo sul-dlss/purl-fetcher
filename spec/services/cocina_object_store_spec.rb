@@ -28,9 +28,10 @@ RSpec.describe CocinaObjectStore do
         File.write("#{stacks_versions_path}/cocina.3.json", cocina_json)
       end
 
-      it 'returns a Cocina::Models::DROWithMetadata object' do
+      it 'returns the parsed cocina.json as a Hash' do
         result = described_class.find(druid)
-        expect(result).to be_a(Cocina::Models::DROWithMetadata)
+        expect(result).to be_a(Hash)
+        expect(result['externalIdentifier']).to eq(druid)
       end
     end
   end

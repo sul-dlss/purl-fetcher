@@ -5,27 +5,27 @@ class ThumbnailService
   # allow the mimetype attribute to be lower or camelcase when searching to make it more robust
   MIME_TYPE = 'image/jp2'
 
-  # @param [Cocina::Model::DRO] object
+  # @param [Cocina::Models::DRO, Hash] object
   def initialize(object)
-    @object = object
+    data_hash = object.is_a?(Hash) ? object : object.to_h.deep_stringify_keys
+    @record = CocinaDisplay::CocinaRecord.new(data_hash)
   end
 
-  attr_reader :object
+  attr_reader :record
 
   # @return [String] the computed thumb filename, with the druid prefix and a slash in front of it, e.g. oo000oo0001/filenamewith space.jp2
   def thumb
-    return unless object.respond_to?(:structural) && object.structural
+    record.filesets.each do |file_set|
+      file_set.files.each do |file|
+        next unless file.mime_type == MIME_TYPE
 
-    object.structural.contains.each do |file_set|
-      file_set.structural.contains.each do |file|
-        next unless file.hasMimeType == MIME_TYPE
-
-        return "#{object.externalIdentifier.delete_prefix('druid:')}/#{file.filename}"
+        return "#{record.bare_druid}/#{file.filename}"
       end
     end
 
-    return if object.structural.hasMemberOrders.empty? || object.structural.hasMemberOrders.first.members.empty?
+    first_member = record.cocina_doc.dig('structural', 'hasMemberOrders', 0, 'members', 0)
+    return if first_member.blank?
 
-    self.class.new(CocinaObjectStore.find(object.structural.hasMemberOrders.first.members.first)).thumb
+    self.class.new(CocinaObjectStore.find(first_member)).thumb
   end
 end

@@ -59,10 +59,10 @@ module Cocina
 
         index = 0
         members.each do |external_druid|
-          cocina_object = cocina_object_store.find(external_druid)
-          Array(cocina_object.structural.contains).each do |cocina_fileset|
+          cocina_hash = cocina_object_store.find(external_druid)
+          label = CocinaDisplay::CocinaRecord.new(cocina_hash).display_title
+          Array(cocina_hash.dig('structural', 'contains')).each do |cocina_fileset|
             index += 1
-            label = cocina_object.description.title.first.value
             @xml_doc.root.add_child create_external_resource_node(cocina_fileset, index, external_druid, label:)
           end
         end
@@ -139,7 +139,7 @@ module Cocina
 
       def create_external_resource_node(cocina_fileset, sequence, external_druid, label:)
         Nokogiri::XML::Node.new('resource', @xml_doc).tap do |resource|
-          resource['id'] = IdGenerator.generate_or_existing_fileset_id(resource_id: cocina_fileset.try(:externalIdentifier), druid:)
+          resource['id'] = IdGenerator.generate_or_existing_fileset_id(resource_id: cocina_fileset['externalIdentifier'], druid:)
           resource['sequence'] = sequence
           resource['type'] = type_for(cocina_fileset)
 
@@ -151,22 +151,22 @@ module Cocina
         #   <externalFile fileId="PC0170_s1_B_0540.jp2" mimetype="image/jp2" objectId="druid:tm207xk5096" resourceId="tm207xk5096_1"/>
         #     <relationship objectId="druid:tm207xk5096" type="alsoAvailableAs"/>
         # Note: Only creating if published.
-        cocina_fileset.structural.contains.filter { |cocina_file| cocina_file.administrative.publish }.each do |cocina_file|
+        Array(cocina_fileset.dig('structural', 'contains')).filter { |cocina_file| cocina_file.dig('administrative', 'publish') }.each do |cocina_file|
           resource.add_child(Nokogiri::XML::Node.new('label', @xml_doc).tap { |tag| tag.content = label })
-          resource.add_child(create_external_file_node(cocina_file, cocina_fileset.externalIdentifier, external_druid))
+          resource.add_child(create_external_file_node(cocina_file, cocina_fileset['externalIdentifier'], external_druid))
         end
       end
 
       def create_external_file_node(cocina_file, resource_id, external_druid)
         Nokogiri::XML::Node.new('externalFile', @xml_doc).tap do |file_node|
-          file_node['fileId'] = cocina_file.filename
-          file_node['mimetype'] = cocina_file.hasMimeType
+          file_node['fileId'] = cocina_file['filename']
+          file_node['mimetype'] = cocina_file['hasMimeType']
           file_node['objectId'] = external_druid
           file_node['resourceId'] = resource_id
           # We are guarding for the presence of presentation here, however
           # all "good" external files should be images and have presentation.
-          if cocina_file.presentation
-            file_node.add_child(create_image_data_node(cocina_file.presentation.height, cocina_file.presentation.width))
+          if cocina_file['presentation']
+            file_node.add_child(create_image_data_node(cocina_file.dig('presentation', 'height'), cocina_file.dig('presentation', 'width')))
           else
             Honeybadger.notify('[Data Error] External resource has no presentation data', context: { external_druid: })
           end
@@ -174,7 +174,7 @@ module Cocina
       end
 
       def type_for(cocina_fileset)
-        cocina_fileset.type.delete_prefix('https://cocina.sul.stanford.edu/models/resources/').delete_suffix('.jsonld')
+        (cocina_fileset.is_a?(Hash) ? cocina_fileset['type'] : cocina_fileset.type).delete_prefix('https://cocina.sul.stanford.edu/models/resources/').delete_suffix('.jsonld')
       end
 
       def create_file_nodes(resource, cocina_fileset)

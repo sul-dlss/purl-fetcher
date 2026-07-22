@@ -4,7 +4,6 @@ class CocinaObjectStore
 
     raise "No cocina.json found for #{druid} in stacks or purl paths" unless stacks_path.exist?
 
-    data_hash = JSON.parse(File.read(stacks_path))
-    Cocina::Models.build(data_hash)
+    JSON.parse(File.read(stacks_path))
   end
 end

@@ -4,6 +4,8 @@
 
 An HTTP API for querying and updating [PURL](https://github.com/sul-dlss/purl)s. See the [API section](#api) below for docs. Purl-fetcher is a cache which enables the access portfolio to efficiently index and query data such as release tags and collection memberships. It is not the canonical source for any information.
 
+NOTE: Stored public cocina may no longer be valid Cocina. Avoid building cocina objects from stored cocina and create a hash instead.
+
 ## Architecture
 https://docs.google.com/drawings/d/1--7pQQlzD-_g2AyPCtNkeODTs4CTrXKKyUyxofFWc1U/edit
 

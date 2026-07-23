@@ -138,7 +138,7 @@ RSpec.describe ThumbnailService do
         end
 
         before do
-          allow(CocinaObjectStore).to receive(:find).with(druid).and_return(member_object)
+          allow(CocinaObjectStore).to receive(:find).with(druid).and_return(member_object.to_h.deep_stringify_keys)
         end
 
         it 'returns the first image of the first member as the thumb' do

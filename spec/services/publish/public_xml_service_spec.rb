@@ -249,7 +249,7 @@ RSpec.describe Publish::PublicXmlService do
         end
 
         before do
-          allow(CocinaObjectStore).to receive(:find).and_return(build(:collection))
+          allow(CocinaObjectStore).to receive(:find).and_return(build(:collection).to_h.deep_stringify_keys)
         end
 
         it 'exports relationships' do
@@ -504,8 +504,8 @@ RSpec.describe Publish::PublicXmlService do
       end
 
       it 'handles externalFile references' do
-        allow(CocinaObjectStore).to receive(:find).with(cover_item.externalIdentifier).and_return(cover_item)
-        allow(CocinaObjectStore).to receive(:find).with(title_item.externalIdentifier).and_return(title_item)
+        allow(CocinaObjectStore).to receive(:find).with(cover_item.externalIdentifier).and_return(cover_item.to_h.deep_stringify_keys)
+        allow(CocinaObjectStore).to receive(:find).with(title_item.externalIdentifier).and_return(title_item.to_h.deep_stringify_keys)
         expect(ng_xml.at_xpath('/publicObject/contentMetadata').to_xml).to be_equivalent_to(expected_xml)
       end
     end

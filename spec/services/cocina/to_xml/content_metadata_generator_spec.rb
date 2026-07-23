@@ -899,7 +899,7 @@ RSpec.describe Cocina::ToXml::ContentMetadataGenerator do
     end
 
     before do
-      allow(CocinaObjectStore).to receive(:find).with(constituent_druid).and_return(constituent_item)
+      allow(CocinaObjectStore).to receive(:find).with(constituent_druid).and_return(constituent_item.to_h.deep_stringify_keys)
     end
 
     it 'generates contentMetadata.xml' do

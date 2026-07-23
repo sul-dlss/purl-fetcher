@@ -11,12 +11,13 @@ class PurlCocinaUpdater
   # @param [Integer] version
   def initialize(active_record, cocina_object, version: nil)
     @active_record = active_record
-    @cocina_data = CocinaData.new(cocina_object)
+    @cocina_object = cocina_object
+    @cocina_data = CocinaData.new(cocina_object.to_h.deep_stringify_keys)
     @version = version
     Honeybadger.context({ cocina_object: cocina_object.to_h })
   end
 
-  attr_reader :active_record, :cocina_data, :version
+  attr_reader :active_record, :cocina_object, :cocina_data, :version
 
   delegate :collections, :constituents, to: :cocina_data
 
@@ -34,7 +35,7 @@ class PurlCocinaUpdater
       content_type: cocina_data.content_type,
       catkey: cocina_data.catkey,
       published_at: Time.current,
-      cocina_object: cocina_data.cocina_object,
+      cocina_hash: cocina_object,
       version:,
       deleted_at: nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
     }

@@ -35,7 +35,7 @@ class PurlCocinaUpdater
       content_type: cocina_data.content_type,
       catkey: cocina_data.catkey,
       published_at: Time.current,
-      cocina_object:,
+      cocina_hash: cocina_object,
       version:,
       deleted_at: nil # ensure the deleted at field is nil (important for a republish of a previously deleted purl)
     }

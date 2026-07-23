@@ -173,8 +173,10 @@ module Cocina
         end
       end
 
+      # @param [Cocina::Object::DRO, Hash] cocina_fileset
+      # When a virtual object member and called from add_members_data,
+      # cocina_fileset will be a hash returned from CocinaObjectStore
       def type_for(cocina_fileset)
-        # When a virtual object member and called from add_members_data, will be a hash returned from CocinaObjectStore 
         (cocina_fileset.is_a?(Hash) ? cocina_fileset['type'] : cocina_fileset.type).delete_prefix('https://cocina.sul.stanford.edu/models/resources/').delete_suffix('.jsonld')
       end
 

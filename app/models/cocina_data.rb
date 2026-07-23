@@ -1,5 +1,5 @@
 class CocinaData
-  # @param [Hash] data_hash a parsed Cocina JSON document (Collection or DRO) with string keys
+  # @param [Hash{String => Object}] cocina_hash a hash parsed from a Cocina JSON document (either Collection or DRO)
   def initialize(data_hash)
     @data_hash = data_hash
   end
@@ -33,7 +33,7 @@ class CocinaData
 
   # @return [Array<String>] The collections the item is a member of
   def collections
-    dro? ? Array(data_hash.dig('structural', 'isMemberOf')) : []
+    Array(data_hash.dig('structural', 'isMemberOf'))
   end
 
   # @return [Array<String>] The constituent druids of this object (virtual object)

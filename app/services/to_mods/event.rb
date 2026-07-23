@@ -2,7 +2,7 @@
 
 module ToMods
   # Maps events from cocina to MODS XML
-  class Event # rubocop:disable Metrics/ClassLength
+  class Event
     # @params [Nokogiri::XML::Builder] xml
     # @params [Array<Cocina::Models::Event>] events
     # @params [IdGenerator] id_generator
@@ -18,11 +18,7 @@ module ToMods
 
     def write
       Array(events).each do |event|
-        if event.parallelEvent.present?
-          write_parallel(event, id_generator.next_altrepgroup)
-        else
-          write_basic(event, event.type)
-        end
+        write_basic(event, event.type)
       end
     end
 
@@ -40,26 +36,6 @@ module ToMods
       }.compact
 
       write_event(event.type, event.date, event.location, names, event.note, attributes)
-    end
-
-    def write_parallel(event, alt_rep_group)
-      event.parallelEvent.each do |parallel_event|
-        attributes = {}.tap do |attrs|
-          attrs[:script] = parallel_event.valueLanguage&.valueScript&.code
-          attrs[:lang] = parallel_event.valueLanguage&.code
-          attrs[:altRepGroup] = alt_rep_group
-          attrs[:eventType] = event.type || parallel_event.type
-          attrs[:displayLabel] = event.displayLabel || parallel_event.displayLabel
-        end.compact
-
-        names = Array(parallel_event.contributor).map(&:name).flatten
-        write_event(parallel_event.type,
-                    parallel_event.date,
-                    parallel_event.location,
-                    names,
-                    parallel_event.note,
-                    attributes)
-      end
     end
 
     # rubocop:disable Metrics/ParameterLists

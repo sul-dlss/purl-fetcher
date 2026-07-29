@@ -13,9 +13,10 @@ RSpec.describe VersionedFilesService::UpdateAction do
   let(:versions_path) { "#{stacks_pathname}/bc/123/df/4567/bc123df4567/versions" }
 
   let(:cocina) do
-    build(:dro_with_metadata, id: druid).new(label: '',
-                                             description: { title: [{ value: "Main title" }], purl: 'https://purl.stanford.edu/bc123df4567' },
-                                             access: { view: 'world', download: 'world' })
+    build(:dro_with_metadata, id: druid).new(
+      description: { title: [{ value: "Main title" }], purl: 'https://purl.stanford.edu/bc123df4567' },
+      access: { view: 'world', download: 'world' }
+    )
   end
 
   before do
@@ -34,10 +35,10 @@ RSpec.describe VersionedFilesService::UpdateAction do
       expect(written['label']).to eq 'Main title'
     end
 
-    context "when the cocina object's own label differs from its title" do
-      let(:cocina) { build(:dro_with_metadata, id: druid).new(label: 'Some other label', access: { view: 'world', download: 'world' }) }
+    context "when the cocina object no longer has a label" do
+      let(:cocina) { build(:dro_with_metadata, id: druid).new(access: { view: 'world', download: 'world' }) }
 
-      it 'overrides it with the title-derived label' do
+      it 'uses the title-derived label' do
         action.call
 
         written = JSON.parse(File.read("#{versions_path}/cocina.1.json"))

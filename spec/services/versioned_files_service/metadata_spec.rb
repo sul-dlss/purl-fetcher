@@ -43,14 +43,5 @@ RSpec.describe VersionedFilesService::Metadata do
       written = JSON.parse(File.read("#{versions_path}/cocina.1.json"))
       expect(written['label']).to eq 'Computed label'
     end
-
-    it "overrides the cocina object's own label" do
-      cocina_with_label = cocina.new(label: 'Original label')
-
-      metadata.write_cocina(version: 1, cocina: cocina_with_label, label: 'Computed label')
-
-      written = JSON.parse(File.read("#{versions_path}/cocina.1.json"))
-      expect(written['label']).to eq 'Computed label'
-    end
   end
 end

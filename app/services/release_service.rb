@@ -20,7 +20,7 @@ class ReleaseService
 
     write_meta_json
 
-    purl.produce_indexer_log_message
+    IndexerLogWriter.produce_indexer_log_message(purl, async: false)
   end
 
   def write_meta_json

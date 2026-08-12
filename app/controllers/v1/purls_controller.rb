@@ -33,7 +33,8 @@ module V1
       @purl.mark_deleted
 
       DarkenService.call(@purl.druid)
-      Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer_topic)
+      Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer.searchworks)
+      Racecar.produce_sync(value: nil, key: druid_param, topic: Settings.indexer.earthworks)
     end
 
     # This starts the release process.

@@ -58,13 +58,9 @@ class Purl < ApplicationRecord
 
   delegate :cocina_hash, to: :public_json
 
-  # Sends a message to the indexer_topic, which will cause this object to be reindexed
+  # Sends a message to the indexer topic(s), which will cause this object to be reindexed
   def produce_indexer_log_message(async: false)
-    if async
-      Racecar.produce_async(value: as_public_json.to_json, topic: Settings.indexer_topic, key: druid)
-    else
-      Racecar.produce_sync(value: as_public_json.to_json, topic: Settings.indexer_topic, key: druid)
-    end
+    IndexerLogWriter.produce_indexer_log_message(self, async:)
   end
 
   # Produce the Kafka messages that are consumed by Traject::KafkaPurlFetcherReader in searchworks_traject_indexer.
@@ -95,9 +91,11 @@ class Purl < ApplicationRecord
   # https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L26
   # @return [Array]
   def true_targets
-    return [] if deleted?
-
-    release_tags.where(release_type: true).map(&:name) | Settings.always_send_true_targets
+    @true_targets ||= if deleted?
+                        []
+                      else
+                        release_tags.where(release_type: true).map(&:name) | Settings.always_send_true_targets
+                      end
   end
 
   ##
@@ -105,7 +103,7 @@ class Purl < ApplicationRecord
   # This is consumed by https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L49
   # @return [Array]
   def false_targets
-    release_tags.where(release_type: false).map(&:name)
+    @false_targets ||= release_tags.where(release_type: false).map(&:name)
   end
 
   # add the release tags, and reuse tags if already associated with this PURL

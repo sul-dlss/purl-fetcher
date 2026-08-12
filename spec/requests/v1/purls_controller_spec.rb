@@ -94,7 +94,7 @@ RSpec.describe V1::PurlsController do
           expect(response).to have_http_status(:accepted)
 
           expect(Racecar).to have_received(:produce_sync)
-            .with(key: druid, topic: 'testing_topic', value: purl_object.as_public_json.to_json)
+            .with(key: druid, topic: 'testing_topic_searchworks', value: purl_object.as_public_json.to_json)
         end
       end
 
@@ -119,6 +119,8 @@ RSpec.describe V1::PurlsController do
             .from(false).to(true).and change(meta_path, :exist?).from(false).to(true)
           expect(response).to have_http_status(:accepted)
           expect(purl_object.reload.release_tags.first.release_type).to be false
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: druid, topic: 'testing_topic_searchworks', value: purl_object.as_public_json.to_json)
         end
       end
     end

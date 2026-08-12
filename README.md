@@ -303,12 +303,14 @@ Withdraw / restore a version of an item
 
 ### Reindexing
 
-You can create Kafka messages that will cause all the Purls to be reindexed by doing:
+You can create Kafka messages that will cause PURLs to be reindexed in each of their configured targets by doing:
 
 ```ruby
 Purl.unscoped.find_in_batches.with_index do |group, batch|
   puts "Processing group ##{batch}"
-  group.each(&:produce_indexer_log_message)
+  Racecar.wait_for_delivery do
+    group.each { |purl| IndexerLogWriter.produce_indexer_log_message(purl, async: true) }
+  end
 end
 ```
 
@@ -318,7 +320,13 @@ Or only for searchworks:
 Purl.target('Searchworks').find_in_batches.with_index do |group, batch|
   puts "Processing group ##{batch}"
   Racecar.wait_for_delivery do
-    group.each { |purl| purl.produce_indexer_log_message(async: true) }
+    group.each do |purl|
+      Racecar.produce_async(
+        key: purl.druid,
+        topic: Settings.indexer.searchworks,
+        value: purl.as_public_json.to_json
+      )
+    end
   end
 end
 ```

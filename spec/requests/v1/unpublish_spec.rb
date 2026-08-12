@@ -42,7 +42,9 @@ RSpec.describe 'Unpublish a Purl' do
 
           expect(purl_object.reload).to have_attributes(deleted_at: (a_value > 5.seconds.ago))
           expect(Racecar).to have_received(:produce_sync)
-            .with(key: purl_object.druid, topic: 'testing_topic', value: nil)
+            .with(key: purl_object.druid, topic: 'testing_topic_searchworks', value: nil)
+          expect(Racecar).to have_received(:produce_sync)
+            .with(key: purl_object.druid, topic: 'testing_topic_earthworks', value: nil)
           expect(File).not_to exist(file_content_path)
           expect(File).not_to exist(cocina_version_path)
           expect(File).not_to exist(xml_version_path)

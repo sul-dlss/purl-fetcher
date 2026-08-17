@@ -6,6 +6,7 @@ always_send_true_targets:
   - ContentSearch
 
 indexer:
+  sitemap: testing_topic_sitemap
   searchworks: testing_topic_searchworks
   earthworks: testing_topic_earthworks
 

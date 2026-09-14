@@ -14,6 +14,7 @@ class IndexerLogWriter
   def produce
     send_to_topic(Settings.indexer.searchworks) if searchworks?
     send_to_topic(Settings.indexer.earthworks) if earthworks?
+    send_to_topic(Settings.indexer.sitemap) if sitemap?
   end
 
   private
@@ -23,15 +24,15 @@ class IndexerLogWriter
   end
 
   def earthworks?
-    target?('Earthworks')
+    purl.ever_released_to.earthworks?
   end
 
   def searchworks?
-    target?('Searchworks')
+    purl.ever_released_to.searchworks?
   end
 
-  def target?(name)
-    purl.true_targets.include?(name) || purl.false_targets.include?(name)
+  def sitemap?
+    purl.ever_released_to.sitemap?
   end
 
   def value

@@ -21,6 +21,19 @@ RSpec.describe IndexerLogWriter do
       end
     end
 
+    context 'when the PURL is released to PURL sitemap' do
+      before do
+        purl.release_tags.create!(name: 'PURL sitemap', release_type: true)
+      end
+
+      it 'publishes the unrelease to the sitemap topic' do
+        described_class.produce_indexer_log_message(purl)
+
+        expect(Racecar).to have_received(:produce_sync)
+          .with(key: purl.druid, topic: 'testing_topic_sitemap', value: purl.as_public_json.to_json)
+      end
+    end
+
     context 'when the PURL is unreleased from Earthworks' do
       before do
         purl.release_tags.create!(name: 'Earthworks', release_type: false)

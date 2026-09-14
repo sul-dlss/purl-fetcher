@@ -98,6 +98,14 @@ class Purl < ApplicationRecord
                       end
   end
 
+  def currently_released_to
+    @currently_released_to ||= CurrentReleases.new(targets: true_targets)
+  end
+
+  def ever_released_to
+    @ever_released_to ||= Releases.new(true_targets: true_targets, false_targets: false_targets)
+  end
+
   ##
   # Release tags with the value false.
   # This is consumed by https://github.com/sul-dlss/searchworks_traject_indexer/blob/64359399e8f670ed414b1c56c648dc9b95ad6bad/lib/traject/readers/kafka_purl_fetcher_reader.rb#L49

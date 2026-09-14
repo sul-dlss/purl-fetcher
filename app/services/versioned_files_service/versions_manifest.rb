@@ -38,6 +38,7 @@ class VersionedFilesService
       manifest[:versions][version] = version_metadata.as_json
 
       update_head_version if !version_metadata.withdrawn? && (head_version.nil? || version >= head_version)
+      backfill_withdrawn_versions
 
       write!
     end
@@ -77,7 +78,8 @@ class VersionedFilesService
       check_version(version:)
 
       version_data = manifest[:versions][version]
-      VersionMetadata.new(version: version.to_i, state: version_data[:state], date: DateTime.iso8601(version_data[:date]))
+      date = version_data[:date].present? ? DateTime.iso8601(version_data[:date]) : nil
+      VersionMetadata.new(version: version.to_i, state: version_data[:state], date:)
     end
 
     def version_metadata
@@ -106,12 +108,23 @@ class VersionedFilesService
     attr_reader :path
 
     def write!
+      manifest[:versions] = manifest[:versions].sort.to_h if manifest.key?(:versions)
       FileUtils.mkdir_p(path.dirname)
       path.write(manifest.to_json)
     end
 
     def check_version(version:)
       raise UnknownVersionError, "Version #{version} not found" unless version?(version:)
+    end
+
+    def backfill_withdrawn_versions
+      return unless head_version
+
+      (1..head_version).each do |version|
+        next if version?(version:)
+
+        manifest[:versions][version] = { state: 'permanently_withdrawn' }
+      end
     end
   end
 end

@@ -77,3 +77,5 @@ gem 'jwt' # json web token
 gem "druid-tools", "~> 3.0"
 
 gem "httpx", "~> 1.4"
+
+gem 'json', '~> 2.0' # Pinned until Rails 8.1.4 is released https://github.com/rails/rails/issues/58685

@@ -220,7 +220,7 @@ GEM
     jbuilder (2.15.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
-    json (3.0.2)
+    json (2.21.2)
     jsonschema_rs (0.56.0-arm64-darwin)
       bigdecimal (>= 3.1, < 5)
     jsonschema_rs (0.56.0-x86_64-linux)
@@ -464,6 +464,7 @@ GEM
     zeitwerk (2.8.3)
 
 PLATFORMS
+  arm64-darwin-23
   arm64-darwin-24
   arm64-darwin-25
   x86_64-linux
@@ -485,6 +486,7 @@ DEPENDENCIES
   honeybadger
   httpx (~> 1.4)
   jbuilder
+  json (~> 2.0)
   jwt
   kaminari
   mysql2

@@ -14,10 +14,6 @@ Rails.application.routes.draw do
   end
 
   scope 'v1', module: :v1 do
-    # backwards compatibility
-    patch 'released/:druid', to: 'purls#release_tags'
-    put 'released/:druid', to: 'purls#release_tags'
-
     resource :mods, only: :create
 
     # backwards-compatibility.

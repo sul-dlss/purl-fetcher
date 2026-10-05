@@ -29,12 +29,16 @@ class ReleaseService
 
   private
 
+  def currently_released_to
+    purl.currently_released_to
+  end
+
   def meta_json
     {
       '$schemaVersion': 1,
-      sitemap: purl.true_targets.include?('PURL sitemap'),
-      searchworks: purl.true_targets.include?('Searchworks'),
-      earthworks: purl.true_targets.include?('Earthworks')
+      sitemap: currently_released_to.sitemap?,
+      searchworks: currently_released_to.searchworks?,
+      earthworks: currently_released_to.earthworks?
     }.to_json
   end
 end

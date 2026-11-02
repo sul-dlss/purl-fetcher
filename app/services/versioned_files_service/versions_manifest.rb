@@ -97,6 +97,7 @@ class VersionedFilesService
         # json numeric keys are converted to strings, so convert them back to integers
         manifest[:versions] ||= {}
         manifest[:versions]&.transform_keys!(&:to_i)
+        manifest[:versions].each_value { |version_data| migrate_legacy_version_data!(version_data) }
         manifest[:head] &&= manifest[:head].to_i
       end
     end
@@ -104,6 +105,13 @@ class VersionedFilesService
     private
 
     attr_reader :path
+
+    # Versions written before the state schema have a 'withdrawn' boolean instead of a 'state'.
+    # Convert them to the current schema so that the whole manifest is written in the latest schema.
+    def migrate_legacy_version_data!(version_data)
+      withdrawn = version_data.delete(:withdrawn)
+      version_data[:state] ||= withdrawn ? 'withdrawn' : 'available'
+    end
 
     def write!
       FileUtils.mkdir_p(path.dirname)

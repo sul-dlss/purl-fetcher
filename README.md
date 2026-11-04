@@ -226,61 +226,6 @@ The `/collections/:druid/purls` endpoint a listing of Purls for a specific colle
 }
 ```
 
-### Released items
-
-#### GET `/released/:tag`
-
-##### Parameters
-
-| Name  | Located In | Description       | Required | Schema                      | Default |
-| ----- | ---------- | ----------------- | -------- | --------------------------- | ------- |
-| `tag` | url        | Tag to search for | Yes      | string eg(`PURL%20sitemap`) | null    |
-
-##### Summary
-
-List the PURLs that should display on the sitemap.
-
-##### Description
-
-This is used by the PURL application to generate a sitemap
-
-##### Example Response
-
-```json
-[
-    {
-      "druid": "druid:ee111ff2222",
-      "updated_at": "2016-01-03T00:00:00.000Z",
-    },
-...
-    {
-      "druid": "druid:cc111dd2222",
-      "updated_at": "2016-01-02T00:00:00.000Z",
-    }
-]
-```
-
-#### PUT `/v1/released/:druid`
-
-##### Parameters
-
-| Name      | Located In | Description                                                                                                                                           | Required | Schema                         | Default |
-| --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------ | ------- |
-| `druid`   | url        | object identifier                                                                                                                                     | Yes      | string eg(`druid:bc123df4567`) | null    |
-| `actions` | body       | list of actions to take on the object. This object should contain two keys, "index" and "delete", each value is an array of properties to release to. | Yes      | object                         | null    |
-
-##### Summary
-
-Set the release tags for an item
-
-##### Description
-
-This tells purl-fetcher to update the cache of release tags and puts messages on the appropriate Kafka streams.
-
-##### Example Response
-
-`204 Accepted`
-`true`
 
 #### PUT `/v1/purls/:druid/versions/:version/withdraw` and PUT `/v1/purls/:druid/versions/:version/restore`
 

@@ -26,6 +26,9 @@ require 'config'
 require_relative 'initializers/config'
 Config.load_and_set_settings(Config.setting_files('config', 'production'))
 
+# Disable Honeybadger Insights for cron jobs
+env :HONEYBADGER_INSIGHTS_ENABLED, false
+
 # Purging transfer files that have become orphaned to avoid filling storage.
 every 1.days do
   command "find #{Settings.filesystems.transfer} -type f -mtime +3 -exec rm {} +"

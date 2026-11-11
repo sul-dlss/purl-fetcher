@@ -117,7 +117,7 @@ class Purl < ApplicationRecord
   # add the release tags, and reuse tags if already associated with this PURL
   # @param [Hash<String, Array<String>>] actions
   def refresh_release_tags(actions)
-    ['index', 'delete'].each do |type|
+    %w[index delete].each do |type|
       actions[type].sort.uniq.each do |property|
         tag = release_tags.find { |t| t.name == property } || release_tags.build(name: property)
 

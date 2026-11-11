@@ -130,7 +130,7 @@ RSpec.describe Publish::PublicDescMetadataService do
         expect(collection_uri.length).to eq 1
         expect(collection_title.first.content).to eq 'The complete works of Henry George'
         expect(collection_uri.first.content).to eq 'https://purl.stanford.edu/zb871zd0767'
-        ['useAndReproduction', 'copyright', 'license'].each do |term|
+        %w[useAndReproduction copyright license].each do |term|
           expect(doc.xpath("//xmlns:accessCondition[@type=\"#{term}\"]").size).to eq 1
         end
         expect(doc.xpath('//xmlns:accessCondition[@type="useAndReproduction"]').text).to match(/yada/)

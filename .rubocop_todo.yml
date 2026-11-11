@@ -11,14 +11,6 @@ Lint/NoReturnInBeginEndBlocks:
   Exclude:
     - 'app/services/to_mods/description.rb'
 
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowUnusedKeywordArguments, IgnoreEmptyMethods, IgnoreNotImplementedMethods, NotImplementedExceptions.
-# NotImplementedExceptions: NotImplementedError
-Lint/UnusedMethodArgument:
-  Exclude:
-    - 'app/services/to_mods/event.rb'
-
 # Offense count: 3
 Lint/UselessConstantScoping:
   Exclude:
@@ -123,12 +115,6 @@ RSpec/ContextWording:
 RSpec/DescribeClass:
   Enabled: false
 
-# Offense count: 5
-# This cop supports safe autocorrection (--autocorrect).
-RSpec/EmptyLineAfterSubject:
-  Exclude:
-    - 'spec/models/purl_spec.rb'
-
 # Offense count: 227
 # Configuration parameters: CountAsOne.
 RSpec/ExampleLength:
@@ -139,12 +125,6 @@ RSpec/ExampleLength:
 RSpec/IndexedLet:
   Exclude:
     - 'spec/services/cocina/to_xml/content_metadata_generator_spec.rb'
-
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-RSpec/LetBeforeExamples:
-  Exclude:
-    - 'spec/models/purl_spec.rb'
 
 # Offense count: 12
 # Configuration parameters: EnforcedStyle, IgnoreSharedExamples.
@@ -247,10 +227,3 @@ Style/SafeNavigationChainLength:
     - 'app/services/cocina/to_xml/content_metadata_generator.rb'
     - 'app/services/to_mods/event.rb'
     - 'app/services/to_mods/geographic.rb'
-
-# Offense count: 11
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: MinSize, WordRegex.
-# SupportedStyles: percent, brackets
-Style/WordArray:
-  EnforcedStyle: brackets

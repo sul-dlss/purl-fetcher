@@ -39,7 +39,7 @@ module ToMods
     end
 
     # rubocop:disable Metrics/ParameterLists
-    def write_event(cocina_event_type, dates, locations, names, notes, attributes, is_parallel: false)
+    def write_event(cocina_event_type, dates, locations, names, notes, attributes)
       return if dates.blank? && locations.blank? && names.blank? && notes.blank?
 
       xml.originInfo attributes do
@@ -121,7 +121,7 @@ module ToMods
         attrs[:keyDate] = 'yes' if date.status == 'primary'
         attrs[:type] = date_type_attr(date, element_name)
         attrs[:calendar] = calendar_attr(date)
-        attrs[:point] = date.type if ['start', 'end'].include?(date.type)
+        attrs[:point] = date.type if %w[start end].include?(date.type)
       end.compact
       xml.public_send(element_name, value, attributes)
     end
@@ -148,7 +148,7 @@ module ToMods
     def date_type_attr(cocina_date, date_element_name)
       return unless date_element_name == 'dateOther'
 
-      cocina_date.type if cocina_date.type.present? && ['start', 'end'].exclude?(cocina_date.type)
+      cocina_date.type if cocina_date.type.present? && %w[start end].exclude?(cocina_date.type)
     end
 
     def calendar_attr(cocina_date)

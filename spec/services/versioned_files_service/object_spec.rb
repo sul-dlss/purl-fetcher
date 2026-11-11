@@ -152,7 +152,7 @@ RSpec.describe VersionedFilesService::Object do
       end
 
       it 'returns the content md5s' do
-        expect(service.content_md5s.sort).to eq ['41446aec93ba8d401a33b46679a7dcaa', 'dcd10eb5c49038ba0a6edfcf18b6877d']
+        expect(service.content_md5s.sort).to eq %w[41446aec93ba8d401a33b46679a7dcaa dcd10eb5c49038ba0a6edfcf18b6877d]
       end
     end
 

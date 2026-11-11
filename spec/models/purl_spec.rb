@@ -1,9 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe Purl do
+  let(:druid) { 'druid:bb050dj7711' }
+
   describe '#true_targets' do
     context 'when not deleted' do
       subject { create(:purl) }
+
       it 'has SearchWorksPreview' do
         expect(subject.true_targets).to include 'SearchWorksPreview'
       end
@@ -11,6 +14,7 @@ RSpec.describe Purl do
 
     context 'when deleted' do
       subject { create(:purl) }
+
       it 'returns an empty array' do
         subject.update(deleted_at: Time.current)
         expect(subject.true_targets).to eq []
@@ -18,10 +22,9 @@ RSpec.describe Purl do
     end
   end
 
-  let(:druid) { 'druid:bb050dj7711' }
-
   describe '#refresh_collections' do
     subject { create(:purl) }
+
     it 'removes previous collections and adds new ones' do
       subject.collections << create_list(:collection, 3)
       expect { subject.refresh_collections(['druid:1', 'druid:2']) }
@@ -120,6 +123,7 @@ RSpec.describe Purl do
 
   describe '#deleted_at?' do
     subject { purl.deleted_at? }
+
     let(:purl) { described_class.create(druid:) }
 
     it { is_expected.to be false }
@@ -127,6 +131,7 @@ RSpec.describe Purl do
 
   describe '#mark_deleted' do
     subject(:mark_deleted) { purl.mark_deleted }
+
     let!(:purl) { create(:purl, :with_release_tags, :with_collection, druid:) }
 
     it 'marks a record as deleted' do

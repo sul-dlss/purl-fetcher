@@ -3,7 +3,8 @@
 namespace :audit do
   desc 'Audit all shelved files in the repository'
   task files: :environment do
-    puts "Starting audit of shelved files..."
+    started_at = Time.zone.now
+    puts "Starting audit of shelved files at #{started_at}..."
     puts "Searching for versions.json files in: #{Settings.filesystems.stacks_root}"
 
     object_count = 0
@@ -31,7 +32,9 @@ namespace :audit do
       puts "  ERROR: Failed to process #{version_file_path}: #{e.message}"
     end
 
-    puts "\n\nAudit complete. Scanned #{object_count} objects."
+    finished_at = Time.zone.now
+    puts "\n\nAudit complete at #{finished_at}. Scanned #{object_count} objects."
+    puts "Elapsed time: #{ActiveSupport::Duration.build((finished_at - started_at).round).inspect}"
   end
 end
 

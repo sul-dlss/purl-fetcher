@@ -90,7 +90,7 @@ module ToMods
     end
 
     def detail_values_for(note_value)
-      note_value.groupedValue&.select { |value| ['number', 'caption', 'title'].include?(value.type) }
+      note_value.groupedValue&.select { |value| %w[number caption title].include?(value.type) }
     end
 
     def other_note_values_for(note_value)
@@ -98,7 +98,7 @@ module ToMods
     end
 
     def other_note?(value)
-      ['text', 'date'].include?(value.type)
+      %w[text date].include?(value.type)
     end
 
     def write_part_note_value(value)

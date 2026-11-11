@@ -215,7 +215,7 @@ module ToMods
 
     def authority_for(subject)
       # Both lcsh and naf map to lcsh for the subject.
-      return 'lcsh' if ['lcsh', 'naf'].include?(subject.source&.code)
+      return 'lcsh' if %w[lcsh naf].include?(subject.source&.code)
 
       subject.source&.code
     end

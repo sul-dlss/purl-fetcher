@@ -2,8 +2,12 @@
 
 module ToMods
   # Maps parts from cocina to MODS XML
+  #
+  # NOTE: CocinaDisplay only exposes part notes as flattened values (NoteValue#values_by_type),
+  # which loses the grouping into MODS detail and extent elements, so JSONPath queries are used.
   class PartWriter
     DETAIL_TYPES = %w[number caption title].freeze
+    OTHER_TYPES = %w[text date].freeze
 
     # @params [Nokogiri::XML::Builder] xml
     # @params [Hash] part_note
@@ -17,7 +21,7 @@ module ToMods
     end
 
     def write
-      if note['groupedValue'].present?
+      if Query.grouped?(note)
         write_grouped_value
       else
         write_structured_value
@@ -30,16 +34,7 @@ module ToMods
 
     def write_grouped_value
       xml.part do
-        attrs = {
-          type: find_value(note['groupedValue'], 'detail type')
-        }.compact
-
-        detail_values = detail_values_for(note)
-        if detail_values.present?
-          xml.detail attrs do
-            detail_values.each { |detail_value| write_part_note_value(detail_value) }
-          end
-        end
+        write_detail(note)
         other_note_values_for(note).each { |other_value| write_part_note_value(other_value) }
         write_extent_for(note)
       end
@@ -47,37 +42,34 @@ module ToMods
 
     def write_structured_value
       xml.part do
-        Array(note['structuredValue']).each do |note_value|
-          attrs = {
-            type: find_value(note_value['groupedValue'], 'detail type')
-          }.compact
-
-          detail_values = detail_values_for(note_value)
-          if detail_values.present?
-            xml.detail attrs do
-              detail_values.each { |detail_value| write_part_note_value(detail_value) }
-            end
-          end
+        Query.structured_values(note).each do |note_value|
+          write_detail(note_value)
           write_part_note_value(note_value) if other_note?(note_value)
           write_extent_for(note_value)
         end
       end
     end
 
-    def write_extent_for(note_value)
-      list_value = find_value(note_value['groupedValue'], 'list')
-      structured_values = Array(note_value['groupedValue']).find do |value|
-                            value['structuredValue'].present?
-                          end&.dig('structuredValue')
-      if structured_values
-        start_value = find_value(structured_values, 'start')
-        end_value = find_value(structured_values, 'end')
+    def write_detail(note_value)
+      grouped_values = Query.grouped_values(note_value)
+      detail_values = grouped_values.select { |value| DETAIL_TYPES.include?(Query.type(value)) }
+      return if detail_values.blank?
+
+      attrs = { type: Query.value_of_type(grouped_values, 'detail type') }.compact
+      xml.detail attrs do
+        detail_values.each { |detail_value| write_part_note_value(detail_value) }
       end
+    end
+
+    def write_extent_for(note_value)
+      grouped_values = Query.grouped_values(note_value)
+      list_value = Query.value_of_type(grouped_values, 'list')
+      structured_values = Query.structured_values(grouped_values.find { |value| Query.structured?(value) })
+      start_value = Query.value_of_type(structured_values, 'start')
+      end_value = Query.value_of_type(structured_values, 'end')
       return unless list_value || start_value || end_value
 
-      extent_attrs = {
-        unit: find_value(note_value['groupedValue'], 'extent unit')
-      }.compact
+      extent_attrs = { unit: Query.value_of_type(grouped_values, 'extent unit') }.compact
 
       xml.extent extent_attrs do
         xml.list list_value if list_value
@@ -86,25 +78,17 @@ module ToMods
       end
     end
 
-    def find_value(values, type)
-      Array(values).find { |value| value['type'] == type }&.dig('value')
-    end
-
-    def detail_values_for(note_value)
-      Array(note_value['groupedValue']).select { |value| DETAIL_TYPES.include?(value['type']) }
-    end
-
     def other_note_values_for(note_value)
-      Array(note_value['groupedValue']).select { |value| other_note?(value) }
+      Query.grouped_values(note_value).select { |value| other_note?(value) }
     end
 
     def other_note?(value)
-      %w[text date].include?(value['type'])
+      OTHER_TYPES.include?(Query.type(value))
     end
 
     def write_part_note_value(value)
       # One of the tag names is "text". Since this is also a method name, normal magic doesn't work.
-      xml.method_missing value['type'], value['value']
+      xml.method_missing Query.type(value), Query.value(value)
     end
   end
 end

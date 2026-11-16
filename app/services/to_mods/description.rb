@@ -5,6 +5,9 @@ require 'nokogiri'
 module ToMods
   # This transforms the DRO.description schema to MODS xml
   class Description
+    MODS_VERSION_REGEX = /MODS version (\d\.\d)/
+    DEFAULT_MODS_VERSION = '3.7'
+
     # @param [Hash] description the cocina description (string or symbol keys)
     # @param [string] druid
     # @param [Hash] identification the cocina identification (string or symbol keys)
@@ -14,33 +17,34 @@ module ToMods
     end
 
     def initialize(description, druid, identification)
-      @description = description.to_h.deep_stringify_keys
-      @identification = identification&.to_h&.deep_stringify_keys
       @druid = druid
+      @record = CocinaDisplay::CocinaRecord.new(
+        {
+          'externalIdentifier' => druid,
+          'description' => description.to_h.deep_stringify_keys,
+          'identification' => identification&.to_h&.deep_stringify_keys
+        }.compact
+      )
     end
 
     # @return [Nokogiri::XML::Document]
     def transform
       Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
         xml.mods(mods_attributes) do
-          ModsWriter.write(xml: xml, description: description, druid: druid, identification: identification)
+          ModsWriter.write(xml: xml, record: record, druid: druid)
         end
       end.doc
     end
 
     private
 
-    attr_reader :description, :druid, :identification
+    attr_reader :record, :druid
 
     def mods_version
-      @mods_version ||= begin
-        notes = Array(description.dig('adminMetadata', 'note'))
-        notes.select { |note| note['type'] == 'record origin' }.each do |note|
-          match = /MODS version (\d\.\d)/.match(note['value'])
-          return match[1] if match
-        end
-        '3.7'
-      end
+      @mods_version ||= record.path("$.description.adminMetadata.note[?@.type == 'record origin'].value")
+                              .search
+                              .filter_map { |value| MODS_VERSION_REGEX.match(value)&.[](1) }
+                              .first || DEFAULT_MODS_VERSION
     end
 
     def mods_attributes

@@ -45,13 +45,13 @@ module ToMods
       titles.each do |title| # rubocop:disable Metrics/BlockLength
         name_title_vals_index = name_title_vals_index_for(title)
 
-        if title['valueAt']
+        if Query.value_at(title)
           write_xlink(title: title)
-        elsif title['parallelValue'].present?
+        elsif Query.parallel?(title)
           write_parallel(title: title, title_info_attrs: additional_attrs)
-        elsif title['groupedValue'].present?
+        elsif Query.grouped?(title)
           write_grouped(title: title, title_info_attrs: additional_attrs)
-        elsif title['structuredValue'].present?
+        elsif Query.structured?(title)
           if name_title_vals_index.present?
             title_value_slice = NameTitleGroup.slice_of_value_or_structured_value(title)
             # don't leak nameTitleGroup into later titles
@@ -61,7 +61,7 @@ module ToMods
           else
             write_structured(title: title, title_info_attrs: additional_attrs.compact)
           end
-        elsif title['value']
+        elsif Query.value(title)
           if name_title_vals_index.present?
             title_value_slice = NameTitleGroup.slice_of_value_or_structured_value(title)
             # don't leak nameTitleGroup into later titles
@@ -74,7 +74,7 @@ module ToMods
         end
 
         associated_name = NameTitleGroup.title_value_note_slices(title).each do |value_note_slice|
-          Array(value_note_slice['note']).detect { |note| note['type'] == 'associated name' }
+          Query.notes(value_note_slice).detect { |note| Query.type(note) == 'associated name' }
         end
         next if associated_name.blank?
 
@@ -92,7 +92,7 @@ module ToMods
     attr_reader :xml, :titles, :contributors, :name_title_vals_index, :id_generator, :additional_attrs, :catalog_links
 
     def write_xlink(title:)
-      attrs = { 'xlink:href' => title['valueAt'] }
+      attrs = { 'xlink:href' => Query.value_at(title) }
       xml.titleInfo attrs
     end
 
@@ -100,8 +100,8 @@ module ToMods
       title_info_attrs = title_info_attrs_for(title).merge(title_info_attrs)
 
       xml.titleInfo(title_info_attrs) do
-        xml.title(title['value'])
-        if title['status'] == 'primary' &&
+        xml.title(Query.value(title))
+        if Query.status(title) == 'primary' &&
            (part_label = folio_part_label)
           xml.partNumber(part_label)
         end
@@ -111,31 +111,35 @@ module ToMods
     # rubocop:disable Metrics/AbcSize
     def write_parallel(title:, title_info_attrs: {})
       title_alt_rep_group = id_generator.next_altrepgroup
+      # CocinaDisplay identifies the role (translated/transliterated) and status of each parallel value.
+      display_title = CocinaDisplay::Titles::Title.new(title)
+      any_primary = display_title.parallel_values.any?(&:primary?)
 
-      title['parallelValue'].each do |parallel_title|
+      display_title.parallel_values.each do |parallel_value|
+        parallel_title = parallel_value.cocina
         parallel_attrs = title_info_attrs.dup
         parallel_attrs[:altRepGroup] = title_alt_rep_group
-        parallel_attrs[:lang] = parallel_title.dig('valueLanguage', 'code') if parallel_title.dig('valueLanguage', 'code')
-        if title['type'] == 'uniform'
+        parallel_attrs[:lang] = Query.lang(parallel_title) if Query.lang(parallel_title)
+        if display_title.own_type == 'uniform'
           parallel_attrs[:type] = 'uniform'
           if name_title_vals_index.present?
             title_value_slice = NameTitleGroup.slice_of_value_or_structured_value(parallel_title)
             parallel_attrs[:nameTitleGroup] = name_title_group_number(title_value_slice)
           end
-        elsif parallel_title['type'] == 'transliterated'
+        elsif parallel_value.role == 'transliterated'
           parallel_attrs[:type] = 'translated'
-          parallel_attrs[:transliteration] = parallel_title.dig('standard', 'value')
-        elsif title['parallelValue'].any? { |parallel_value| parallel_value['status'] == 'primary' }
-          if parallel_title['status'] == 'primary'
+          parallel_attrs[:transliteration] = Query.standard_value(parallel_title)
+        elsif any_primary
+          if parallel_value.primary?
             parallel_attrs[:usage] = 'primary'
-          elsif parallel_title['type'] == 'translated'
+          elsif parallel_value.role == 'translated'
             parallel_attrs[:type] = 'translated'
           end
         end
 
-        if parallel_title['structuredValue'].present?
+        if Query.structured?(parallel_title)
           write_structured(title: parallel_title, title_info_attrs: parallel_attrs.compact)
-        elsif parallel_title['value']
+        elsif Query.value(parallel_title)
           write_basic(title: parallel_title, title_info_attrs: parallel_attrs.compact)
         end
       end
@@ -143,7 +147,7 @@ module ToMods
 
     # rubocop:enable Metrics/AbcSize
     def write_grouped(title:, title_info_attrs: {})
-      title['groupedValue'].each do |grouped_title|
+      Query.grouped_values(title).each do |grouped_title|
         write_basic(title: grouped_title, title_info_attrs: title_info_attrs)
       end
     end
@@ -189,7 +193,7 @@ module ToMods
       # recorded in a catalog link, short-circuit the usual title part
       # parsing and pull the part label from the catalog link instead of
       # from descriptive metadata
-      if (main_title = title_parts.find { |part| part['type'] == 'main title' }&.dig('value')) &&
+      if (main_title = Query.value_of_type(title_parts, 'main title')) &&
          (part_label = folio_part_label)
         xml.title(main_title)
         xml.partNumber(part_label)
@@ -199,65 +203,65 @@ module ToMods
           raise "Unknown title type for: #{title_part}" unless title_type
 
           title_value = title_value_for(title_part, title_type, title)
-          xml.public_send(title_type, title_value) if title_part['note'].blank?
+          xml.public_send(title_type, title_value) if Query.notes(title_part).blank?
         end
       end
     end
 
     def title_value_for(title_part, title_type, title)
-      return title_part['value'] unless title_type == 'nonSort'
+      return Query.value(title_part) unless title_type == 'nonSort'
 
-      non_sorting_size = [non_sorting_char_count_for(title) - (title_part['value']&.size || 0), 0].max
-      "#{title_part['value']}#{' ' * non_sorting_size}"
+      non_sorting_size = [non_sorting_char_count_for(title) - (Query.value(title_part)&.size || 0), 0].max
+      "#{Query.value(title_part)}#{' ' * non_sorting_size}"
     end
 
     def non_sorting_char_count_for(title)
-      non_sort_note = Array(title['note']).find { |note| note['type']&.downcase == 'nonsorting character count' }
+      non_sort_note = Query.notes(title).find { |note| Query.type(note)&.downcase == 'nonsorting character count' }
       return 0 unless non_sort_note
 
-      non_sort_note['value'].to_i
+      Query.value(non_sort_note).to_i
     end
 
     # Flatten the structuredValues into a simple list.
     def flatten_structured_value(title)
-      leafs = Array(title['structuredValue']).select { |value| value['value'] }
-      nodes = Array(title['structuredValue']).select { |value| value['structuredValue'].present? }.reject { |value| value['type'] == 'name' }
+      leafs = Query.structured_values(title).select { |value| Query.value(value) }
+      nodes = Query.structured_values(title).select { |value| Query.structured?(value) }.reject { |value| Query.type(value) == 'name' }
       leafs + nodes.flat_map { |node| flatten_structured_value(node) }
     end
 
     # Filter out name types
     def title_parts_without_names(parts)
-      parts.reject { |structured_title| NAME_TYPES.include?(structured_title['type']) }
+      parts.reject { |structured_title| NAME_TYPES.include?(Query.type(structured_title)) }
     end
 
     def with_uri_info(cocina, xml_attrs)
-      xml_attrs[:valueURI] = cocina['uri']
-      xml_attrs[:authorityURI] = cocina.dig('source', 'uri')
-      xml_attrs[:authority] = cocina.dig('source', 'code')
+      xml_attrs[:valueURI] = Query.uri(cocina)
+      xml_attrs[:authorityURI] = Query.authority_uri(cocina)
+      xml_attrs[:authority] = Query.authority(cocina)
       xml_attrs.compact
     end
 
     def tag_name_for(title_part)
-      return 'title' if title_part['type'] == 'title'
+      return 'title' if Query.type(title_part) == 'title'
 
-      TAG_NAME.fetch(title_part['type'], nil)
+      TAG_NAME.fetch(Query.type(title_part), nil)
     end
 
     def title_info_attrs_for(title)
       {
-        usage: title['status'],
-        script: title.dig('valueLanguage', 'valueScript', 'code'),
-        lang: title.dig('valueLanguage', 'code'),
-        displayLabel: title['displayLabel'],
-        valueURI: title['uri'],
-        authorityURI: title.dig('source', 'uri'),
-        authority: title.dig('source', 'code'),
-        transliteration: title.dig('standard', 'value')
+        usage: Query.status(title),
+        script: Query.script(title),
+        lang: Query.lang(title),
+        displayLabel: Query.display_label(title),
+        valueURI: Query.uri(title),
+        authorityURI: Query.authority_uri(title),
+        authority: Query.authority(title),
+        transliteration: Query.standard_value(title)
       }.tap do |attrs|
-        if title['type'] == 'supplied'
+        if Query.type(title) == 'supplied'
           attrs[:supplied] = 'yes'
-        elsif title['type'] != 'transliterated'
-          attrs[:type] = title['type']
+        elsif Query.type(title) != 'transliterated'
+          attrs[:type] = Query.type(title)
         end
       end.compact
     end
@@ -277,7 +281,7 @@ module ToMods
 
     # @return [String, nil] a part label recorded in a folio catalog link
     def folio_part_label
-      catalog_links.find { |link| link['catalog'] == 'folio' && link['partLabel'].present? }&.dig('partLabel')
+      Query.search(catalog_links, "$[?@.catalog == 'folio'].partLabel").find(&:present?)
     end
   end
 end

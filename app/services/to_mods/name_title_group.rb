@@ -23,13 +23,16 @@ module ToMods
   # that a title's associated name and a contributor's name compare as equal even if one of them
   # carries empty properties (e.g. "note": []) that the other omits.
   #
+  # NOTE: CocinaDisplay has no notion of nameTitleGroups. Matching a title to a contributor means
+  # comparing their cocina structures for equality, so this works directly on the cocina hashes.
+  #
   # Originally derived from Cocina::Models::Builders::NameTitleGroupBuilder
   class NameTitleGroup
     # @params [Hash] contributor
     # @params [Array<Hash>] titles
     # @return [boolean] true if contributor part of name title group
     def self.in_name_title_group?(contributor:, titles:)
-      return false if contributor.blank? || contributor['name'].blank? || titles.blank?
+      return false if contributor.blank? || titles.blank? || !Query.present?(contributor, '$.name[*]')
 
       contrib_name_value_slices = contributor_name_value_slices(contributor)
       Array(titles).each do |title|
@@ -59,7 +62,7 @@ module ToMods
         title_val_slice = slice_of_value_or_structured_value(value_note_slice)
         next if title_val_slice.blank?
 
-        associated_name_note = Array(value_note_slice['note']).detect { |note| note['type'] == 'associated name' }
+        associated_name_note = Query.notes_of_type(value_note_slice, 'associated name').first
         next if associated_name_note.blank?
 
         # relevant note will be either
@@ -76,9 +79,10 @@ module ToMods
     # @return [Array<Hash>, nil] where we are only interested in
     #   hashes containing (either value or structuredValue)
     def self.contributor_name_value_slices(contributor)
-      return if contributor.blank? || contributor['name'].blank?
+      names = Query.search(contributor, '$.name[*]')
+      return if names.blank?
 
-      Array(contributor['name']).flat_map { |contrib_name| value_slices(contrib_name) }
+      names.flat_map { |contrib_name| value_slices(contrib_name) }
     end
 
     # @params [Hash] desc_value

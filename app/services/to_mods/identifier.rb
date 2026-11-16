@@ -2,6 +2,9 @@
 
 module ToMods
   # Maps identifiers from cocina to MODS XML
+  #
+  # NOTE: CocinaDisplay::Identifier is not used: its #value prefers the uri over the value and its
+  # #type normalizes DOI/ORCID types, whereas MODS needs the cocina value and type as recorded.
   class Identifier
     # @params [Nokogiri::XML::Builder] xml
     # @params [Array<Hash>] identifiers
@@ -18,7 +21,7 @@ module ToMods
 
     def write
       Array(identifiers).each do |identifier|
-        if identifier['parallelValue'].present?
+        if Query.parallel?(identifier)
           write_parallel(identifier)
         else
           write_identifier(identifier)
@@ -32,20 +35,21 @@ module ToMods
 
     def write_parallel(parallel_identifier)
       altrepgroup_id = id_generator.next_altrepgroup
-      parallel_identifier['parallelValue'].each do |identifier|
+      Query.parallel_values(parallel_identifier).each do |identifier|
         write_identifier(identifier, altrepgroup_id: altrepgroup_id)
       end
     end
 
     def write_identifier(identifier, altrepgroup_id: nil)
+      uri = Query.uri(identifier)
       id_attributes = {
-        displayLabel: identifier['displayLabel'],
-        type: identifier['uri'] ? 'uri' : IdentifierType.mods_type_for_cocina_type(identifier['type']),
+        displayLabel: Query.display_label(identifier),
+        type: uri ? 'uri' : IdentifierType.mods_type_for_cocina_type(Query.type(identifier)),
         altRepGroup: altrepgroup_id
       }.tap do |attrs|
-        attrs[:invalid] = 'yes' if identifier['status'] == 'invalid'
+        attrs[:invalid] = 'yes' if Query.status(identifier) == 'invalid'
       end.compact
-      xml.identifier identifier['value'] || identifier['uri'], id_attributes
+      xml.identifier Query.value(identifier) || uri, id_attributes
     end
   end
 end

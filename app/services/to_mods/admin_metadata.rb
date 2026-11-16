@@ -2,6 +2,9 @@
 
 module ToMods
   # Maps adminMetadata from cocina to MODS XML recordInfo
+  #
+  # NOTE: CocinaDisplay only exposes the admin creation event (CocinaRecord#admin_creation_event),
+  # and its dates are filtered to those it can parse, so JSONPath queries are used here.
   class AdminMetadata
     # @params [Nokogiri::XML::Builder] xml
     # @params [Hash] admin_metadata
@@ -33,37 +36,31 @@ module ToMods
     attr_reader :xml, :admin_metadata
 
     def build_record_origin
-      Array(admin_metadata['note']).select { |note| note['type'] == 'record origin' }.each do |note|
-        xml.recordOrigin note['value']
+      Query.notes_of_type(admin_metadata, 'record origin').each do |note|
+        xml.recordOrigin Query.value(note)
       end
     end
 
     def build_record_info_notes
-      record_info_notes = Array(admin_metadata['note'])
-      # return unless record_info_notes
-      return if record_info_notes.empty?
-
-      record_info_notes.each do |info_note|
-        if info_note['valueAt'].present?
-          xml.recordInfoNote nil, { 'xlink:href' => info_note['valueAt'] }
-        elsif info_note['type'] == 'record information'
-          xml.recordInfoNote info_note['value']
+      Query.notes(admin_metadata).each do |info_note|
+        if (value_at = Query.value_at(info_note)).present?
+          xml.recordInfoNote nil, { 'xlink:href' => value_at }
+        elsif Query.type(info_note) == 'record information'
+          xml.recordInfoNote Query.value(info_note)
         end
       end
     end
 
     def build_content_source
-      Array(admin_metadata['contributor']).each do |contributor|
-        source = Array(contributor['name']).first
-        xml.recordContentSource source['code'] || source['value'], with_uri_info(source)
+      Query.search(admin_metadata, '$.contributor[*]').each do |contributor|
+        source = Query.first(contributor, '$.name[0]')
+        xml.recordContentSource Query.code(source) || Query.value(source), with_uri_info(source)
       end
     end
 
     def build_description_standard
-      return if admin_metadata['metadataStandard'].blank?
-
-      admin_metadata['metadataStandard'].each do |standard|
-        xml.descriptionStandard standard['code'] || standard['value'], with_uri_info(standard)
+      Query.search(admin_metadata, '$.metadataStandard[*]').each do |standard|
+        xml.descriptionStandard Query.code(standard) || Query.value(standard), with_uri_info(standard)
       end
     end
 
@@ -73,51 +70,49 @@ module ToMods
     end
 
     def build_event_for(type, tag)
-      Array(admin_metadata['event']).select { |note| note['type'] == type }.each do |event|
-        Array(event['date']).each do |date|
-          attributes = {}.tap do |attrs|
-            attrs[:encoding] = date.dig('encoding', 'code')
-          end.compact
-
-          xml.public_send(tag, date['value'], attributes)
-        end
+      Query.search(admin_metadata, "$.event[?@.type == #{Query.literal(type)}].date[*]").each do |date|
+        attributes = { encoding: Query.encoding_code(date) }.compact
+        xml.public_send(tag, Query.value(date), attributes)
       end
     end
 
     def build_identifier
-      Array(admin_metadata['identifier']).each do |identifier|
+      Query.identifiers(admin_metadata).each do |identifier|
+        uri = Query.uri(identifier)
         id_attributes = {
-          displayLabel: identifier['displayLabel'],
-          source: identifier['uri'] ? 'uri' : IdentifierType.mods_type_for_cocina_type(identifier['type'])
+          displayLabel: Query.display_label(identifier),
+          source: uri ? 'uri' : IdentifierType.mods_type_for_cocina_type(Query.type(identifier))
         }.tap do |attrs|
-          attrs[:invalid] = 'yes' if identifier['status'] == 'invalid'
+          attrs[:invalid] = 'yes' if Query.status(identifier) == 'invalid'
         end.compact
-        xml.recordIdentifier identifier['value'] || identifier['uri'], id_attributes
+        xml.recordIdentifier Query.value(identifier) || uri, id_attributes
       end
     end
 
     def build_language
-      Array(admin_metadata['language']).each do |language|
-        language_of_cataloging_attrs = {}
-        language_of_cataloging_attrs[:usage] = language['status'] if language['status']
+      Query.search(admin_metadata, '$.language[*]').each do |language_cocina|
+        language = CocinaDisplay::Languages::Language.new(language_cocina)
+        language_of_cataloging_attrs = { usage: Query.status(language_cocina) }.compact
         xml.languageOfCataloging language_of_cataloging_attrs do
-          language_attrs = with_uri_info(language, {})
-          xml.languageTerm language['value'], language_attrs.merge(type: 'text') if language['value']
-          xml.languageTerm language['code'], language_attrs.merge(type: 'code') if language['code']
-          if language['script']
-            script_attrs = with_uri_info(language['script'], {})
-            xml.scriptTerm language.dig('script', 'value'), script_attrs.merge(type: 'text')
-            xml.scriptTerm language.dig('script', 'code'), script_attrs.merge(type: 'code')
+          language_attrs = with_uri_info(language_cocina)
+          value = Query.value(language_cocina)
+          xml.languageTerm value, language_attrs.merge(type: 'text') if value
+          xml.languageTerm language.code, language_attrs.merge(type: 'code') if language.code
+          if (script = language.script)
+            script_attrs = with_uri_info(script.cocina)
+            xml.scriptTerm Query.value(script.cocina), script_attrs.merge(type: 'text')
+            xml.scriptTerm script.code, script_attrs.merge(type: 'code')
           end
         end
       end
     end
 
-    def with_uri_info(cocina, xml_attrs = {})
-      xml_attrs[:valueURI] = cocina['uri']
-      xml_attrs[:authorityURI] = cocina.dig('source', 'uri')
-      xml_attrs[:authority] = cocina.dig('source', 'code')
-      xml_attrs.compact
+    def with_uri_info(cocina)
+      {
+        valueURI: Query.uri(cocina),
+        authorityURI: Query.authority_uri(cocina),
+        authority: Query.authority(cocina)
+      }.compact
     end
   end
 end

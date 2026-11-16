@@ -15,7 +15,7 @@ RSpec.describe ToMods::Geographic do
                'version' => '3.6',
                'xmlns:rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, geos: geos, druid: druid)
+        described_class.write(xml: xml, geos: geos.as_json, druid: druid)
       end
     end
   end
@@ -36,8 +36,7 @@ RSpec.describe ToMods::Geographic do
 
   context 'with a bounding box from a polygon shapefile converted from ISO 19139 missing standard' do
     let(:geo) do
-      Cocina::Models::DescriptiveGeographicMetadata.new(
-        form: [
+      { form: [
           {
             value: 'application/x-esri-shapefile',
             type: 'media type',
@@ -87,8 +86,7 @@ RSpec.describe ToMods::Geographic do
             },
             uri: 'http://sws.geonames.org/6255152/'
           }
-        ]
-      )
+        ] }
     end
 
     it 'builds the cocina data structure' do
@@ -119,25 +117,23 @@ RSpec.describe ToMods::Geographic do
 
   context 'when a polygon shapefile without subject' do
     let(:geo) do
-      Cocina::Models::DescriptiveGeographicMetadata.new(
-        form: [
-          {
-            value: 'application/x-esri-shapefile',
-            type: 'media type',
-            source: {
-              value: 'IANA media type terms'
-            }
-          },
-          {
-            value: 'Shapefile',
-            type: 'data format'
-          },
-          {
-            value: 'Dataset#Polygon',
-            type: 'type'
+      { form: [
+        {
+          value: 'application/x-esri-shapefile',
+          type: 'media type',
+          source: {
+            value: 'IANA media type terms'
           }
-        ]
-      )
+        },
+        {
+          value: 'Shapefile',
+          type: 'data format'
+        },
+        {
+          value: 'Dataset#Polygon',
+          type: 'type'
+        }
+      ] }
     end
 
     it 'builds the cocina data structure' do
@@ -161,24 +157,22 @@ RSpec.describe ToMods::Geographic do
 
   context 'when missing value' do
     let(:geo) do
-      Cocina::Models::DescriptiveGeographicMetadata.new(
-        form: [
-          {
-            value: 'application/x-esri-shapefile',
-            type: 'media type',
-            source: {
-              value: 'IANA media type terms'
-            }
-          },
-          {
-            value: 'Shapefile',
-            type: 'data format'
-          },
-          {
-            type: 'type'
+      { form: [
+        {
+          value: 'application/x-esri-shapefile',
+          type: 'media type',
+          source: {
+            value: 'IANA media type terms'
           }
-        ]
-      )
+        },
+        {
+          value: 'Shapefile',
+          type: 'data format'
+        },
+        {
+          type: 'type'
+        }
+      ] }
     end
 
     it 'builds the cocina data structure' do

@@ -17,7 +17,8 @@ module Publish
 
     # @return [Nokogiri::XML::Document] A copy of the descriptiveMetadata of the object, to be modified
     def doc
-      @doc ||= ToMods::Description.transform(cocina_object.description, cocina_object.externalIdentifier, identification: cocina_object.identification)
+      @doc ||= ToMods::Description.transform(cocina_object.description.to_h, cocina_object.externalIdentifier,
+                                             identification: cocina_object.identification&.to_h)
     end
 
     # @return [String] Public descriptive medatada XML

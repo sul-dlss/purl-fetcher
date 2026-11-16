@@ -2,41 +2,40 @@
 
 module ToMods
   # Maps notes from cocina to MODS XML
+  #
+  # NOTE: CocinaDisplay::Notes::Note#abstract? is not used to choose the MODS element: it matches a
+  # different set of display labels (e.g. it doesn't treat "Content advice", "Subject" or "Review"
+  # as abstracts). Note#part? is not used either, because it considers the type of the main parallel
+  # value rather than only the type of the note itself.
   class Note
+    # notes with a displayLabel set to any of these values will produce an `abstract` XML node
+    DISPLAY_LABEL_TO_ABSTRACT_TYPE = ['Content advice', 'Subject', 'Abstract', 'Review', 'Summary', 'Scope and content',
+                                      'Scope and Content', 'Content Advice'].freeze
+
+    # notes with these types will produce an `abstract` XML node
+    NOTE_TYPE_TO_ABSTRACT_TYPE = ['summary', 'abstract', 'scope and content'].freeze
+
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::DescriptiveValue>] notes
+    # @params [Array<Hash>] notes
     # @params [IdGenerator] id_generator
     def self.write(xml:, notes:, id_generator:)
       new(xml: xml, notes: notes, id_generator: id_generator).write
     end
 
-    # notes with a displayLabel set to any of these values will produce an `abstract` XML node
-    # TODO: Replace with FromMods::Note::DISPLAY_LABEL_TO_ABSTRACT_TYPE
-    def self.display_label_to_abstract_type
-      ['Content advice', 'Subject', 'Abstract', 'Review', 'Summary', 'Scope and content',
-       'Scope and Content', 'Content Advice']
-    end
-
-    # notes with these types will produce an `abstract` XML node
-    # TODO: Replace with FromMods::Note::NOTE_TYPE_TO_ABSTRACT_TYPE
-    def self.note_type_to_abstract_type
-      ['summary', 'abstract', 'scope and content']
-    end
-
     def initialize(xml:, notes:, id_generator:)
       @xml = xml
-      @notes = notes
+      @notes = Array(notes).map { |note| CocinaDisplay::Notes::Note.new(note) }
       @id_generator = id_generator
     end
 
     def write
-      Array(notes).each do |note|
-        if note.type == 'part'
-          PartWriter.write(xml: xml, part_note: note)
-        elsif note.parallelValue.present?
+      notes.each do |note|
+        if Query.type(note.cocina) == 'part'
+          PartWriter.write(xml: xml, part_note: note.cocina)
+        elsif Query.parallel?(note.cocina)
           write_parallel(note)
         else
-          write_basic(note)
+          write_basic(note.cocina)
         end
       end
     end
@@ -59,10 +58,11 @@ module ToMods
     attr_reader :xml, :notes, :id_generator
 
     def tag_name(note)
-      return :abstract if self.class.display_label_to_abstract_type.include? note.displayLabel
-      return :abstract if self.class.note_type_to_abstract_type.include? note.type&.downcase
+      type = Query.type(note)&.downcase
+      return :abstract if DISPLAY_LABEL_TO_ABSTRACT_TYPE.include? Query.display_label(note)
+      return :abstract if NOTE_TYPE_TO_ABSTRACT_TYPE.include? type
 
-      case note.type&.downcase
+      case type
       when 'table of contents'
         :tableOfContents
       when 'target audience'
@@ -73,12 +73,12 @@ module ToMods
     end
 
     def tag(note, tag_name, attributes)
-      attributes[:type] = note.type if note.type && note.type != 'abstract' && %i[tableOfContents
-                                                                                  targetAudience].exclude?(tag_name)
-      value = if note.structuredValue.present?
-                note.structuredValue.map(&:value).join(' -- ')
+      type = Query.type(note)
+      attributes[:type] = type if type && type != 'abstract' && %i[tableOfContents targetAudience].exclude?(tag_name)
+      value = if Query.structured?(note)
+                Query.structured_values(note).pluck('value').join(' -- ')
               else
-                note.value
+                Query.value(note)
               end
       xml.public_send tag_name, attributes do |builder|
         Note.with_cdata(value, builder) if value
@@ -89,28 +89,25 @@ module ToMods
       tag(note, tag_name(note), note_attributes(note))
     end
 
+    # @param [CocinaDisplay::Notes::Note] note
     def write_parallel(note)
       alt_rep_group = id_generator.next_altrepgroup
-      note.parallelValue.each do |parallel_note|
-        attributes = { altRepGroup: alt_rep_group }.merge(note_attributes(parallel_note))
+      note.parallel_values.each do |parallel_note|
+        attributes = { altRepGroup: alt_rep_group }.merge(note_attributes(parallel_note.cocina))
 
-        tag(parallel_note, tag_name(note), attributes)
+        tag(parallel_note.cocina, tag_name(note.cocina), attributes)
       end
     end
 
     def note_attributes(note)
       {
-        lang: note.valueLanguage&.code,
-        script: note.valueLanguage&.valueScript&.code,
-        displayLabel: note.displayLabel,
-        authority: note.source&.code,
-        'xlink:href' => note.valueAt,
-        ID: id_for(note)
+        lang: Query.lang(note),
+        script: Query.script(note),
+        displayLabel: Query.display_label(note),
+        authority: Query.authority(note),
+        'xlink:href' => Query.value_at(note),
+        ID: Query.value_of_type(Query.identifiers(note), 'anchor')
       }.compact
-    end
-
-    def id_for(note)
-      Array(note.identifier).find { |identifier| identifier.type == 'anchor' }&.value
     end
   end
 end

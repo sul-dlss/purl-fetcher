@@ -11,7 +11,7 @@ RSpec.describe ToMods::AdminMetadata do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, admin_metadata: admin_metadata)
+        described_class.write(xml: xml, admin_metadata: admin_metadata.as_json)
       end
     end
   end
@@ -31,8 +31,7 @@ RSpec.describe ToMods::AdminMetadata do
 
   context 'when it is from replayable spreadsheet (with desc standard value)' do
     let(:admin_metadata) do
-      Cocina::Models::DescriptiveAdminMetadata.new(
-        language: [
+      { language: [
           {
             value: 'English',
             code: 'eng',
@@ -85,8 +84,7 @@ RSpec.describe ToMods::AdminMetadata do
             type: 'record origin',
             value: 'human prepared'
           }
-        ]
-      )
+        ] }
     end
 
     it 'builds the xml' do
@@ -112,45 +110,43 @@ RSpec.describe ToMods::AdminMetadata do
 
   context 'when there is no "note" (e.g. jv711gt9148)' do
     let(:admin_metadata) do
-      Cocina::Models::DescriptiveAdminMetadata.new(
-        {
-          contributor: [
-            {
-              name: [
-                {
-                  code: 'DOR_MARC2MODS3-3.xsl Revision 1.1',
-                  source: {}
-                }
-              ],
-              role: [
-                {
-                  value: 'original cataloging agency'
-                }
-              ],
-              type: 'organization'
-            }
-          ],
-          event: [
-            {
-              date: [
-                {
-                  encoding: {
-                    code: 'iso8601'
-                  },
-                  value: '2011-02-08T20:00:27.321-08:00'
-                }
-              ],
-              type: 'creation'
-            }
-          ],
-          identifier: [
-            {
-              type: 'Data Provider Digital Object Identifier',
-              value: '36105033329140'
-            }
-          ]
-        }
-      )
+      {
+        contributor: [
+          {
+            name: [
+              {
+                code: 'DOR_MARC2MODS3-3.xsl Revision 1.1',
+                source: {}
+              }
+            ],
+            role: [
+              {
+                value: 'original cataloging agency'
+              }
+            ],
+            type: 'organization'
+          }
+        ],
+        event: [
+          {
+            date: [
+              {
+                encoding: {
+                  code: 'iso8601'
+                },
+                value: '2011-02-08T20:00:27.321-08:00'
+              }
+            ],
+            type: 'creation'
+          }
+        ],
+        identifier: [
+          {
+            type: 'Data Provider Digital Object Identifier',
+            value: '36105033329140'
+          }
+        ]
+      }
     end
 
     it 'builds the xml' do
@@ -170,15 +166,13 @@ RSpec.describe ToMods::AdminMetadata do
 
   context 'when identifier is missing source' do
     let(:admin_metadata) do
-      Cocina::Models::DescriptiveAdminMetadata.new(
-        {
-          identifier: [
-            {
-              value: '36105033329140'
-            }
-          ]
-        }
-      )
+      {
+        identifier: [
+          {
+            value: '36105033329140'
+          }
+        ]
+      }
     end
 
     it 'builds the xml' do
@@ -196,20 +190,18 @@ RSpec.describe ToMods::AdminMetadata do
 
   context 'when event is missing date' do
     let(:admin_metadata) do
-      Cocina::Models::DescriptiveAdminMetadata.new(
-        {
-          event: [
-            {
-              type: 'creation',
-              date: [
-                {
-                  value: '2011-09-27T12:58:15.677+02:00'
-                }
-              ]
-            }
-          ]
-        }
-      )
+      {
+        event: [
+          {
+            type: 'creation',
+            date: [
+              {
+                value: '2011-09-27T12:58:15.677+02:00'
+              }
+            ]
+          }
+        ]
+      }
     end
 
     it 'builds the xml' do

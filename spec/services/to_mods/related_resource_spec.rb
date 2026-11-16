@@ -11,7 +11,7 @@ RSpec.describe ToMods::RelatedResource do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, related_resources: resources, druid: 'druid:vx162kw9911',
+        described_class.write(xml: xml, related_resources: resources.as_json, druid: 'druid:vx162kw9911',
                               id_generator: ToMods::IdGenerator.new)
       end
     end
@@ -33,8 +33,7 @@ RSpec.describe ToMods::RelatedResource do
   context 'when it has a related item with the generic "related to" type (related link from H2)' do
     let(:resources) do
       [
-        Cocina::Models::RelatedResource.new(
-          title: [
+        { title: [
             {
               value: 'Supplement'
             }
@@ -44,8 +43,7 @@ RSpec.describe ToMods::RelatedResource do
               { value: 'https://example.com/paper.html' }
             ]
           },
-          type: 'related to'
-        )
+          type: 'related to' }
       ]
     end
 
@@ -70,15 +68,13 @@ RSpec.describe ToMods::RelatedResource do
   context 'when it has a related item with the generic "related to" type (related work from H2)' do
     let(:resources) do
       [
-        Cocina::Models::RelatedResource.new(
-          note: [
+        { note: [
             {
               value: 'Stanford University (Stanford, CA.). (2020)',
               type: 'preferred citation'
             }
           ],
-          type: 'related to'
-        )
+          type: 'related to' }
       ]
     end
 
@@ -98,20 +94,16 @@ RSpec.describe ToMods::RelatedResource do
   context 'when it has multiple related items' do
     let(:resources) do
       [
-        Cocina::Models::RelatedResource.new(
-          title: [
-            {
-              value: 'Related item 1'
-            }
-          ]
-        ),
-        Cocina::Models::RelatedResource.new(
-          title: [
-            {
-              value: 'Related item 2'
-            }
-          ]
-        )
+        { title: [
+          {
+            value: 'Related item 1'
+          }
+        ] },
+        { title: [
+          {
+            value: 'Related item 2'
+          }
+        ] }
       ]
     end
 
@@ -138,14 +130,12 @@ RSpec.describe ToMods::RelatedResource do
   context 'when it has displayLabel' do
     let(:resources) do
       [
-        Cocina::Models::RelatedResource.new(
-          title: [
+        { title: [
             {
               value: 'Fremontia : Journal of the California Native Plant Society'
             }
           ],
-          displayLabel: 'Contained in (manifestation):'
-        )
+          displayLabel: 'Contained in (manifestation):' }
       ]
     end
 
@@ -167,24 +157,22 @@ RSpec.describe ToMods::RelatedResource do
   context 'when it has a related item with a contributor without a type' do
     let(:resources) do
       [
-        Cocina::Models::RelatedResource.new(
-          {
-            title: [
-              {
-                value: 'Lymond chronicles'
-              }
-            ],
-            contributor: [
-              {
-                name: [
-                  {
-                    value: 'Dunnett, Dorothy'
-                  }
-                ]
-              }
-            ]
-          }
-        )
+        {
+          title: [
+            {
+              value: 'Lymond chronicles'
+            }
+          ],
+          contributor: [
+            {
+              name: [
+                {
+                  value: 'Dunnett, Dorothy'
+                }
+              ]
+            }
+          ]
+        }
       ]
     end
 

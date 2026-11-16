@@ -5,7 +5,19 @@ module ToMods
   #   NOTE: contributors from nameTitleGroups are output here as well;
   #   this allows for consistency of the nameTitleGroup number for the matching title(s) and the contributor(s)
   class Title # rubocop:disable Metrics/ClassLength
-    TAG_NAME = Cocina::Models::Mapping::FromMods::Title::TYPES.invert.merge('activity dates' => 'date').freeze
+    # cocina title part type => MODS titleInfo child element
+    TAG_NAME = {
+      'nonsorting characters' => 'nonSort',
+      'main title' => 'title',
+      'subtitle' => 'subTitle',
+      'part number' => 'partNumber',
+      'part name' => 'partName',
+      'life dates' => 'date',
+      'activity dates' => 'date',
+      'forename' => 'given',
+      'surname' => 'family',
+      'title' => 'uniform'
+    }.freeze
     NAME_TYPES = ['name', 'forename', 'surname', 'life dates', 'term of address'].freeze
 
     def self.write(...)
@@ -13,19 +25,19 @@ module ToMods
     end
 
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::Title>] titles
+    # @params [Array<Hash>] titles
     # @params [IdGenerator] id_generator
-    # @params [Array<Cocina::Models::Contributor>] contributors
+    # @params [Array<Hash>] contributors
     # @params [Hash] additional_attrs for title
-    # @params [Array<Cocina::Models::CatalogLink>] catalog_links a list of catalog
+    # @params [Array<Hash>] catalog_links a list of catalog
     #   links which may contain part label and sort key information
     def initialize(xml:, titles:, id_generator:, contributors: [], additional_attrs: {}, catalog_links: []) # rubocop:disable Metrics/ParameterLists
       @xml = xml
-      @titles = titles
+      @titles = Array(titles)
       @id_generator = id_generator
-      @contributors = contributors
+      @contributors = Array(contributors)
       @additional_attrs = additional_attrs
-      @catalog_links = catalog_links
+      @catalog_links = Array(catalog_links)
       @name_title_vals_index = {}
     end
 
@@ -33,15 +45,15 @@ module ToMods
       titles.each do |title| # rubocop:disable Metrics/BlockLength
         name_title_vals_index = name_title_vals_index_for(title)
 
-        if title.valueAt
+        if Query.value_at(title)
           write_xlink(title: title)
-        elsif title.parallelValue.present?
+        elsif Query.parallel?(title)
           write_parallel(title: title, title_info_attrs: additional_attrs)
-        elsif title.groupedValue.present?
+        elsif Query.grouped?(title)
           write_grouped(title: title, title_info_attrs: additional_attrs)
-        elsif title.structuredValue.present?
+        elsif Query.structured?(title)
           if name_title_vals_index.present?
-            title_value_slice = Cocina::Models::Builders::NameTitleGroupBuilder.slice_of_value_or_structured_value(title.to_h)
+            title_value_slice = NameTitleGroup.slice_of_value_or_structured_value(title)
             # don't leak nameTitleGroup into later titles
             my_additional_attrs = additional_attrs.dup
             my_additional_attrs[:nameTitleGroup] = name_title_group_number(title_value_slice)
@@ -49,9 +61,9 @@ module ToMods
           else
             write_structured(title: title, title_info_attrs: additional_attrs.compact)
           end
-        elsif title.value
+        elsif Query.value(title)
           if name_title_vals_index.present?
-            title_value_slice = Cocina::Models::Builders::NameTitleGroupBuilder.slice_of_value_or_structured_value(title.to_h)
+            title_value_slice = NameTitleGroup.slice_of_value_or_structured_value(title)
             # don't leak nameTitleGroup into later titles
             my_additional_attrs = additional_attrs.dup
             my_additional_attrs[:nameTitleGroup] = name_title_group_number(title_value_slice)
@@ -61,8 +73,8 @@ module ToMods
           end
         end
 
-        associated_name = Cocina::Models::Builders::NameTitleGroupBuilder.title_value_note_slices(title).each do |value_note_slice|
-          value_note_slice[:note]&.detect { |note| note[:type] == 'associated name' }
+        associated_name = NameTitleGroup.title_value_note_slices(title).each do |value_note_slice|
+          Query.notes(value_note_slice).detect { |note| Query.type(note) == 'associated name' }
         end
         next if associated_name.blank?
 
@@ -80,7 +92,7 @@ module ToMods
     attr_reader :xml, :titles, :contributors, :name_title_vals_index, :id_generator, :additional_attrs, :catalog_links
 
     def write_xlink(title:)
-      attrs = { 'xlink:href' => title.valueAt }
+      attrs = { 'xlink:href' => Query.value_at(title) }
       xml.titleInfo attrs
     end
 
@@ -88,61 +100,63 @@ module ToMods
       title_info_attrs = title_info_attrs_for(title).merge(title_info_attrs)
 
       xml.titleInfo(title_info_attrs) do
-        xml.title(title.value)
-        if title.status == 'primary' &&
-           (part_label = catalog_links.find { |link| link.catalog == 'folio' && link.partLabel.present? }&.partLabel)
+        xml.title(Query.value(title))
+        if Query.status(title) == 'primary' &&
+           (part_label = folio_part_label)
           xml.partNumber(part_label)
         end
       end
     end
 
     # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/CyclomaticComplexity
     def write_parallel(title:, title_info_attrs: {})
       title_alt_rep_group = id_generator.next_altrepgroup
+      # CocinaDisplay identifies the role (translated/transliterated) and status of each parallel value.
+      display_title = CocinaDisplay::Titles::Title.new(title)
+      any_primary = display_title.parallel_values.any?(&:primary?)
 
-      title.parallelValue.each do |parallel_title|
+      display_title.parallel_values.each do |parallel_value|
+        parallel_title = parallel_value.cocina
         parallel_attrs = title_info_attrs.dup
         parallel_attrs[:altRepGroup] = title_alt_rep_group
-        parallel_attrs[:lang] = parallel_title.valueLanguage.code if parallel_title.valueLanguage&.code
-        if title.type == 'uniform'
+        parallel_attrs[:lang] = Query.lang(parallel_title) if Query.lang(parallel_title)
+        if display_title.own_type == 'uniform'
           parallel_attrs[:type] = 'uniform'
           if name_title_vals_index.present?
-            title_value_slice = Cocina::Models::Builders::NameTitleGroupBuilder.slice_of_value_or_structured_value(parallel_title.to_h)
+            title_value_slice = NameTitleGroup.slice_of_value_or_structured_value(parallel_title)
             parallel_attrs[:nameTitleGroup] = name_title_group_number(title_value_slice)
           end
-        elsif parallel_title.type == 'transliterated'
+        elsif parallel_value.role == 'transliterated'
           parallel_attrs[:type] = 'translated'
-          parallel_attrs[:transliteration] = parallel_title.standard.value
-        elsif title.parallelValue.any? { |parallel_value| parallel_value.status == 'primary' }
-          if parallel_title.status == 'primary'
+          parallel_attrs[:transliteration] = Query.standard_value(parallel_title)
+        elsif any_primary
+          if parallel_value.primary?
             parallel_attrs[:usage] = 'primary'
-          elsif parallel_title.type == 'translated'
+          elsif parallel_value.role == 'translated'
             parallel_attrs[:type] = 'translated'
           end
         end
 
-        if parallel_title.structuredValue.present?
+        if Query.structured?(parallel_title)
           write_structured(title: parallel_title, title_info_attrs: parallel_attrs.compact)
-        elsif parallel_title.value
+        elsif Query.value(parallel_title)
           write_basic(title: parallel_title, title_info_attrs: parallel_attrs.compact)
         end
       end
     end
 
     # rubocop:enable Metrics/AbcSize
-    # rubocop:enable Metrics/CyclomaticComplexity
     def write_grouped(title:, title_info_attrs: {})
-      title.groupedValue.each do |grouped_title|
+      Query.grouped_values(title).each do |grouped_title|
         write_basic(title: grouped_title, title_info_attrs: title_info_attrs)
       end
     end
 
-    # @params [Cocina::Models::Title] titles
+    # @params [Hash] title
     # @return [Hash<Hash, Hash<Hash, Integer>>]
-    #   the key is a hash representing a single contributor name, with a key of :value or :structuredValue
+    #   the key is a hash representing a single contributor name, with a key of 'value' or 'structuredValue'
     #   the value is a hash, where
-    #      the key is a hash representing a single title value, with a key of :value or :structuredValue
+    #      the key is a hash representing a single title value, with a key of 'value' or 'structuredValue'
     #      the value is the nameTitleGroup number as an Integer
     #   e.g. {{:value=>"James Joyce"}=>{:value=>"Portrait of the artist as a young man"}=>1,
     #   e.g.  {:value=>"Vinsky Cat"}=>{:structuredValue=>[{:value=>"Demanding Food", :type=>"main"},{:value=>"A Cat's Life", :type=>"subtitle"}]}=>2}
@@ -151,10 +165,10 @@ module ToMods
     def name_title_vals_index_for(title)
       return nil unless contributors
 
-      title_vals_to_contrib_name_vals = Cocina::Models::Builders::NameTitleGroupBuilder.build_title_values_to_contributor_name_values(title)
+      title_vals_to_contrib_name_vals = NameTitleGroup.build_title_values_to_contributor_name_values(title)
       return nil if title_vals_to_contrib_name_vals.blank?
 
-      title_value_slices = Cocina::Models::Builders::NameTitleGroupBuilder.value_slices(title)
+      title_value_slices = NameTitleGroup.value_slices(title)
       title_value_slices.each do |title_value_slice|
         contrib_name_val_slice = title_vals_to_contrib_name_vals[title_value_slice]
         next if contrib_name_val_slice.blank?
@@ -179,75 +193,75 @@ module ToMods
       # recorded in a catalog link, short-circuit the usual title part
       # parsing and pull the part label from the catalog link instead of
       # from descriptive metadata
-      if (main_title = title_parts.find { |part| part.type == 'main title' }&.value) &&
-         (part_label = catalog_links.find { |link| link.catalog == 'folio' && link.partLabel.present? }&.partLabel)
+      if (main_title = Query.value_of_type(title_parts, 'main title')) &&
+         (part_label = folio_part_label)
         xml.title(main_title)
         xml.partNumber(part_label)
       else
         title_parts.each do |title_part|
           title_type = tag_name_for(title_part)
-          raise "Unknown title type for: #{title_part.to_h}" unless title_type
+          raise "Unknown title type for: #{title_part}" unless title_type
 
           title_value = title_value_for(title_part, title_type, title)
-          xml.public_send(title_type, title_value) if title_part.note.blank?
+          xml.public_send(title_type, title_value) if Query.notes(title_part).blank?
         end
       end
     end
 
     def title_value_for(title_part, title_type, title)
-      return title_part.value unless title_type == 'nonSort'
+      return Query.value(title_part) unless title_type == 'nonSort'
 
-      non_sorting_size = [non_sorting_char_count_for(title) - (title_part.value&.size || 0), 0].max
-      "#{title_part.value}#{' ' * non_sorting_size}"
+      non_sorting_size = [non_sorting_char_count_for(title) - (Query.value(title_part)&.size || 0), 0].max
+      "#{Query.value(title_part)}#{' ' * non_sorting_size}"
     end
 
     def non_sorting_char_count_for(title)
-      non_sort_note = title.note&.find { |note| note.type&.downcase == 'nonsorting character count' }
+      non_sort_note = Query.notes(title).find { |note| Query.type(note)&.downcase == 'nonsorting character count' }
       return 0 unless non_sort_note
 
-      non_sort_note.value.to_i
+      Query.value(non_sort_note).to_i
     end
 
     # Flatten the structuredValues into a simple list.
     def flatten_structured_value(title)
-      leafs = title.structuredValue.select(&:value)
-      nodes = title.structuredValue.select(&:structuredValue).reject { |value| value.type == 'name' }
+      leafs = Query.structured_values(title).select { |value| Query.value(value) }
+      nodes = Query.structured_values(title).select { |value| Query.structured?(value) }.reject { |value| Query.type(value) == 'name' }
       leafs + nodes.flat_map { |node| flatten_structured_value(node) }
     end
 
     # Filter out name types
     def title_parts_without_names(parts)
-      parts.reject { |structured_title| NAME_TYPES.include?(structured_title.type) }
+      parts.reject { |structured_title| NAME_TYPES.include?(Query.type(structured_title)) }
     end
 
     def with_uri_info(cocina, xml_attrs)
-      xml_attrs[:valueURI] = cocina.uri
-      xml_attrs[:authorityURI] = cocina.source&.uri
-      xml_attrs[:authority] = cocina.source&.code
+      xml_attrs[:valueURI] = Query.uri(cocina)
+      xml_attrs[:authorityURI] = Query.authority_uri(cocina)
+      xml_attrs[:authority] = Query.authority(cocina)
       xml_attrs.compact
     end
 
     def tag_name_for(title_part)
-      return 'title' if title_part.type == 'title'
+      return 'title' if Query.type(title_part) == 'title'
 
-      TAG_NAME.fetch(title_part.type, nil)
+      TAG_NAME.fetch(Query.type(title_part), nil)
     end
 
     def title_info_attrs_for(title)
       {
-        usage: title.status,
-        script: title.valueLanguage&.valueScript&.code,
-        lang: title.valueLanguage&.code,
-        displayLabel: title.displayLabel,
-        valueURI: title.uri,
-        authorityURI: title.source&.uri,
-        authority: title.source&.code,
-        transliteration: title.standard&.value
+        usage: Query.status(title),
+        script: Query.script(title),
+        lang: Query.lang(title),
+        displayLabel: Query.display_label(title),
+        valueURI: Query.uri(title),
+        authorityURI: Query.authority_uri(title),
+        authority: Query.authority(title),
+        transliteration: Query.standard_value(title)
       }.tap do |attrs|
-        if title.type == 'supplied'
+        if Query.type(title) == 'supplied'
           attrs[:supplied] = 'yes'
-        elsif title.type != 'transliterated'
-          attrs[:type] = title.type
+        elsif Query.type(title) != 'transliterated'
+          attrs[:type] = Query.type(title)
         end
       end.compact
     end
@@ -255,14 +269,19 @@ module ToMods
     # @return [Integer] the integer to be used for a nameTitleGroup attribute
     def name_title_group_number(title_value_slice)
       # name_title_vals_index is [Hash<Hash, Hash<Hash, Integer>>]
-      #   the key is a hash representing a single contributor name, with a key of :value or :structuredValue
+      #   the key is a hash representing a single contributor name, with a key of 'value' or 'structuredValue'
       #   the value is a hash, where
-      #      the key is a hash representing a single title value, with a key of :value or :structuredValue
+      #      the key is a hash representing a single title value, with a key of 'value' or 'structuredValue'
       #      the value is the nameTitleGroup number as an Integer
-      #   e.g. {{:value=>"James Joyce"}=>{:value=>"Portrait of the artist as a young man"}=>1}
+      #   e.g. {{"value"=>"James Joyce"}=>{"value"=>"Portrait of the artist as a young man"}=>1}
       #
       # This complexity is needed for multilingual titles mapping to multilingual names. :-P
       name_title_vals_index.values.detect { |hash| hash.key?(title_value_slice) }&.values&.first
+    end
+
+    # @return [String, nil] a part label recorded in a folio catalog link
+    def folio_part_label
+      Query.search(catalog_links, "$[?@.catalog == 'folio'].partLabel").find(&:present?)
     end
   end
 end

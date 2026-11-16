@@ -3,31 +3,32 @@
 module ToMods
   # Maps roles from cocina to MODS XML
   class RoleWriter
+    SELF_DEPOSIT_CONTRIBUTOR_TYPES = 'Stanford self-deposit contributor types'
+
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Cocina::Models::DescriptiveValue] role
+    # @params [Hash] role a cocina DescriptiveValue
     def self.write(xml:, role:)
       new(xml: xml, role: role).write
     end
 
     def initialize(xml:, role:)
       @xml = xml
-      @role = role
+      @role = CocinaDisplay::Contributors::Role.new(role)
     end
 
     def write
       xml.role do
         attributes = {
-          valueURI: role.uri,
-          authority: role.source&.code,
-          authorityURI: role.source&.uri
+          valueURI: Query.uri(role.cocina),
+          authority: Query.authority(role.cocina),
+          authorityURI: Query.authority_uri(role.cocina)
         }.compact
-        if role.value.present?
+        # Role#to_s would fall back to a label decoded from the MARC relator code, but MODS only
+        # records the text value when it is present in the cocina.
+        value = Query.value(role.cocina)
+        if value.present?
           attributes[:type] = 'text'
-          value = if role.source&.value == 'Stanford self-deposit contributor types'
-                    role.value.downcase
-                  else
-                    role.value
-                  end
+          value = value.downcase if Query.source_value(role.cocina) == SELF_DEPOSIT_CONTRIBUTOR_TYPES
           xml.roleTerm value, attributes
         end
         if role.code.present?

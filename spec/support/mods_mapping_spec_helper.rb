@@ -7,7 +7,7 @@ MODS_ATTRIBUTES = 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="
 
 def add_purl_and_title(cocina, druid)
   cocina.merge({
-    purl: cocina.fetch(:purl, Cocina::Models::Mapping::Purl.for(druid: druid)),
+    purl: cocina.fetch(:purl, ModsNormalizer.purl_for(druid)),
     title: cocina.key?(:title) ? nil : [{ value: label }]
   }.compact)
 end
@@ -42,7 +42,7 @@ RSpec.shared_examples 'MODS cocina mapping' do
   # Required: mods, cocina
   # Optional: druid, roundtrip_mods, warnings, errors, mods_attributes, skip_normalization, label
 
-  let(:orig_cocina_description) { Cocina::Models::Description.new(add_purl_and_title(cocina, local_druid)) }
+  let(:orig_cocina_description) { add_purl_and_title(cocina, local_druid) }
 
   let(:orig_mods_ng) { ng_mods_for(mods, mods_attributes) }
 
@@ -77,7 +77,7 @@ RSpec.shared_examples 'cocina MODS mapping' do
   # Required: mods, cocina
   # Optional: druid, roundtrip_cocina, warnings, errors, mods_attributes, label
 
-  let(:orig_cocina_description) { Cocina::Models::Description.new(add_purl_and_title(cocina, local_druid)) }
+  let(:orig_cocina_description) { add_purl_and_title(cocina, local_druid) }
 
   let(:mods_attributes) { MODS_ATTRIBUTES }
 
@@ -112,7 +112,7 @@ RSpec.shared_examples 'cocina to MODS only mapping' do
   # Required: mods, cocina
   # Optional: druid, label
 
-  let(:orig_cocina_description) { Cocina::Models::Description.new(add_purl_and_title(cocina, local_druid)) }
+  let(:orig_cocina_description) { add_purl_and_title(cocina, local_druid) }
 
   let(:mods_attributes) { MODS_ATTRIBUTES }
 

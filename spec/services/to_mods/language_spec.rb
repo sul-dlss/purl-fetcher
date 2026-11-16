@@ -11,7 +11,7 @@ RSpec.describe ToMods::Language do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, languages: languages)
+        described_class.write(xml: xml, languages: languages.as_json)
       end
     end
   end
@@ -32,14 +32,12 @@ RSpec.describe ToMods::Language do
   context 'with authorityURI and valueURI for code only' do
     let(:languages) do
       [
-        Cocina::Models::Language.new(
-          code: 'ara',
+        { code: 'ara',
           uri: 'http://id.loc.gov/vocabulary/iso639-2/ara',
           source: {
             code: 'iso639-2b',
             uri: 'http://id.loc.gov/vocabulary/iso639-2'
-          }
-        )
+          } }
       ]
     end
 
@@ -59,14 +57,12 @@ RSpec.describe ToMods::Language do
   context 'with authorityURI and valueURI for text only' do
     let(:languages) do
       [
-        Cocina::Models::Language.new(
-          value: 'Arabic',
+        { value: 'Arabic',
           uri: 'http://id.loc.gov/vocabulary/iso639-2/ara',
           source: {
             code: 'iso639-2b',
             uri: 'http://id.loc.gov/vocabulary/iso639-2'
-          }
-        )
+          } }
       ]
     end
 

@@ -13,7 +13,7 @@ RSpec.describe ToMods::Subject do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, subjects: subjects, forms: forms,
+        described_class.write(xml: xml, subjects: subjects.as_json, forms: forms.as_json,
                               id_generator: ToMods::IdGenerator.new)
       end
     end
@@ -35,16 +35,14 @@ RSpec.describe ToMods::Subject do
   context 'when it has a single-term topic subject with authority but no authorityURI' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            value: 'Cats',
-            type: 'topic',
-            uri: 'http://id.loc.gov/authorities/subjects/sh85021262',
-            source: {
-              code: 'lcsh'
-            }
+        {
+          value: 'Cats',
+          type: 'topic',
+          uri: 'http://id.loc.gov/authorities/subjects/sh85021262',
+          source: {
+            code: 'lcsh'
           }
-        )
+        }
       ]
     end
 
@@ -64,15 +62,13 @@ RSpec.describe ToMods::Subject do
   context 'when it has a single-term topic subject with non-lcsh authority' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            value: 'Cats',
-            type: 'topic',
-            source: {
-              code: 'mesh'
-            }
+        {
+          value: 'Cats',
+          type: 'topic',
+          source: {
+            code: 'mesh'
           }
-        )
+        }
       ]
     end
 
@@ -92,15 +88,13 @@ RSpec.describe ToMods::Subject do
   context 'when it has a single-term topic subject with authority but no valueURI' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            value: 'Cats',
-            type: 'topic',
-            source: {
-              code: 'lcsh'
-            }
+        {
+          value: 'Cats',
+          type: 'topic',
+          source: {
+            code: 'lcsh'
           }
-        )
+        }
       ]
     end
 
@@ -120,34 +114,28 @@ RSpec.describe ToMods::Subject do
   context 'when it has a cartographic subject with valueURI and authority' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          value: 'E 72°--E 148°/N 13°--N 18°',
+        { value: 'E 72°--E 148°/N 13°--N 18°',
           type: 'map coordinates',
           encoding: {
             value: 'DMS'
-          }
-        )
+          } }
       ]
     end
 
     let(:forms) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            value: '1:22,000,000',
-            type: 'map scale'
+        {
+          value: '1:22,000,000',
+          type: 'map scale'
+        },
+        {
+          value: 'Conic proj',
+          type: 'map projection',
+          uri: 'http://opengis.net/def/crs/EPSG/0/4326',
+          source: {
+            code: 'EPSG'
           }
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          {
-            value: 'Conic proj',
-            type: 'map projection',
-            uri: 'http://opengis.net/def/crs/EPSG/0/4326',
-            source: {
-              code: 'EPSG'
-            }
-          }
-        )
+        }
       ]
     end
 
@@ -175,13 +163,11 @@ RSpec.describe ToMods::Subject do
   context 'when it has a cartographic subject without forms' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          value: 'E 72°--E 148°/N 13°--N 18°',
+        { value: 'E 72°--E 148°/N 13°--N 18°',
           type: 'map coordinates',
           encoding: {
             value: 'DMS'
-          }
-        )
+          } }
       ]
     end
 
@@ -203,37 +189,35 @@ RSpec.describe ToMods::Subject do
   context 'with a parallel subject but different types' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            parallelValue: [
-              {
-                source: {
-                  code: 'lcsh',
-                  uri: 'http://id.loc.gov/authorities/subjects/'
-                },
-                uri: 'http://id.loc.gov/authorities/subjects/sh85135212',
-                value: 'Tiber River (Italy)',
-                type: 'place'
+        {
+          parallelValue: [
+            {
+              source: {
+                code: 'lcsh',
+                uri: 'http://id.loc.gov/authorities/subjects/'
               },
-              {
-                source: {
-                  code: 'local'
-                },
-                value: 'Tevere',
-                type: 'topic'
+              uri: 'http://id.loc.gov/authorities/subjects/sh85135212',
+              value: 'Tiber River (Italy)',
+              type: 'place'
+            },
+            {
+              source: {
+                code: 'local'
               },
-              {
-                value: 'Tiber River',
-                type: 'name',
-                source: {
-                  code: 'lcsh',
-                  uri: 'http://id.loc.gov/authorities/names/'
-                },
-                uri: 'http://id.loc.gov/authorities/names/n97042879'
-              }
-            ]
-          }
-        )
+              value: 'Tevere',
+              type: 'topic'
+            },
+            {
+              value: 'Tiber River',
+              type: 'name',
+              source: {
+                code: 'lcsh',
+                uri: 'http://id.loc.gov/authorities/names/'
+              },
+              uri: 'http://id.loc.gov/authorities/names/n97042879'
+            }
+          ]
+        }
       ]
     end
 
@@ -261,33 +245,31 @@ RSpec.describe ToMods::Subject do
   context 'when it has a subject with lang and script' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            structuredValue: [
-              {
-                value: 'Archives et documents',
-                type: 'topic'
-              },
-              {
-                value: 'Portraits',
-                type: 'topic'
-              }
-            ],
-            valueLanguage: {
-              code: 'fre',
-              source: {
-                code: 'iso639-2b'
-              },
-              valueScript: {
-                code: 'Latn',
-                source: {
-                  code: 'iso15924'
-                }
-              }
+        {
+          structuredValue: [
+            {
+              value: 'Archives et documents',
+              type: 'topic'
             },
-            displayLabel: 'French archives'
-          }
-        )
+            {
+              value: 'Portraits',
+              type: 'topic'
+            }
+          ],
+          valueLanguage: {
+            code: 'fre',
+            source: {
+              code: 'iso639-2b'
+            },
+            valueScript: {
+              code: 'Latn',
+              source: {
+                code: 'iso15924'
+              }
+            }
+          },
+          displayLabel: 'French archives'
+        }
       ]
     end
 

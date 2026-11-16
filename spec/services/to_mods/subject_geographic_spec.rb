@@ -11,7 +11,7 @@ RSpec.describe ToMods::Subject do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, subjects: subjects,
+        described_class.write(xml: xml, subjects: subjects.as_json,
                               id_generator: ToMods::IdGenerator.new)
       end
     end
@@ -20,15 +20,13 @@ RSpec.describe ToMods::Subject do
   context 'when it has a hierarchical geographic subject missing some hierarchies' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          structuredValue: [
+        { structuredValue: [
             {
               value: 'Africa',
               type: 'continent'
             }
           ],
-          type: 'place'
-        )
+          type: 'place' }
       ]
     end
 

@@ -41,8 +41,11 @@ module ToMods
       'marker' => 'marker'
     }.freeze
 
+    OTHER_TYPE_NOTE = "$.note[?@.type == 'other relation type']"
+    NOTES_EXCEPT_OTHER_TYPE = "$.note[?@.type != 'other relation type']"
+
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::RelatedResource>] related_resources
+    # @params [Array<Hash>] related_resources
     # @param [string] druid
     # @param [IdGenerator] id_generator
     def self.write(xml:, related_resources:, druid:, id_generator:)
@@ -57,15 +60,19 @@ module ToMods
     end
 
     def write
-      filtered_related_resources.each do |(attributes, new_related, _orig_related)|
-        xml.relatedItem attributes do
-          ModsWriter.write(xml: xml, description: new_related, druid: druid,
-                           id_generator: id_generator)
+      related_resources.each do |related|
+        if (value_at = Query.value_at(related))
+          deferred_links << value_at
+          next
+        end
+
+        xml.relatedItem attributes_for(related) do
+          ModsWriter.write(xml: xml, record: related_record_for(related), druid: druid, id_generator: id_generator)
         end
       end
 
-      related_resources.filter(&:valueAt).each do |related_resource|
-        xml.relatedItem nil, { 'xlink:href' => related_resource.valueAt }
+      deferred_links.each do |value_at|
+        xml.relatedItem nil, { 'xlink:href' => value_at }
       end
     end
 
@@ -73,47 +80,37 @@ module ToMods
 
     attr_reader :xml, :related_resources, :druid, :id_generator
 
-    def filtered_related_resources
-      related_resources.filter_map do |related|
-        next if related.valueAt
-
-        other_type_note = other_type_note_for(related)
-
-        # Filter notes
-        related_hash = related.to_h
-        new_notes = related_hash.fetch(:note, []).reject { |note| note[:type] == 'other relation type' }
-        related_hash[:note] = new_notes.empty? ? nil : new_notes
-        next if related_hash.empty?
-
-        new_related = Cocina::Models::RelatedResource.new(related_hash.compact)
-
-        [attributes_for(related, other_type_note), new_related, related]
-      end
+    # relatedItems that only link to another record are written after the others
+    def deferred_links
+      @deferred_links ||= []
     end
 
-    def attributes_for(related, other_type_note)
+    # The related resource, without the note that is mapped to relatedItem attributes,
+    # as a CocinaDisplay record that can be written like a description.
+    # @return [CocinaDisplay::RelatedResource]
+    def related_record_for(related)
+      CocinaDisplay::RelatedResource.new(related.merge('note' => Query.search(related, NOTES_EXCEPT_OTHER_TYPE)))
+    end
+
+    def attributes_for(related)
+      other_type_note = Query.first(related, OTHER_TYPE_NOTE)
+      type = Query.type(related)
       {}.tap do |attrs|
-        if related.type
-          if (mapped_type = TYPES[related.type])
+        if type
+          if (mapped_type = TYPES[type])
             attrs[:type] = mapped_type
-          elsif OTHER_TYPES.include?(related.type)
-            attrs[:otherType] = related.type
+          elsif OTHER_TYPES.include?(type)
+            attrs[:otherType] = type
           end
         end
-        attrs[:displayLabel] = related.displayLabel
+        attrs[:displayLabel] = Query.display_label(related)
 
         if other_type_note
-          attrs[:otherType] = other_type_note.value
-          attrs[:otherTypeURI] = other_type_note.uri
-          attrs[:otherTypeAuth] = other_type_note.source&.value
+          attrs[:otherType] = Query.value(other_type_note)
+          attrs[:otherTypeURI] = Query.uri(other_type_note)
+          attrs[:otherTypeAuth] = Query.source_value(other_type_note)
         end
       end.compact
-    end
-
-    def other_type_note_for(related)
-      return nil if related.note.blank?
-
-      related.note.find { |note| note.type == 'other relation type' }
     end
   end
 end

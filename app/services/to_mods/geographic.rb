@@ -2,15 +2,21 @@
 
 module ToMods
   # Maps geo extension from cocina to MODS
+  #
+  # NOTE: CocinaDisplay's geospatial support (Geospatial::Coordinates, CocinaRecord#coordinates) parses
+  # coordinates into normalized points and envelopes for display and indexing. The MODS geo extension
+  # needs the coordinate values exactly as recorded, so JSONPath queries are used instead.
   class Geographic
-    TYPE_REGEX = /^type$/
-    MEDIA_REGEX = /^media type$/
-    DATA_FORMAT_REGEX = /^data format$/
-
     ABOUT_URI_PREFIX = 'http://purl.stanford.edu/'
 
+    MEDIA_TYPE = "$.form[?@.type == 'media type' && @.value != 'Image']"
+    DATA_FORMAT = "$.form[?@.type == 'data format']"
+    RESOURCE_TYPE = "$.form[?@.type == 'type' || (@.type == 'media type' && @.value == 'Image')]"
+    FIRST_SUBJECT = '$.subject[0]'
+    COVERAGE = "$.subject[?search(@.type, 'coverage')]"
+
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::DescriptiveValue>] geos
+    # @params [Array<Hash>] geos
     def self.write(xml:, geos:, druid:)
       new(xml: xml, geos: geos, druid: druid).write
     end
@@ -31,7 +37,7 @@ module ToMods
           xml['rdf'].RDF(format_namespace(geo)) do
             xml['rdf'].Description('rdf:about' => about(druid)) do
               add_format(extract_format(geo))
-              add_type(extract_type(geo))
+              add_type(Query.first(geo, "#{RESOURCE_TYPE}.value"))
               add_content(geo)
             end
           end
@@ -49,28 +55,18 @@ module ToMods
         'xmlns:dc' => 'http://purl.org/dc/elements/1.1/'
       }
 
-      if geo.subject&.first&.type&.include? 'point coordinates'
-        namespace['xmlns:gmd'] =
-          'http://www.isotc211.org/2005/gmd'
-      end
+      namespace['xmlns:gmd'] = 'http://www.isotc211.org/2005/gmd' if first_subject_type(geo)&.include? 'point coordinates'
 
       namespace
     end
 
     def extract_format(geo)
-      media_type = geo.form.find { |form| form.type.match(MEDIA_REGEX) && form[:value] != 'Image' }
-      data_format = geo.form.find { |form| form.type.match(DATA_FORMAT_REGEX) }
+      media_type = Query.first(geo, "#{MEDIA_TYPE}.value")
+      data_format = Query.first(geo, "#{DATA_FORMAT}.value")
 
-      return "#{media_type.value}; format=#{data_format.value}" if data_format && media_type
+      return "#{media_type}; format=#{data_format}" if data_format && media_type
 
-      media_type&.value
-    end
-
-    def extract_type(geo)
-      type = geo.form.find do |form|
-        form.type.match?(TYPE_REGEX) || (form.type.match?(MEDIA_REGEX) && form.value == 'Image')
-      end
-      type&.value
+      media_type
     end
 
     def about(druid)
@@ -86,8 +82,7 @@ module ToMods
     end
 
     def add_content(geo)
-      type = geo.subject&.first&.type
-      case type
+      case first_subject_type(geo)
       when 'point coordinates'
         add_centerpoint(geo)
       when 'bounding box coordinates'
@@ -97,8 +92,8 @@ module ToMods
     end
 
     def add_centerpoint(geo)
-      lat = geo.subject.first.structuredValue.find { |point| point.type.include? 'latitude' }.value
-      long = geo.subject.first.structuredValue.find { |point| point.type.include? 'longitude' }.value
+      lat = Query.first(geo, "#{FIRST_SUBJECT}.structuredValue[?search(@.type, 'latitude')].value")
+      long = Query.first(geo, "#{FIRST_SUBJECT}.structuredValue[?search(@.type, 'longitude')].value")
       xml['gmd'].centerPoint do
         xml['gml'].Point do
           xml['gml'].pos "#{lat} #{long}"
@@ -107,37 +102,35 @@ module ToMods
     end
 
     def add_bounding_box(geo)
-      standard_tag = {}
-      standard = geo.subject.first.standard
-      standard_tag = { 'gml:srsName' => standard[:code] } if standard
+      srs_name = Query.first(geo, "#{FIRST_SUBJECT}.standard.code")
+      standard_tag = srs_name ? { 'gml:srsName' => srs_name } : {}
       xml['gml'].boundedBy do
         xml['gml'].Envelope(standard_tag) do
-          bounding_box_coordinates = bounding_box_coordinates_for(geo)
-          xml['gml'].lowerCorner "#{bounding_box_coordinates[:west]} #{bounding_box_coordinates[:south]}"
-          xml['gml'].upperCorner "#{bounding_box_coordinates[:east]} #{bounding_box_coordinates[:north]}"
+          coords = bounding_box_coordinates_for(geo)
+          xml['gml'].lowerCorner "#{coords['west']} #{coords['south']}"
+          xml['gml'].upperCorner "#{coords['east']} #{coords['north']}"
         end
       end
     end
 
+    # @return [Hash<String, String>] coordinate values keyed by direction (west, south, east, north)
     def bounding_box_coordinates_for(geo)
-      {}.tap do |coords|
-        geo.subject.first.structuredValue.each do |direction|
-          coords[direction.type.to_sym] = direction.value
-        end
-      end
+      Query.search(geo, "#{FIRST_SUBJECT}.structuredValue[*]").to_h { |direction| [Query.type(direction), Query.value(direction)] }
     end
 
     def add_coverage(geo)
-      coverage = geo[:subject].find_all { |sub| sub[:type].include? 'coverage' }
-      return nil if coverage.empty?
-
-      coverage.map do |data|
-        coverage_attributes = {}
-        coverage_attributes['rdf:resource'] = data.uri if data.uri
-        coverage_attributes['dc:language'] = data.valueLanguage.code if data.valueLanguage&.code
-        coverage_attributes['dc:title'] = data.value if data.value
+      Query.search(geo, COVERAGE).each do |data|
+        coverage_attributes = {
+          'rdf:resource' => Query.uri(data),
+          'dc:language' => Query.lang(data),
+          'dc:title' => Query.value(data)
+        }.compact
         xml['dc'].coverage coverage_attributes
       end
+    end
+
+    def first_subject_type(geo)
+      Query.first(geo, "#{FIRST_SUBJECT}.type")
     end
   end
 end

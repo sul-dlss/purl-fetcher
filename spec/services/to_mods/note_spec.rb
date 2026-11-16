@@ -11,7 +11,7 @@ RSpec.describe ToMods::Note do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, notes: notes, id_generator: id_generator)
+        described_class.write(xml: xml, notes: notes.as_json, id_generator: id_generator)
       end
     end
   end
@@ -31,7 +31,7 @@ RSpec.describe ToMods::Note do
   end
 
   context 'when notes has html' do
-    let(:notes) { [Cocina::Models::DescriptiveValue.new(value: 'I have some <cite>title</cite> and <i>italic</i> formats.')] }
+    let(:notes) { [{ value: 'I have some <cite>title</cite> and <i>italic</i> formats.' }] }
 
     it 'escapes the html' do
       expect(xml).to be_equivalent_to <<~XML
@@ -47,13 +47,11 @@ RSpec.describe ToMods::Note do
   context 'when notes has a parallelValue' do
     let(:notes) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          parallelValue:
+        { parallelValue:
             [
-              Cocina::Models::DescriptiveValue.new(value: 'monthly', type: 'frequency'),
-              Cocina::Models::DescriptiveValue.new(value: 'some other value')
-            ]
-        )
+              { value: 'monthly', type: 'frequency' },
+              { value: 'some other value' }
+            ] }
       ]
     end
     let(:id_generator) { ToMods::IdGenerator.new }

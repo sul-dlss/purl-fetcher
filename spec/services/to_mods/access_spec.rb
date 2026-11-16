@@ -11,7 +11,7 @@ RSpec.describe ToMods::Access do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, access: access, purl: purl)
+        described_class.write(xml: xml, access: access.as_json, purl: purl)
       end
     end
   end
@@ -34,19 +34,17 @@ RSpec.describe ToMods::Access do
 
   context 'when there is a PURL and a primary display URL' do
     let(:access) do
-      Cocina::Models::DescriptiveAccessMetadata.new(
-        url: [
-          {
-            value: 'http://www.jgp.org/',
-            status: 'primary',
-            note: [
-              {
-                value: 'Available to Stanford-affiliated users at:'
-              }
-            ]
-          }
-        ]
-      )
+      { url: [
+        {
+          value: 'http://www.jgp.org/',
+          status: 'primary',
+          note: [
+            {
+              value: 'Available to Stanford-affiliated users at:'
+            }
+          ]
+        }
+      ] }
     end
 
     let(:purl) { 'http://purl.stanford.edu/dq628sb8161' }
@@ -69,8 +67,7 @@ RSpec.describe ToMods::Access do
 
   context 'when it has multiple URLs with display labels' do
     let(:access) do
-      Cocina::Models::DescriptiveAccessMetadata.new(
-        accessContact: [
+      { accessContact: [
           {
             value: 'Stanford University. Libraries. Department of Special Collections and University Archives',
             type: 'repository',
@@ -90,8 +87,7 @@ RSpec.describe ToMods::Access do
             value: 'https://second.swap.stanford.edu/20171107174354/https://www.le.ac.uk/english/em1060to1220/index.html',
             displayLabel: 'Second Archived website'
           }
-        ]
-      )
+        ] }
     end
 
     it 'builds the xml' do
@@ -130,15 +126,13 @@ RSpec.describe ToMods::Access do
   # https://github.com/sul-dlss-labs/cocina-descriptive-metadata/issues/256
   context 'when the accessCondition has a displayLabel attribute' do
     let(:access) do
-      Cocina::Models::DescriptiveAccessMetadata.new(
-        note: [
-          {
-            value: 'CC by: CC BY Attribution',
-            displayLabel: 'CC License Type',
-            type: 'license'
-          }
-        ]
-      )
+      { note: [
+        {
+          value: 'CC by: CC BY Attribution',
+          displayLabel: 'CC License Type',
+          type: 'license'
+        }
+      ] }
     end
 
     it 'builds the xml' do

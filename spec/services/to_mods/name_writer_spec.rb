@@ -11,7 +11,7 @@ RSpec.describe ToMods::NameWriter do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, contributor: contributor, id_generator: id_generator)
+        described_class.write(xml: xml, contributor: contributor.as_json, id_generator: id_generator)
       end
     end
   end
@@ -19,21 +19,19 @@ RSpec.describe ToMods::NameWriter do
 
   context 'when a contributor affiliation exists' do
     let(:contributor) do
-      Cocina::Models::Contributor.new(
-        {
-          name: [
-            {
-              value: 'Schmedders, Karl'
-            }
-          ],
-          type: 'person',
-          affiliation: [
-            {
-              value: 'University of Zurich'
-            }
-          ]
-        }
-      )
+      {
+        name: [
+          {
+            value: 'Schmedders, Karl'
+          }
+        ],
+        type: 'person',
+        affiliation: [
+          {
+            value: 'University of Zurich'
+          }
+        ]
+      }
     end
     let(:id_generator) { ToMods::IdGenerator.new }
 
@@ -53,37 +51,35 @@ RSpec.describe ToMods::NameWriter do
 
   context 'when contributor affiliation includes a department' do
     let(:contributor) do
-      Cocina::Models::Contributor.new(
-        {
-          name: [
-            {
-              value: 'Schmedders, Karl'
-            }
-          ],
-          type: 'person',
-          affiliation: [
-            {
-              structuredValue: [
-                {
-                  value: 'Stanford University',
-                  identifier: [
-                    {
-                      uri: 'https://ror.org/00f54p054',
-                      type: 'ROR',
-                      source: {
-                        code: 'ror'
-                      }
+      {
+        name: [
+          {
+            value: 'Schmedders, Karl'
+          }
+        ],
+        type: 'person',
+        affiliation: [
+          {
+            structuredValue: [
+              {
+                value: 'Stanford University',
+                identifier: [
+                  {
+                    uri: 'https://ror.org/00f54p054',
+                    type: 'ROR',
+                    source: {
+                      code: 'ror'
                     }
-                  ]
-                },
-                {
-                  value: 'Woods Institute for the Environment'
-                }
-              ]
-            }
-          ]
-        }
-      )
+                  }
+                ]
+              },
+              {
+                value: 'Woods Institute for the Environment'
+              }
+            ]
+          }
+        ]
+      }
     end
     let(:id_generator) { ToMods::IdGenerator.new }
 
@@ -103,34 +99,32 @@ RSpec.describe ToMods::NameWriter do
 
   context 'when there is a single parallel name value' do
     let(:contributor) do
-      Cocina::Models::Contributor.new(
-        {
-          name: [
-            {
-              parallelValue: [
-                {
-                  value: 'Булгаков, Михаил Афанасьевич',
-                  status: 'primary',
-                  valueLanguage: {
-                    code: 'rus',
+      {
+        name: [
+          {
+            parallelValue: [
+              {
+                value: 'Булгаков, Михаил Афанасьевич',
+                status: 'primary',
+                valueLanguage: {
+                  code: 'rus',
+                  source: {
+                    code: 'iso639-2b'
+                  },
+                  valueScript: {
+                    code: 'Cyrl',
                     source: {
-                      code: 'iso639-2b'
-                    },
-                    valueScript: {
-                      code: 'Cyrl',
-                      source: {
-                        code: 'iso15924'
-                      }
+                      code: 'iso15924'
                     }
                   }
                 }
-              ]
-            }
-          ],
-          type: 'person',
-          status: 'primary'
-        }
-      )
+              }
+            ]
+          }
+        ],
+        type: 'person',
+        status: 'primary'
+      }
     end
 
     it 'builds the xml' do

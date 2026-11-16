@@ -10,7 +10,7 @@ module ToMods
     ABOUT_URI_PREFIX = 'http://purl.stanford.edu/'
 
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::DescriptiveValue>] geos
+    # @params [Array<Hash>] geos
     def self.write(xml:, geos:, druid:)
       new(xml: xml, geos: geos, druid: druid).write
     end
@@ -49,28 +49,26 @@ module ToMods
         'xmlns:dc' => 'http://purl.org/dc/elements/1.1/'
       }
 
-      if geo.subject&.first&.type&.include? 'point coordinates'
-        namespace['xmlns:gmd'] =
-          'http://www.isotc211.org/2005/gmd'
-      end
+      namespace['xmlns:gmd'] = 'http://www.isotc211.org/2005/gmd' if first_subject_type(geo)&.include? 'point coordinates'
 
       namespace
     end
 
     def extract_format(geo)
-      media_type = geo.form.find { |form| form.type.match(MEDIA_REGEX) && form[:value] != 'Image' }
-      data_format = geo.form.find { |form| form.type.match(DATA_FORMAT_REGEX) }
+      forms = Array(geo['form'])
+      media_type = forms.find { |form| form['type'].to_s.match?(MEDIA_REGEX) && form['value'] != 'Image' }
+      data_format = forms.find { |form| form['type'].to_s.match?(DATA_FORMAT_REGEX) }
 
-      return "#{media_type.value}; format=#{data_format.value}" if data_format && media_type
+      return "#{media_type['value']}; format=#{data_format['value']}" if data_format && media_type
 
-      media_type&.value
+      media_type&.dig('value')
     end
 
     def extract_type(geo)
-      type = geo.form.find do |form|
-        form.type.match?(TYPE_REGEX) || (form.type.match?(MEDIA_REGEX) && form.value == 'Image')
+      type = Array(geo['form']).find do |form|
+        form['type'].to_s.match?(TYPE_REGEX) || (form['type'].to_s.match?(MEDIA_REGEX) && form['value'] == 'Image')
       end
-      type&.value
+      type&.dig('value')
     end
 
     def about(druid)
@@ -86,8 +84,7 @@ module ToMods
     end
 
     def add_content(geo)
-      type = geo.subject&.first&.type
-      case type
+      case first_subject_type(geo)
       when 'point coordinates'
         add_centerpoint(geo)
       when 'bounding box coordinates'
@@ -97,8 +94,9 @@ module ToMods
     end
 
     def add_centerpoint(geo)
-      lat = geo.subject.first.structuredValue.find { |point| point.type.include? 'latitude' }.value
-      long = geo.subject.first.structuredValue.find { |point| point.type.include? 'longitude' }.value
+      points = Array(first_subject(geo)['structuredValue'])
+      lat = points.find { |point| point['type'].include? 'latitude' }['value']
+      long = points.find { |point| point['type'].include? 'longitude' }['value']
       xml['gmd'].centerPoint do
         xml['gml'].Point do
           xml['gml'].pos "#{lat} #{long}"
@@ -108,8 +106,8 @@ module ToMods
 
     def add_bounding_box(geo)
       standard_tag = {}
-      standard = geo.subject.first.standard
-      standard_tag = { 'gml:srsName' => standard[:code] } if standard
+      standard = first_subject(geo)['standard']
+      standard_tag = { 'gml:srsName' => standard['code'] } if standard
       xml['gml'].boundedBy do
         xml['gml'].Envelope(standard_tag) do
           bounding_box_coordinates = bounding_box_coordinates_for(geo)
@@ -121,23 +119,31 @@ module ToMods
 
     def bounding_box_coordinates_for(geo)
       {}.tap do |coords|
-        geo.subject.first.structuredValue.each do |direction|
-          coords[direction.type.to_sym] = direction.value
+        Array(first_subject(geo)['structuredValue']).each do |direction|
+          coords[direction['type'].to_sym] = direction['value']
         end
       end
     end
 
     def add_coverage(geo)
-      coverage = geo[:subject].find_all { |sub| sub[:type].include? 'coverage' }
+      coverage = Array(geo['subject']).find_all { |sub| sub['type'].to_s.include? 'coverage' }
       return nil if coverage.empty?
 
       coverage.map do |data|
         coverage_attributes = {}
-        coverage_attributes['rdf:resource'] = data.uri if data.uri
-        coverage_attributes['dc:language'] = data.valueLanguage.code if data.valueLanguage&.code
-        coverage_attributes['dc:title'] = data.value if data.value
+        coverage_attributes['rdf:resource'] = data['uri'] if data['uri']
+        coverage_attributes['dc:language'] = data.dig('valueLanguage', 'code') if data.dig('valueLanguage', 'code')
+        coverage_attributes['dc:title'] = data['value'] if data['value']
         xml['dc'].coverage coverage_attributes
       end
+    end
+
+    def first_subject(geo)
+      Array(geo['subject']).first
+    end
+
+    def first_subject_type(geo)
+      first_subject(geo)&.dig('type')
     end
   end
 end

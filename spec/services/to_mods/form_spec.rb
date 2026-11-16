@@ -11,7 +11,7 @@ RSpec.describe ToMods::Form do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, forms: forms, id_generator: nil)
+        described_class.write(xml: xml, forms: forms.as_json, id_generator: nil)
       end
     end
   end
@@ -32,26 +32,18 @@ RSpec.describe ToMods::Form do
   context 'with typical self-deposit forms (i.e., with datacite metadata)' do
     let(:forms) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          structuredValue: [
-            Cocina::Models::DescriptiveValue.new(
-              value: 'Image',
-              type: 'type'
-            )
+        { structuredValue: [
+            { value: 'Image',
+              type: 'type' }
           ],
           type: 'resource type',
-          source: Cocina::Models::Source.new(value: 'Stanford self-deposit resource types')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: 'still image',
+          source: { value: 'Stanford self-deposit resource types' } },
+        { value: 'still image',
           type: 'resource type',
-          source: Cocina::Models::Source.new(value: 'MODS resource types')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: 'Image',
+          source: { value: 'MODS resource types' } },
+        { value: 'Image',
           type: 'resource type',
-          source: Cocina::Models::Source.new(value: 'DataCite resource types')
-        )
+          source: { value: 'DataCite resource types' } }
       ]
     end
 
@@ -73,50 +65,32 @@ RSpec.describe ToMods::Form do
   context 'with typical ETD forms (i.e., with datacite metadata)' do
     let(:forms) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          value: 'text',
+        { value: 'text',
           type: 'resource type',
-          source: Cocina::Models::Source.new(value: 'MODS resource types')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: 'theses',
+          source: { value: 'MODS resource types' } },
+        { value: 'theses',
           type: 'genre',
-          source: Cocina::Models::Source.new(code: 'marcgt')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: 'electronic resource',
+          source: { code: 'marcgt' } },
+        { value: 'electronic resource',
           type: 'form',
-          source: Cocina::Models::Source.new(code: 'marccategory')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: 'computer',
+          source: { code: 'marccategory' } },
+        { value: 'computer',
           type: 'media',
-          source: Cocina::Models::Source.new(code: 'rdamedia')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: 'online resource',
+          source: { code: 'rdamedia' } },
+        { value: 'online resource',
           type: 'carrier',
-          source: Cocina::Models::Source.new(code: 'rdacarrier')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: '1 online resource',
-          type: 'extent'
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          structuredValue: [
-            Cocina::Models::DescriptiveValue.new(
-              value: 'Academic thesis',
-              type: 'type'
-            )
+          source: { code: 'rdacarrier' } },
+        { value: '1 online resource',
+          type: 'extent' },
+        { structuredValue: [
+            { value: 'Academic thesis',
+              type: 'type' }
           ],
           type: 'resource type',
-          source: Cocina::Models::Source.new(value: 'Stanford self-deposit resource types')
-        ),
-        Cocina::Models::DescriptiveValue.new(
-          value: 'Dissertation',
+          source: { value: 'Stanford self-deposit resource types' } },
+        { value: 'Dissertation',
           type: 'resource type',
-          source: Cocina::Models::Source.new(value: 'DataCite resource types')
-        )
+          source: { value: 'DataCite resource types' } }
       ]
     end
 

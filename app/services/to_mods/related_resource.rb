@@ -42,7 +42,7 @@ module ToMods
     }.freeze
 
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::RelatedResource>] related_resources
+    # @params [Array<Hash>] related_resources
     # @param [string] druid
     # @param [IdGenerator] id_generator
     def self.write(xml:, related_resources:, druid:, id_generator:)
@@ -64,8 +64,8 @@ module ToMods
         end
       end
 
-      related_resources.filter(&:valueAt).each do |related_resource|
-        xml.relatedItem nil, { 'xlink:href' => related_resource.valueAt }
+      related_resources.filter { |related_resource| related_resource['valueAt'] }.each do |related_resource|
+        xml.relatedItem nil, { 'xlink:href' => related_resource['valueAt'] }
       end
     end
 
@@ -75,17 +75,14 @@ module ToMods
 
     def filtered_related_resources
       related_resources.filter_map do |related|
-        next if related.valueAt
+        next if related['valueAt']
 
         other_type_note = other_type_note_for(related)
 
         # Filter notes
-        related_hash = related.to_h
-        new_notes = related_hash.fetch(:note, []).reject { |note| note[:type] == 'other relation type' }
-        related_hash[:note] = new_notes.empty? ? nil : new_notes
-        next if related_hash.empty?
-
-        new_related = Cocina::Models::RelatedResource.new(related_hash.compact)
+        new_notes = Array(related['note']).reject { |note| note['type'] == 'other relation type' }
+        new_related = related.except('note')
+        new_related['note'] = new_notes if new_notes.present?
 
         [attributes_for(related, other_type_note), new_related, related]
       end
@@ -93,27 +90,25 @@ module ToMods
 
     def attributes_for(related, other_type_note)
       {}.tap do |attrs|
-        if related.type
-          if (mapped_type = TYPES[related.type])
+        if related['type']
+          if (mapped_type = TYPES[related['type']])
             attrs[:type] = mapped_type
-          elsif OTHER_TYPES.include?(related.type)
-            attrs[:otherType] = related.type
+          elsif OTHER_TYPES.include?(related['type'])
+            attrs[:otherType] = related['type']
           end
         end
-        attrs[:displayLabel] = related.displayLabel
+        attrs[:displayLabel] = related['displayLabel']
 
         if other_type_note
-          attrs[:otherType] = other_type_note.value
-          attrs[:otherTypeURI] = other_type_note.uri
-          attrs[:otherTypeAuth] = other_type_note.source&.value
+          attrs[:otherType] = other_type_note['value']
+          attrs[:otherTypeURI] = other_type_note['uri']
+          attrs[:otherTypeAuth] = other_type_note.dig('source', 'value')
         end
       end.compact
     end
 
     def other_type_note_for(related)
-      return nil if related.note.blank?
-
-      related.note.find { |note| note.type == 'other relation type' }
+      Array(related['note']).find { |note| note['type'] == 'other relation type' }
     end
   end
 end

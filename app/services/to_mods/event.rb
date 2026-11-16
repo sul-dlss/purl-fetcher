@@ -3,8 +3,19 @@
 module ToMods
   # Maps events from cocina to MODS XML
   class Event
+    # cocina date type => MODS originInfo date element
+    DATE_ELEMENT_FOR_TYPE = {
+      'copyright' => 'copyrightDate',
+      'capture' => 'dateCaptured',
+      'creation' => 'dateCreated',
+      'publication' => 'dateIssued',
+      'modification' => 'dateModified',
+      '' => 'dateOther', # cocina type is set differently for dateOther
+      'validity' => 'dateValid'
+    }.freeze
+
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::Event>] events
+    # @params [Array<Hash>] events
     # @params [IdGenerator] id_generator
     def self.write(xml:, events:, id_generator:)
       new(xml: xml, events: events, id_generator: id_generator).write
@@ -18,7 +29,7 @@ module ToMods
 
     def write
       Array(events).each do |event|
-        write_basic(event, event.type)
+        write_basic(event, event['type'])
       end
     end
 
@@ -27,15 +38,15 @@ module ToMods
     attr_reader :xml, :events, :id_generator
 
     def write_basic(event, event_type)
-      names = Array(event.contributor).map { |contributor| contributor.name.first }
+      names = Array(event['contributor']).map { |contributor| Array(contributor['name']).first }
       attributes = {
-        displayLabel: event.displayLabel,
+        displayLabel: event['displayLabel'],
         eventType: event_type,
-        script: event.valueLanguage&.valueScript&.code,
-        lang: event.valueLanguage&.code
+        script: event.dig('valueLanguage', 'valueScript', 'code'),
+        lang: event.dig('valueLanguage', 'code')
       }.compact
 
-      write_event(event.type, event.date, event.location, names, event.note, attributes)
+      write_event(event['type'], event['date'], event['location'], names, event['note'], attributes)
     end
 
     # rubocop:disable Metrics/ParameterLists
@@ -50,7 +61,7 @@ module ToMods
           write_location(loc)
         end
         Array(names).each do |name|
-          xml.publisher name.value, name_attributes(name) if name
+          xml.publisher name['value'], name_attributes(name) if name
         end
         Array(notes).each do |note|
           write_note(note)
@@ -60,52 +71,52 @@ module ToMods
     # rubocop:enable Metrics/ParameterLists
 
     def write_note(note)
-      if note.parallelValue.present?
-        note.parallelValue.each do |parallel_note|
+      if note['parallelValue'].present?
+        note['parallelValue'].each do |parallel_note|
           write_note(parallel_note)
         end
       else
         attributes = {}
-        attributes[:authority] = note.source.code if note&.source&.code
-        xml.send(note_tag_for(note), note.value, attributes)
+        attributes[:authority] = note.dig('source', 'code') if note.dig('source', 'code')
+        xml.send(note_tag_for(note), note['value'], attributes)
       end
     end
 
     def note_tag_for(note)
-      return 'copyrightDate' if note.type == 'copyright statement'
-      return note.type if note.type
+      return 'copyrightDate' if note['type'] == 'copyright statement'
+      return note['type'] if note['type']
 
       'edition'
     end
 
     def write_location(location)
       place_attrs = {}.tap do |attrs|
-        attrs[:supplied] = 'yes' if location.type == 'supplied'
+        attrs[:supplied] = 'yes' if location['type'] == 'supplied'
       end
       xml.place place_attrs do
         placeterm_attrs = {}
-        placeterm_attrs[:authority] = location.source.code if location.source&.code
-        placeterm_attrs[:authorityURI] = location.source.uri if location.source&.uri
-        placeterm_attrs[:valueURI] = location.uri if location.uri
+        placeterm_attrs[:authority] = location.dig('source', 'code') if location.dig('source', 'code')
+        placeterm_attrs[:authorityURI] = location.dig('source', 'uri') if location.dig('source', 'uri')
+        placeterm_attrs[:valueURI] = location['uri'] if location['uri']
 
         placeterm_text_attrs = placeterm_attrs.merge({ type: 'text' })
-        xml.placeTerm location.value, placeterm_text_attrs if location.value
+        xml.placeTerm location['value'], placeterm_text_attrs if location['value']
 
         placeterm_code_attrs = placeterm_attrs.merge({ type: 'code' })
-        xml.placeTerm location.code, placeterm_code_attrs if location.code
+        xml.placeTerm location['code'], placeterm_code_attrs if location['code']
       end
     end
 
     def write_basic_date(date, cocina_event_type)
-      if date.structuredValue.present?
+      if date['structuredValue'].present?
         structured_val_attribs = {
-          encoding: date.encoding,
-          qualifier: date.qualifier,
-          type: date.type
+          encoding: date['encoding'],
+          qualifier: date['qualifier'],
+          type: date['type']
         }
         date_type = cocina_event_type
-        date_type = date.type if date.type.present?
-        date_range(date.structuredValue, date_type, structured_val_attribs)
+        date_type = date['type'] if date['type'].present?
+        date_range(date['structuredValue'], date_type, structured_val_attribs)
       else
         write_date_element(date, cocina_event_type)
       end
@@ -113,31 +124,31 @@ module ToMods
 
     # @param [Hash] structured_val_attribs - populated when structuredValue parent has attributes for individual date elements
     def write_date_element(date, cocina_event_type, structured_val_attribs = {})
-      value = date.value
+      value = date['value']
       element_name = date_element_name(date, cocina_event_type, structured_val_attribs[:type])
       attributes = {}.tap do |attrs|
-        attrs[:encoding] = date.encoding&.code || structured_val_attribs[:encoding]&.code
-        attrs[:qualifier] = date.qualifier || structured_val_attribs[:qualifier]
-        attrs[:keyDate] = 'yes' if date.status == 'primary'
+        attrs[:encoding] = date.dig('encoding', 'code') || structured_val_attribs[:encoding]&.dig('code')
+        attrs[:qualifier] = date['qualifier'] || structured_val_attribs[:qualifier]
+        attrs[:keyDate] = 'yes' if date['status'] == 'primary'
         attrs[:type] = date_type_attr(date, element_name)
         attrs[:calendar] = calendar_attr(date)
-        attrs[:point] = date.type if %w[start end].include?(date.type)
+        attrs[:point] = date['type'] if %w[start end].include?(date['type'])
       end.compact
       xml.public_send(element_name, value, attributes)
     end
 
     def date_element_name(date, cocina_event_type, structured_val_type)
-      el_name = Cocina::Models::Mapping::FromMods::Event::DATE_ELEMENTS_2_TYPE.key(structured_val_type)
+      el_name = DATE_ELEMENT_FOR_TYPE.fetch(structured_val_type, nil)
       return el_name if el_name.present?
 
-      el_name = Cocina::Models::Mapping::FromMods::Event::DATE_ELEMENTS_2_TYPE.key(date.type)
+      el_name = DATE_ELEMENT_FOR_TYPE.fetch(date['type'], nil)
       return el_name if el_name.present?
 
       # the date type overrides the eventType for choosing date flavor, even if it ends up with dateOther
-      return 'dateOther' if date.type.present?
+      return 'dateOther' if date['type'].present?
 
       if cocina_event_type.present?
-        el_name = Cocina::Models::Mapping::FromMods::Event::DATE_ELEMENTS_2_TYPE.key(cocina_event_type)
+        el_name = DATE_ELEMENT_FOR_TYPE.fetch(cocina_event_type, nil)
         return el_name if el_name.present?
       end
 
@@ -148,14 +159,14 @@ module ToMods
     def date_type_attr(cocina_date, date_element_name)
       return unless date_element_name == 'dateOther'
 
-      cocina_date.type if cocina_date.type.present? && %w[start end].exclude?(cocina_date.type)
+      cocina_date['type'] if cocina_date['type'].present? && %w[start end].exclude?(cocina_date['type'])
     end
 
     def calendar_attr(cocina_date)
-      return if cocina_date.note.blank?
+      return if cocina_date['note'].blank?
 
-      cocina_date.note.each do |note|
-        return note.value if note.type == 'calendar'
+      cocina_date['note'].each do |note|
+        return note['value'] if note['type'] == 'calendar'
       end
     end
 
@@ -167,9 +178,9 @@ module ToMods
 
     def name_attributes(cocina_name)
       {
-        lang: cocina_name&.valueLanguage&.code,
-        script: cocina_name&.valueLanguage&.valueScript&.code,
-        transliteration: cocina_name&.standard&.value
+        lang: cocina_name&.dig('valueLanguage', 'code'),
+        script: cocina_name&.dig('valueLanguage', 'valueScript', 'code'),
+        transliteration: cocina_name&.dig('standard', 'value')
       }.compact
     end
   end

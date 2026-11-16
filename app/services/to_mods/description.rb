@@ -5,17 +5,17 @@ require 'nokogiri'
 module ToMods
   # This transforms the DRO.description schema to MODS xml
   class Description
-    # @param [Cocina::Models::Description] description
+    # @param [Hash] description the cocina description (string or symbol keys)
     # @param [string] druid
-    # @param [Cocina::Models::Identification] identification
+    # @param [Hash] identification the cocina identification (string or symbol keys)
     # @return [Nokogiri::XML::Document]
     def self.transform(description, druid, identification: nil)
       new(description, druid, identification).transform
     end
 
     def initialize(description, druid, identification)
-      @description = description
-      @identification = identification
+      @description = description.to_h.deep_stringify_keys
+      @identification = identification&.to_h&.deep_stringify_keys
       @druid = druid
     end
 
@@ -34,9 +34,9 @@ module ToMods
 
     def mods_version
       @mods_version ||= begin
-        notes = description.adminMetadata&.note || []
-        notes.select { |note| note.type == 'record origin' }.each do |note|
-          match = /MODS version (\d\.\d)/.match(note.value)
+        notes = Array(description.dig('adminMetadata', 'note'))
+        notes.select { |note| note['type'] == 'record origin' }.each do |note|
+          match = /MODS version (\d\.\d)/.match(note['value'])
           return match[1] if match
         end
         '3.7'

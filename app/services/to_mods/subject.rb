@@ -12,8 +12,8 @@ module ToMods
     DEORDINAL_REGEX = /(?<=[0-9])(?:st|nd|rd|th)/
 
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::DescriptiveValue>] subjects
-    # @params [Array<Cocina::Models::DescriptiveValue>] forms
+    # @params [Array<Hash>] subjects
+    # @params [Array<Hash>] forms
     # @params [IdGenerator] id_generator
     def self.write(xml:, subjects:, id_generator:, forms: [])
       new(xml: xml, subjects: subjects, forms: forms, id_generator: id_generator).write
@@ -28,21 +28,21 @@ module ToMods
 
     def write
       subjects.each do |subject|
-        next if subject.type == 'map coordinates'
+        next if subject['type'] == 'map coordinates'
 
-        parallel_subject_values = Array(subject.parallelValue)
+        parallel_subject_values = Array(subject['parallelValue'])
         subject_value = subject
         type = nil
 
         # Make adjustments for a parallel person.
-        if parallel_subject_values.present? && Cocina::Models::Mapping::FromMods::Contributor::ROLES.value?(subject.type)
+        if parallel_subject_values.present? && NameWriter::NAME_TYPE.key?(subject['type'])
           display_values, parallel_subject_values = parallel_subject_values.partition do |value|
-            value.type == 'display'
+            value['type'] == 'display'
           end
           if parallel_subject_values.size == 1
             subject_value = parallel_subject_values.first
             parallel_subject_values = []
-            type = subject.type
+            type = subject['type']
           end
         end
 
@@ -61,7 +61,7 @@ module ToMods
     attr_reader :xml, :subjects, :forms, :id_generator
 
     def write_subject(subject, subject_value, alt_rep_group: nil, type: nil, display_values: nil)
-      if subject_value.structuredValue.present? || subject_value.groupedValue.present?
+      if subject_value['structuredValue'].present? || subject_value['groupedValue'].present?
         write_structured_or_grouped(subject, subject_value, alt_rep_group: alt_rep_group, type: type,
                                                             display_values: display_values)
       else
@@ -80,37 +80,37 @@ module ToMods
         end
       else
         subject_values.each do |subject_value|
-          write_subject(subject, subject_value, alt_rep_group: alt_rep_group, type: subject.type,
+          write_subject(subject, subject_value, alt_rep_group: alt_rep_group, type: subject['type'],
                                                 display_values: display_values)
         end
       end
     end
 
     def geographic_and_geographic_code?(subject, subject_values)
-      subject.type == 'place' &&
-        subject_values.one?(&:value) &&
-        subject_values.one?(&:code)
+      subject['type'] == 'place' &&
+        subject_values.one? { |value| value['value'] } &&
+        subject_values.one? { |value| value['code'] }
     end
 
     # rubocop:disable Metrics/CyclomaticComplexity
     def write_structured_or_grouped(subject, subject_value, alt_rep_group: nil, type: nil, display_values: nil)
-      type ||= subject_value.type || subject.type
+      type ||= subject_value['type'] || subject['type']
       xml.subject(structured_attributes_for(subject_value, type, alt_rep_group: alt_rep_group)) do
-        if type == 'place' && subject_value.structuredValue.present?
+        if type == 'place' && subject_value['structuredValue'].present?
           hierarchical_geographic(subject_value)
         elsif type == 'time'
           time_range(subject_value)
         elsif type == 'title'
           write_title(subject_value)
-        elsif Cocina::Models::Mapping::FromMods::Contributor::ROLES.value?(type)
+        elsif NameWriter::NAME_TYPE.key?(type)
           write_structured_person(subject, subject_value, type: type, display_values: display_values)
         else
-          values = subject_value.structuredValue.presence || subject_value.groupedValue
-          values.each do |value|
-            if Cocina::Models::Mapping::FromMods::Contributor::ROLES.value?(value.type)
-              if value.structuredValue.present?
+          values = subject_value['structuredValue'].presence || subject_value['groupedValue']
+          Array(values).each do |value|
+            if NameWriter::NAME_TYPE.key?(value['type'])
+              if value['structuredValue'].present?
                 write_structured_person(subject, value, display_values: display_values)
-              elsif value.parallelValue.present?
+              elsif value['parallelValue'].present?
                 write_parallel_structured_person(value)
               else
                 write_person(subject, value, display_values: display_values)
@@ -126,36 +126,33 @@ module ToMods
     # rubocop:enable Metrics/CyclomaticComplexity
 
     def write_title(subject_value)
-      title = subject_value.to_h
-      title.delete(:type)
-      title.delete(:source)
-      title.delete(:valueLanguage)
-      Title.write(xml: xml, titles: [Cocina::Models::DescriptiveValue.new(title)], id_generator: id_generator)
+      title = subject_value.except('type', 'source', 'valueLanguage')
+      Title.write(xml: xml, titles: [title], id_generator: id_generator)
     end
 
     def structured_attributes_for(subject_value, type, alt_rep_group: nil)
-      values = subject_value.structuredValue.presence || subject_value.groupedValue
+      values = subject_value['structuredValue'].presence || subject_value['groupedValue']
       {
         altRepGroup: alt_rep_group,
-        displayLabel: subject_value.displayLabel,
-        lang: subject_value.valueLanguage&.code,
-        script: subject_value.valueLanguage&.valueScript&.code
+        displayLabel: subject_value['displayLabel'],
+        lang: subject_value.dig('valueLanguage', 'code'),
+        script: subject_value.dig('valueLanguage', 'valueScript', 'code')
       }.tap do |attrs|
         if type == 'person'
-          attrs[:authority] = authority_for(subject_value) # unless subject.source&.code == 'naf' && subject_value.source&.code == 'naf'
+          attrs[:authority] = authority_for(subject_value) # unless subject.dig('source', 'code') == 'naf' && subject_value.dig('source', 'code') == 'naf'
         else
-          attrs[:valueURI] = subject_value.uri
-          if subject_value.source
+          attrs[:valueURI] = subject_value['uri']
+          if subject_value['source']
             # If all values in structuredValue have uri, then authority only.
             attrs[:authority] = authority_for(subject_value)
-            if !all_values_have_uri?(values) || subject_value.uri
+            if !all_values_have_uri?(values) || subject_value['uri']
               attrs[:authorityURI] =
-                subject_value.source.uri
+                subject_value.dig('source', 'uri')
             end
           elsif all_values_have_lcsh_authority?(values)
             # No source, but all values in structuredValue are lcsh or naf then add authority
             attrs[:authority] = 'lcsh'
-          elsif subject_value.type == 'place' && all_values_have_same_authority?(values)
+          elsif subject_value['type'] == 'place' && all_values_have_same_authority?(values)
             attrs[:authority] = authority_for(values.first)
           end
         end
@@ -163,7 +160,7 @@ module ToMods
     end
 
     def all_values_have_uri?(values)
-      values.present? && Array(values).all?(&:uri)
+      values.present? && Array(values).all? { |value| value['uri'] }
     end
 
     def all_values_have_lcsh_authority?(values)
@@ -181,15 +178,15 @@ module ToMods
 
     def write_basic(subject, subject_value, alt_rep_group: nil, type: nil, display_values: nil)
       subject_attributes = subject_attributes_for(subject_value, alt_rep_group)
-      type ||= subject_value.type
+      type ||= subject_value['type']
 
       if type == 'classification'
-        write_classification(subject_value.value, subject_attributes)
-      elsif Cocina::Models::Mapping::FromMods::Contributor::ROLES.value?(type) || type == 'name'
+        write_classification(subject_value['value'], subject_attributes)
+      elsif NameWriter::NAME_TYPE.key?(type) || type == 'name'
         xml.subject(subject_attributes) do
           write_person(subject, subject_value, display_values: display_values)
         end
-      elsif !type && !subject_value.value
+      elsif !type && !subject_value['value']
         # For subject only (no children).
         xml.subject subject_attributes.merge(topic_attributes_for(subject, subject_value, type))
       else
@@ -203,21 +200,21 @@ module ToMods
       {
         altRepGroup: alt_rep_group,
         authority: authority_for(subject),
-        lang: subject.valueLanguage&.code,
-        script: subject.valueLanguage&.valueScript&.code,
-        usage: subject.status
+        lang: subject.dig('valueLanguage', 'code'),
+        script: subject.dig('valueLanguage', 'valueScript', 'code'),
+        usage: subject['status']
       }.tap do |attrs|
-        attrs[:displayLabel] = subject.displayLabel unless subject.type == 'genre'
-        attrs[:edition] = edition(subject.source.version) if subject.source&.version
-        attrs['xlink:href'] = subject.valueAt
+        attrs[:displayLabel] = subject['displayLabel'] unless subject['type'] == 'genre'
+        attrs[:edition] = edition(subject.dig('source', 'version')) if subject.dig('source', 'version')
+        attrs['xlink:href'] = subject['valueAt']
       end.compact
     end
 
     def authority_for(subject)
       # Both lcsh and naf map to lcsh for the subject.
-      return 'lcsh' if %w[lcsh naf].include?(subject.source&.code)
+      return 'lcsh' if %w[lcsh naf].include?(subject.dig('source', 'code'))
 
-      subject.source&.code
+      subject.dig('source', 'code')
     end
 
     def write_classification(value, attrs)
@@ -226,7 +223,7 @@ module ToMods
 
     # Write nodes within MODS subject
     def write_topic(subject, subject_value, is_parallel: false, type: nil, subject_values_have_same_authority: true)
-      type ||= subject_value.type
+      type ||= subject_value['type']
       topic_attributes = topic_attributes_for(subject,
                                               subject_value,
                                               type,
@@ -235,23 +232,21 @@ module ToMods
       case type
       when 'person'
         xml.name topic_attributes.merge(type: 'personal') do
-          xml.namePart(subject_value.value) if subject_value.value
+          xml.namePart(subject_value['value']) if subject_value['value']
         end
       when 'name'
         xml.name topic_attributes do
-          xml.namePart(subject_value.value) if subject_value.value
+          xml.namePart(subject_value['value']) if subject_value['value']
         end
       when 'title'
-        title = subject_value.to_h
-        title.delete(:type)
-        title.delete(:valueLanguage)
-        title[:source].delete(:code) if subject_value.source&.code && !topic_attributes[:authority]
-        Title.write(xml: xml, titles: [Cocina::Models::DescriptiveValue.new(title)],
+        title = subject_value.except('type', 'valueLanguage')
+        title['source'] = title['source'].except('code') if subject_value.dig('source', 'code') && !topic_attributes[:authority]
+        Title.write(xml: xml, titles: [title],
                     id_generator: id_generator, additional_attrs: topic_attributes)
       when 'place'
         geographic(subject, subject_value, is_parallel: is_parallel)
       else
-        xml.public_send(TAG_NAME.fetch(subject_value.type, :topic), subject_value.value, topic_attributes)
+        xml.public_send(TAG_NAME.fetch(subject_value['type'], :topic), subject_value['value'], topic_attributes)
       end
     end
 
@@ -259,52 +254,52 @@ module ToMods
       {
         authority: authority_for_topic(subject, subject_value, type, is_parallel,
                                        subject_values_have_same_authority),
-        authorityURI: subject_value.source&.uri,
-        encoding: subject_value.encoding&.code,
-        valueURI: subject_value.uri
+        authorityURI: subject_value.dig('source', 'uri'),
+        encoding: subject_value.dig('encoding', 'code'),
+        valueURI: subject_value['uri']
       }.tap do |topic_attributes|
-        if subject_value.type == 'genre'
-          topic_attributes[:displayLabel] = subject_value.displayLabel
-          topic_attributes[:usage] = subject_value.status
+        if subject_value['type'] == 'genre'
+          topic_attributes[:displayLabel] = subject_value['displayLabel']
+          topic_attributes[:usage] = subject_value['status']
         end
       end.compact
     end
 
     # rubocop:disable Metrics/CyclomaticComplexity
     def authority_for_topic(subject, subject_value, type, is_parallel, subject_values_have_same_authority)
-      return nil unless subject_value.source&.uri ||
-                        subject_value.uri ||
+      return nil unless subject_value.dig('source', 'uri') ||
+                        subject_value['uri'] ||
                         (type == 'place' && is_parallel) ||
-                        (subject_value.source&.code && subject.source&.code && subject.source.code != subject_value.source.code) ||
-                        (subject.source&.code == 'naf' && subject_value.source&.code == 'naf' && type == 'person') ||
-                        (subject_value.source&.code && !subject_values_have_same_authority)
+                        (subject_value.dig('source', 'code') && subject.dig('source', 'code') && subject.dig('source', 'code') != subject_value.dig('source', 'code')) ||
+                        (subject.dig('source', 'code') == 'naf' && subject_value.dig('source', 'code') == 'naf' && type == 'person') ||
+                        (subject_value.dig('source', 'code') && !subject_values_have_same_authority)
 
-      subject_value.source&.code
+      subject_value.dig('source', 'code')
     end
 
     # rubocop:enable Metrics/CyclomaticComplexity
     def geographic(subject, subject_value, is_parallel: false)
-      if subject_value.code
-        xml.geographicCode subject_value.code,
+      if subject_value['code']
+        xml.geographicCode subject_value['code'],
                            topic_attributes_for(subject, subject_value, 'place', is_parallel: is_parallel)
       else
-        xml.geographic subject_value.value,
+        xml.geographic subject_value['value'],
                        topic_attributes_for(subject, subject_value, 'place', is_parallel: is_parallel)
       end
     end
 
     def time_range(subject)
-      subject.structuredValue.each do |point|
-        xml.temporal point.value, point: point.type, encoding: subject.encoding&.code
+      Array(subject['structuredValue']).each do |point|
+        xml.temporal point['value'], point: point['type'], encoding: subject.dig('encoding', 'code')
       end
     end
 
     def write_cartographic
-      parallel_forms, other_forms = forms.partition { |form| form.parallelValue.present? }
+      parallel_forms, other_forms = forms.partition { |form| form['parallelValue'].present? }
 
       parallel_forms.each do |parallel_form|
         alt_rep_group = id_generator.next_altrepgroup
-        parallel_form.parallelValue.each do |form|
+        parallel_form['parallelValue'].each do |form|
           write_parallel_cartographic_without_authority([form], alt_rep_group: alt_rep_group)
           write_cartographic_with_authority([form], alt_rep_group: alt_rep_group)
         end
@@ -318,17 +313,17 @@ module ToMods
     def write_cartographic_without_authority(forms)
       # With all subject/forms without authorities.
       scale_forms = forms.select do |form|
-                      form.type == 'map scale'
-                    end.flat_map { |form| form.groupedValue.presence || form }
-      projection_forms = forms.select { |form| form.type == 'map projection' && form.source.nil? }
-      carto_subjects = subjects.select { |subject| subject.type == 'map coordinates' }
+                      form['type'] == 'map scale'
+                    end.flat_map { |form| form['groupedValue'].presence || form }
+      projection_forms = forms.select { |form| form['type'] == 'map projection' && form['source'].nil? }
+      carto_subjects = subjects.select { |subject| subject['type'] == 'map coordinates' }
       return unless scale_forms.present? || projection_forms.present? || carto_subjects.present?
 
       xml.subject do
         xml.cartographics do
-          scale_forms.each { |scale_form| xml.scale scale_form.value }
-          projection_forms.each { |projection_form| xml.projection projection_form.value }
-          carto_subjects.each { |carto_subject| xml.coordinates carto_subject.value }
+          scale_forms.each { |scale_form| xml.scale scale_form['value'] }
+          projection_forms.each { |projection_form| xml.projection projection_form['value'] }
+          carto_subjects.each { |carto_subject| xml.coordinates carto_subject['value'] }
         end
       end
     end
@@ -337,16 +332,16 @@ module ToMods
     def write_parallel_cartographic_without_authority(forms, alt_rep_group:)
       # With all subject/forms without authorities.
       scale_forms = forms.select do |form|
-                      form.type == 'map scale'
-                    end.flat_map { |form| form.groupedValue.presence || form }
-      projection_forms = forms.select { |form| form.type == 'map projection' && form.source.nil? }
+                      form['type'] == 'map scale'
+                    end.flat_map { |form| form['groupedValue'].presence || form }
+      projection_forms = forms.select { |form| form['type'] == 'map projection' && form['source'].nil? }
       return unless scale_forms.present? || projection_forms.present?
 
       subject_attrs = { altRepGroup: alt_rep_group }
       xml.subject subject_attrs do
         xml.cartographics do
-          scale_forms.each { |scale_form| xml.scale scale_form.value }
-          projection_forms.each { |projection_form| xml.projection projection_form.value }
+          scale_forms.each { |scale_form| xml.scale scale_form['value'] }
+          projection_forms.each { |projection_form| xml.projection projection_form['value'] }
         end
       end
     end
@@ -354,12 +349,12 @@ module ToMods
     def write_cartographic_with_authority(forms, alt_rep_group: nil)
       # Each for form with authority.
       projection_forms_with_authority = forms.select do |form|
-        form.type == 'map projection' && form.source.present?
+        form['type'] == 'map projection' && form['source'].present?
       end
       projection_forms_with_authority.each do |projection_form|
         xml.subject carto_subject_attributes_for(projection_form, alt_rep_group: alt_rep_group) do
           xml.cartographics do
-            xml.projection projection_form.value
+            xml.projection projection_form['value']
           end
         end
       end
@@ -367,18 +362,18 @@ module ToMods
 
     def carto_subject_attributes_for(form, alt_rep_group: nil)
       {
-        displayLabel: form.displayLabel,
-        authority: form.source&.code,
-        authorityURI: form.source&.uri,
-        valueURI: form.uri,
+        displayLabel: form['displayLabel'],
+        authority: form.dig('source', 'code'),
+        authorityURI: form.dig('source', 'uri'),
+        valueURI: form['uri'],
         altRepGroup: alt_rep_group
       }.compact
     end
 
     def hierarchical_geographic(subject)
       xml.hierarchicalGeographic do
-        subject.structuredValue.each do |structured_value|
-          xml.send(camelize(structured_value.type), structured_value.value)
+        Array(subject['structuredValue']).each do |structured_value|
+          xml.send(camelize(structured_value['type']), structured_value['value'])
         end
       end
     end
@@ -389,81 +384,79 @@ module ToMods
 
     def write_person(subject, subject_value, display_values: nil)
       name_attrs = topic_attributes_for(subject, subject_value, 'person').tap do |attrs|
-        attrs[:type] = name_type_for(subject.type || subject_value.type)
+        attrs[:type] = name_type_for(subject['type'] || subject_value['type'])
       end.compact
       xml.name name_attrs do
         write_name_part(subject_value)
         write_display_form(display_values)
-        write_roles(subject_value.note)
-        write_identifier(subject.identifier)
-        write_other_notes(subject.note, 'description')
-        write_other_notes(subject.note, 'affiliation')
+        write_roles(subject_value['note'])
+        write_identifier(subject['identifier'])
+        write_other_notes(subject['note'], 'description')
+        write_other_notes(subject['note'], 'affiliation')
       end
     end
 
     def write_structured_person(subject, subject_value, type: nil, display_values: nil)
-      type ||= subject_value.type
+      type ||= subject_value['type']
       name_attrs = topic_attributes_for(subject, subject_value, type).tap do |attrs|
         attrs[:type] = name_type_for(type)
       end.compact
       xml.name name_attrs do
         write_name_parts(subject_value)
         write_display_form(display_values)
-        write_roles(subject.note)
-        write_other_notes(subject.note, 'description')
-        write_other_notes(subject_value.note, 'affiliation')
+        write_roles(subject['note'])
+        write_other_notes(subject['note'], 'description')
+        write_other_notes(subject_value['note'], 'affiliation')
       end
       write_genres(subject_value)
     end
 
     def write_display_form(display_values)
       Array(display_values).each do |display_value|
-        xml.displayForm display_value.value
+        xml.displayForm display_value['value']
       end
     end
 
     def write_roles(notes)
       Array(notes).filter do |note|
-        note.type == 'role'
+        note['type'] == 'role'
       end.each { |role| RoleWriter.write(xml: xml, role: role) }
     end
 
     def write_identifier(identifiers)
-      identifiers.each do |identifier|
-        xml.nameIdentifier identifier.value, type: identifier.source.code
+      Array(identifiers).each do |identifier|
+        xml.nameIdentifier identifier['value'], type: identifier.dig('source', 'code')
       end
     end
 
     def write_other_notes(notes, type)
-      Array(notes).filter { |note| note.type == type }.each { |note| xml.public_send(type, note.value) }
+      Array(notes).filter { |note| note['type'] == type }.each { |note| xml.public_send(type, note['value']) }
     end
 
     def write_name_parts(descriptive_value)
-      descriptive_value
-        .structuredValue
-        .reject { |value| value.type == 'genre' }
+      Array(descriptive_value['structuredValue'])
+        .reject { |value| value['type'] == 'genre' }
         .each { |value| write_name_part(value) }
     end
 
     def write_genres(descriptive_value)
-      descriptive_value
-        .structuredValue
-        .select { |value| value.type == 'genre' }
-        .each { |genre| xml.genre genre.value }
+      Array(descriptive_value['structuredValue'])
+        .select { |value| value['type'] == 'genre' }
+        .each { |genre| xml.genre genre['value'] }
     end
 
     def write_name_part(name_part)
-      return unless name_part.value
+      return unless name_part['value']
 
       attributes = {}.tap do |attrs|
-        attrs[:type] = NameWriter::NAME_PART[name_part.type]
+        attrs[:type] = NameWriter::NAME_PART[name_part['type']]
       end.compact
-      xml.namePart name_part.value, attributes
-      write_other_notes(name_part.note, 'affiliation')
+      xml.namePart name_part['value'], attributes
+      write_other_notes(name_part['note'], 'affiliation')
     end
 
     def name_type_for(type)
-      Cocina::Models::Mapping::FromMods::Contributor::ROLES.invert[type]
+      NameWriter::NAME_TYPE[type]
     end
 
     def edition(version)
@@ -471,15 +464,15 @@ module ToMods
     end
 
     def write_parallel_structured_person(value)
-      parallel_subject_values = Array(value.parallelValue)
+      parallel_subject_values = Array(value['parallelValue'])
       display_values, parallel_subject_values = parallel_subject_values.partition do |par_value|
-        par_value.type == 'display'
+        par_value['type'] == 'display'
       end
 
       # there will not be more than one parallelValue within a structuredValue
       parallel_subject_value = parallel_subject_values.first
-      if parallel_subject_value.structuredValue.present?
-        write_structured_person(value, parallel_subject_value, type: value.type,
+      if parallel_subject_value['structuredValue'].present?
+        write_structured_person(value, parallel_subject_value, type: value['type'],
                                                                display_values: display_values)
       else
         write_person(value, parallel_subject_value, display_values: display_values)

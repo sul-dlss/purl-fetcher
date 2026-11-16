@@ -13,7 +13,7 @@ RSpec.describe ToMods::Title do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, titles: titles, contributors: contributors, catalog_links: catalog_links,
+        described_class.write(xml: xml, titles: titles.as_json, contributors: contributors.as_json, catalog_links: catalog_links.as_json,
                               id_generator: ToMods::IdGenerator.new)
       end
     end
@@ -23,8 +23,7 @@ RSpec.describe ToMods::Title do
     context 'when there is a title with language' do
       let(:titles) do
         [
-          Cocina::Models::Title.new(
-            value: 'Union des Forces de Changement du Togo',
+          { value: 'Union des Forces de Changement du Togo',
             valueLanguage: {
               code: 'fre',
               source: {
@@ -36,8 +35,7 @@ RSpec.describe ToMods::Title do
                   code: 'iso15924'
                 }
               }
-            }
-          )
+            } }
         ]
       end
 
@@ -57,8 +55,7 @@ RSpec.describe ToMods::Title do
     context 'when it is a uniform title with multiple title subelements' do
       let(:titles) do
         [
-          Cocina::Models::Title.new(
-            structuredValue: [
+          { structuredValue: [
               {
                 type: 'title',
                 structuredValue: [
@@ -88,14 +85,12 @@ RSpec.describe ToMods::Title do
                   }
                 ]
               }
-            ]
-          )
+            ] }
         ]
       end
       let(:contributors) do
         [
-          Cocina::Models::Contributor.new(
-            name: [
+          { name: [
               {
                 structuredValue: [
                   {
@@ -110,19 +105,16 @@ RSpec.describe ToMods::Title do
               }
             ],
             type: 'person',
-            status: 'primary'
-          )
+            status: 'primary' }
         ]
       end
       let(:catalog_links) do
         [
-          Cocina::Models::FolioCatalogLink.new(
-            catalog: 'folio',
+          { catalog: 'folio',
             catalogRecordId: 'in12345',
             refresh: true,
             partLabel: 'RV 442, F major',
-            sortKey: ''
-          )
+            sortKey: '' }
         ]
       end
 
@@ -147,8 +139,7 @@ RSpec.describe ToMods::Title do
     context 'when there is a title with script but no lang' do
       let(:titles) do
         [
-          Cocina::Models::Title.new(
-            value: 'Война и миръ',
+          { value: 'Война и миръ',
             valueLanguage: {
               valueScript: {
                 code: 'Cyrl',
@@ -156,8 +147,7 @@ RSpec.describe ToMods::Title do
                   code: 'iso15924'
                 }
               }
-            }
-          )
+            } }
         ]
       end
 
@@ -177,8 +167,7 @@ RSpec.describe ToMods::Title do
     context 'when it is a parallel title without type' do
       let(:titles) do
         [
-          Cocina::Models::Title.new(
-            parallelValue: [
+          { parallelValue: [
               {
                 value: 'Zi yuan wei yuan hui yue kan'
               },
@@ -186,8 +175,7 @@ RSpec.describe ToMods::Title do
                 value: '資源委員會月刊'
               }
             ],
-            type: 'parallel'
-          )
+            type: 'parallel' }
         ]
       end
 
@@ -210,8 +198,7 @@ RSpec.describe ToMods::Title do
     context 'when it is a parallel title with script but no lang' do
       let(:titles) do
         [
-          Cocina::Models::Title.new(
-            parallelValue: [
+          { parallelValue: [
               {
                 value: '[Chosen] Gomanbunnnoichi Chikeizu',
                 valueLanguage: {
@@ -235,8 +222,7 @@ RSpec.describe ToMods::Title do
                 }
               }
             ],
-            type: 'parallel'
-          )
+            type: 'parallel' }
         ]
       end
 
@@ -259,32 +245,28 @@ RSpec.describe ToMods::Title do
     context 'when it is a title and contributor have same value' do
       let(:titles) do
         [
-          Cocina::Models::Title.new(
-            {
-              value: 'Stanford Alpine Club'
-            }
-          )
+          {
+            value: 'Stanford Alpine Club'
+          }
         ]
       end
 
       let(:contributors) do
         [
-          Cocina::Models::Contributor.new(
-            {
-              name: [
-                {
-                  value: 'Stanford Alpine Club',
-                  uri: 'http://id.loc.gov/authorities/names/n99277320',
-                  source: {
-                    code: 'naf',
-                    uri: 'http://id.loc.gov/authorities/names/'
-                  }
+          {
+            name: [
+              {
+                value: 'Stanford Alpine Club',
+                uri: 'http://id.loc.gov/authorities/names/n99277320',
+                source: {
+                  code: 'naf',
+                  uri: 'http://id.loc.gov/authorities/names/'
                 }
-              ],
-              type: 'organization',
-              status: 'primary'
-            }
-          )
+              }
+            ],
+            type: 'organization',
+            status: 'primary'
+          }
         ]
       end
 
@@ -307,8 +289,7 @@ RSpec.describe ToMods::Title do
   context 'when it is a complex multilingual title' do
     let(:titles) do
       [
-        Cocina::Models::Title.new(
-          value: 'Shaʻare ha-ḳedushah',
+        { value: 'Shaʻare ha-ḳedushah',
           type: 'uniform',
           note: [
             {
@@ -324,43 +305,39 @@ RSpec.describe ToMods::Title do
                 }
               ]
             }
-          ]
-        ),
-        Cocina::Models::Title.new(
-          parallelValue: [
-            {
-              structuredValue: [
-                {
-                  value: 'Sefer Shaʻare ha-ḳedushah in Hebrew',
-                  type: 'main title'
-                },
-                {
-                  value: 'zeh sefer le-yosher ha-adam la-ʻavodat borʼo in Hebrew',
-                  type: 'subtitle'
-                }
-              ]
-            },
-            {
-              structuredValue: [
-                {
-                  value: 'Sefer Shaʻare ha-ḳedushah',
-                  type: 'main title'
-                },
-                {
-                  value: 'zeh sefer le-yosher ha-adam la-ʻavodat borʼo',
-                  type: 'subtitle'
-                }
-              ]
-            }
-          ]
-        )
+          ] },
+        { parallelValue: [
+          {
+            structuredValue: [
+              {
+                value: 'Sefer Shaʻare ha-ḳedushah in Hebrew',
+                type: 'main title'
+              },
+              {
+                value: 'zeh sefer le-yosher ha-adam la-ʻavodat borʼo in Hebrew',
+                type: 'subtitle'
+              }
+            ]
+          },
+          {
+            structuredValue: [
+              {
+                value: 'Sefer Shaʻare ha-ḳedushah',
+                type: 'main title'
+              },
+              {
+                value: 'zeh sefer le-yosher ha-adam la-ʻavodat borʼo',
+                type: 'subtitle'
+              }
+            ]
+          }
+        ] }
       ]
     end
 
     let(:contributors) do
       [
-        Cocina::Models::Contributor.new(
-          name: [
+        { name: [
             {
               structuredValue: [
                 {
@@ -375,8 +352,7 @@ RSpec.describe ToMods::Title do
             }
           ],
           type: 'person',
-          status: 'primary'
-        )
+          status: 'primary' }
       ]
     end
 
@@ -408,39 +384,33 @@ RSpec.describe ToMods::Title do
   context 'when it is missing type in a structured value' do
     let(:titles) do
       [
-        Cocina::Models::Title.new(
-          structuredValue: [
-            {
-              value: 'Concertos, recorder, string orchestra'
-            }
-          ]
-        )
+        { structuredValue: [
+          {
+            value: 'Concertos, recorder, string orchestra'
+          }
+        ] }
       ]
     end
 
     it 'raises an unknown title type error' do
-      expect { xml }.to raise_error(/Unknown title type for:.+value: "Concertos, recorder, string orchestra".+/)
+      expect { xml }.to raise_error(/Unknown title type for:.+"value" => "Concertos, recorder, string orchestra"/)
     end
   end
 
   context 'when it is a basic title that is a primary title and there is a partLabel' do
     let(:titles) do
       [
-        Cocina::Models::Title.new(
-          value: "People's Computers",
-          status: 'primary'
-        )
+        { value: "People's Computers",
+          status: 'primary' }
       ]
     end
     let(:catalog_links) do
       [
-        Cocina::Models::FolioCatalogLink.new(
-          catalog: 'folio',
+        { catalog: 'folio',
           catalogRecordId: 'in12345',
           refresh: true,
           partLabel: 'Volume 6, number 1, July/August 1977',
-          sortKey: ''
-        )
+          sortKey: '' }
       ]
     end
 

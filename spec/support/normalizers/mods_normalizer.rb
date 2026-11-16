@@ -3,8 +3,23 @@
 # Normalizes a Fedora MODS document, accounting for differences between Fedora MODS and MODS generated from Cocina.
 # these adjustments have been approved by our metadata authority, Arcadia.
 class ModsNormalizer
-  MODS_NS = Cocina::Models::Mapping::FromMods::Description::DESC_METADATA_NS
-  XLINK_NS = Cocina::Models::Mapping::FromMods::Description::XLINK_NS
+  MODS_NS = 'http://www.loc.gov/mods/v3'
+  XLINK_NS = 'http://www.w3.org/1999/xlink'
+  PURL_BASE_URL = 'https://purl.stanford.edu'
+
+  # @param [String] druid
+  # @return [String, nil] the purl for the druid
+  def self.purl_for(druid)
+    return nil if druid.nil?
+
+    "#{PURL_BASE_URL}/#{druid.delete_prefix('druid:')}"
+  end
+
+  # @param [String] url
+  # @return [Boolean] true if the url is a purl (http or https)
+  def self.purl?(url)
+    url.sub(/^http:/, 'https:').start_with?(PURL_BASE_URL)
+  end
 
   # @param [Nokogiri::Document] mods_ng_xml MODS to be normalized
   # @param [String] druid
@@ -53,12 +68,13 @@ class ModsNormalizer
   attr_reader :ng_xml, :druid, :label
 
   def normalize_purl_location
-    normalize_purl_for(ng_xml.root, purl: Cocina::Models::Mapping::Purl.for(druid: druid))
+    normalize_purl_for(ng_xml.root, purl: self.class.purl_for(druid))
   end
 
   def normalize_purl_for(base_node, purl: nil)
     purl_nodes(base_node).each do |purl_node|
-      purl_node.content = Cocina::Models::Mapping::FromMods::Purl.purl_value(purl_node)
+      # Note that normalizing http to https
+      purl_node.content = purl_node.content.sub(/^https?/, 'https').presence
     end
 
     # If there is a purl, add a url node if there is not already one.
@@ -80,14 +96,14 @@ class ModsNormalizer
   end
 
   def purl_nodes(base_node)
-    base_node.xpath('mods:location/mods:url', mods: MODS_NS).select { |url_node| ::Cocina::Models::Mapping::Purl.purl?(url_node.text) }
+    base_node.xpath('mods:location/mods:url', mods: MODS_NS).select { |url_node| self.class.purl?(url_node.text) }
   end
 
   def primary_url_node_for(base_node, purl)
     primary_purl_nodes, primary_url_nodes = base_node.xpath('mods:location/mods:url[@usage="primary display"]', mods: MODS_NS)
-                                                     .partition { |url_node| ::Cocina::Models::Mapping::Purl.purl?(url_node.text) }
+                                                     .partition { |url_node| self.class.purl?(url_node.text) }
     all_purl_nodes = base_node.xpath('mods:location/mods:url', mods: MODS_NS)
-                              .select { |url_node| ::Cocina::Models::Mapping::Purl.purl?(url_node.text) }
+                              .select { |url_node| self.class.purl?(url_node.text) }
 
     this_purl_node = purl ? all_purl_nodes.find { |purl_node| purl_node.content == purl } : nil
 

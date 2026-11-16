@@ -11,7 +11,7 @@ RSpec.describe ToMods::Subject do
                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                'version' => '3.6',
                'xsi:schemaLocation' => 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd') do
-        described_class.write(xml: xml, subjects: subjects,
+        described_class.write(xml: xml, subjects: subjects.as_json,
                               id_generator: ToMods::IdGenerator.new)
       end
     end
@@ -20,17 +20,15 @@ RSpec.describe ToMods::Subject do
   context 'when it has a organization subject' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            value: 'Stanford University',
-            type: 'organization',
-            uri: 'http://id.loc.gov/authorities/names/n79054636',
-            source: {
-              code: 'naf',
-              uri: 'http://id.loc.gov/authorities/names/'
-            }
+        {
+          value: 'Stanford University',
+          type: 'organization',
+          uri: 'http://id.loc.gov/authorities/names/n79054636',
+          source: {
+            code: 'naf',
+            uri: 'http://id.loc.gov/authorities/names/'
           }
-        )
+        }
       ]
     end
 
@@ -52,15 +50,13 @@ RSpec.describe ToMods::Subject do
   context 'when it has a name subject with authority only' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            value: 'Sayers, Dorothy L. (Dorothy Leigh), 1893-1957',
-            type: 'person',
-            source: {
-              code: 'naf'
-            }
+        {
+          value: 'Sayers, Dorothy L. (Dorothy Leigh), 1893-1957',
+          type: 'person',
+          source: {
+            code: 'naf'
           }
-        )
+        }
       ]
     end
 
@@ -82,25 +78,23 @@ RSpec.describe ToMods::Subject do
   context 'when it has a name subject with additional terms and authority for the name' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            structuredValue: [
-              {
-                value: 'Shakespeare, William, 1564-1616',
-                type: 'person',
-                uri: 'http://id.loc.gov/authorities/names/n78095332',
-                source: {
-                  code: 'naf',
-                  uri: 'http://id.loc.gov/authorities/names/'
-                }
-              },
-              {
-                value: 'Homes and haunts',
-                type: 'topic'
+        {
+          structuredValue: [
+            {
+              value: 'Shakespeare, William, 1564-1616',
+              type: 'person',
+              uri: 'http://id.loc.gov/authorities/names/n78095332',
+              source: {
+                code: 'naf',
+                uri: 'http://id.loc.gov/authorities/names/'
               }
-            ]
-          }
-        )
+            },
+            {
+              value: 'Homes and haunts',
+              type: 'topic'
+            }
+          ]
+        }
       ]
     end
 
@@ -123,30 +117,28 @@ RSpec.describe ToMods::Subject do
   context 'when it has a name subject with additional terms and authority for the terms' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            structuredValue: [
-              {
-                value: 'Shakespeare, William, 1564-1616',
-                type: 'person',
-                uri: 'http://id.loc.gov/authorities/names/n78095332',
-                source: {
-                  code: 'naf',
-                  uri: 'http://id.loc.gov/authorities/names/'
-                }
-              },
-              {
-                value: 'Homes and haunts',
-                type: 'topic',
-                uri: 'http://id.loc.gov/authorities/subjects/sh99005711',
-                source: {
-                  code: 'lcsh',
-                  uri: 'http://id.loc.gov/authorities/subjects/'
-                }
+        {
+          structuredValue: [
+            {
+              value: 'Shakespeare, William, 1564-1616',
+              type: 'person',
+              uri: 'http://id.loc.gov/authorities/names/n78095332',
+              source: {
+                code: 'naf',
+                uri: 'http://id.loc.gov/authorities/names/'
               }
-            ]
-          }
-        )
+            },
+            {
+              value: 'Homes and haunts',
+              type: 'topic',
+              uri: 'http://id.loc.gov/authorities/subjects/sh99005711',
+              source: {
+                code: 'lcsh',
+                uri: 'http://id.loc.gov/authorities/subjects/'
+              }
+            }
+          ]
+        }
       ]
     end
 
@@ -169,35 +161,33 @@ RSpec.describe ToMods::Subject do
   context 'when it has a name subject with additional terms and authority for terms and set' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            structuredValue: [
-              {
-                value: 'Shakespeare, William, 1564-1616',
-                type: 'person',
-                uri: 'http://id.loc.gov/authorities/names/n78095332',
-                source: {
-                  code: 'naf',
-                  uri: 'http://id.loc.gov/authorities/names/'
-                }
-              },
-              {
-                value: 'Homes and haunts',
-                type: 'topic',
-                uri: 'http://id.loc.gov/authorities/subjects/sh99005711',
-                source: {
-                  code: 'lcsh',
-                  uri: 'http://id.loc.gov/authorities/subjects/'
-                }
+        {
+          structuredValue: [
+            {
+              value: 'Shakespeare, William, 1564-1616',
+              type: 'person',
+              uri: 'http://id.loc.gov/authorities/names/n78095332',
+              source: {
+                code: 'naf',
+                uri: 'http://id.loc.gov/authorities/names/'
               }
-            ],
-            uri: 'http://id.loc.gov/authorities/subjects/sh85120951',
-            source: {
-              code: 'lcsh',
-              uri: 'http://id.loc.gov/authorities/subjects/'
+            },
+            {
+              value: 'Homes and haunts',
+              type: 'topic',
+              uri: 'http://id.loc.gov/authorities/subjects/sh99005711',
+              source: {
+                code: 'lcsh',
+                uri: 'http://id.loc.gov/authorities/subjects/'
+              }
             }
+          ],
+          uri: 'http://id.loc.gov/authorities/subjects/sh85120951',
+          source: {
+            code: 'lcsh',
+            uri: 'http://id.loc.gov/authorities/subjects/'
           }
-        )
+        }
       ]
     end
 
@@ -221,8 +211,7 @@ RSpec.describe ToMods::Subject do
   context 'with a name-title subject where title has partNumber' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          source: {
+        { source: {
             code: 'lcsh'
           },
           structuredValue: [
@@ -252,8 +241,7 @@ RSpec.describe ToMods::Subject do
               ],
               type: 'title'
             }
-          ]
-        )
+          ] }
       ]
     end
 
@@ -280,29 +268,27 @@ RSpec.describe ToMods::Subject do
   context 'with person parallelValue and no structuredValue' do
     let(:subjects) do
       [
-        Cocina::Models::DescriptiveValue.new(
-          {
-            structuredValue: [
-              {
-                parallelValue: [
-                  {
-                    value: 'Holbein, Han, 1497-1543',
-                    type: 'surname'
-                  },
-                  {
-                    value: 'Holbein, Han, 1497-1543',
-                    type: 'display'
-                  }
-                ],
-                type: 'person'
-              },
-              {
-                value: 'Homes and haunts',
-                type: 'topic'
-              }
-            ]
-          }
-        )
+        {
+          structuredValue: [
+            {
+              parallelValue: [
+                {
+                  value: 'Holbein, Han, 1497-1543',
+                  type: 'surname'
+                },
+                {
+                  value: 'Holbein, Han, 1497-1543',
+                  type: 'display'
+                }
+              ],
+              type: 'person'
+            },
+            {
+              value: 'Homes and haunts',
+              type: 'topic'
+            }
+          ]
+        }
       ]
     end
 

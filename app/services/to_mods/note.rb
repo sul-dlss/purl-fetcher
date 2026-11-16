@@ -4,7 +4,7 @@ module ToMods
   # Maps notes from cocina to MODS XML
   class Note
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::DescriptiveValue>] notes
+    # @params [Array<Hash>] notes
     # @params [IdGenerator] id_generator
     def self.write(xml:, notes:, id_generator:)
       new(xml: xml, notes: notes, id_generator: id_generator).write
@@ -31,9 +31,9 @@ module ToMods
 
     def write
       Array(notes).each do |note|
-        if note.type == 'part'
+        if note['type'] == 'part'
           PartWriter.write(xml: xml, part_note: note)
-        elsif note.parallelValue.present?
+        elsif note['parallelValue'].present?
           write_parallel(note)
         else
           write_basic(note)
@@ -59,10 +59,10 @@ module ToMods
     attr_reader :xml, :notes, :id_generator
 
     def tag_name(note)
-      return :abstract if self.class.display_label_to_abstract_type.include? note.displayLabel
-      return :abstract if self.class.note_type_to_abstract_type.include? note.type&.downcase
+      return :abstract if self.class.display_label_to_abstract_type.include? note['displayLabel']
+      return :abstract if self.class.note_type_to_abstract_type.include? note['type']&.downcase
 
-      case note.type&.downcase
+      case note['type']&.downcase
       when 'table of contents'
         :tableOfContents
       when 'target audience'
@@ -73,12 +73,12 @@ module ToMods
     end
 
     def tag(note, tag_name, attributes)
-      attributes[:type] = note.type if note.type && note.type != 'abstract' && %i[tableOfContents
-                                                                                  targetAudience].exclude?(tag_name)
-      value = if note.structuredValue.present?
-                note.structuredValue.map(&:value).join(' -- ')
+      attributes[:type] = note['type'] if note['type'] && note['type'] != 'abstract' && %i[tableOfContents
+                                                                                           targetAudience].exclude?(tag_name)
+      value = if note['structuredValue'].present?
+                note['structuredValue'].pluck('value').join(' -- ')
               else
-                note.value
+                note['value']
               end
       xml.public_send tag_name, attributes do |builder|
         Note.with_cdata(value, builder) if value
@@ -91,7 +91,7 @@ module ToMods
 
     def write_parallel(note)
       alt_rep_group = id_generator.next_altrepgroup
-      note.parallelValue.each do |parallel_note|
+      note['parallelValue'].each do |parallel_note|
         attributes = { altRepGroup: alt_rep_group }.merge(note_attributes(parallel_note))
 
         tag(parallel_note, tag_name(note), attributes)
@@ -100,17 +100,17 @@ module ToMods
 
     def note_attributes(note)
       {
-        lang: note.valueLanguage&.code,
-        script: note.valueLanguage&.valueScript&.code,
-        displayLabel: note.displayLabel,
-        authority: note.source&.code,
-        'xlink:href' => note.valueAt,
+        lang: note.dig('valueLanguage', 'code'),
+        script: note.dig('valueLanguage', 'valueScript', 'code'),
+        displayLabel: note['displayLabel'],
+        authority: note.dig('source', 'code'),
+        'xlink:href' => note['valueAt'],
         ID: id_for(note)
       }.compact
     end
 
     def id_for(note)
-      Array(note.identifier).find { |identifier| identifier.type == 'anchor' }&.value
+      Array(note['identifier']).find { |identifier| identifier['type'] == 'anchor' }&.dig('value')
     end
   end
 end

@@ -4,7 +4,7 @@ module ToMods
   # Maps adminMetadata from cocina to MODS XML recordInfo
   class AdminMetadata
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Cocina::Models::DescriptiveAdminMetadata] admin_metadata
+    # @params [Hash] admin_metadata
     def self.write(xml:, admin_metadata:)
       new(xml: xml, admin_metadata: admin_metadata).write
     end
@@ -33,37 +33,37 @@ module ToMods
     attr_reader :xml, :admin_metadata
 
     def build_record_origin
-      Array(admin_metadata.note).select { |note| note.type == 'record origin' }.each do |note|
-        xml.recordOrigin note.value
+      Array(admin_metadata['note']).select { |note| note['type'] == 'record origin' }.each do |note|
+        xml.recordOrigin note['value']
       end
     end
 
     def build_record_info_notes
-      record_info_notes = Array(admin_metadata.note)
+      record_info_notes = Array(admin_metadata['note'])
       # return unless record_info_notes
       return if record_info_notes.empty?
 
       record_info_notes.each do |info_note|
-        if info_note.valueAt.present?
-          xml.recordInfoNote nil, { 'xlink:href' => info_note.valueAt }
-        elsif info_note.type == 'record information'
-          xml.recordInfoNote info_note.value
+        if info_note['valueAt'].present?
+          xml.recordInfoNote nil, { 'xlink:href' => info_note['valueAt'] }
+        elsif info_note['type'] == 'record information'
+          xml.recordInfoNote info_note['value']
         end
       end
     end
 
     def build_content_source
-      Array(admin_metadata.contributor).each do |contributor|
-        source = contributor.name.first
-        xml.recordContentSource source.code || source.value, with_uri_info(source)
+      Array(admin_metadata['contributor']).each do |contributor|
+        source = Array(contributor['name']).first
+        xml.recordContentSource source['code'] || source['value'], with_uri_info(source)
       end
     end
 
     def build_description_standard
-      return if admin_metadata.metadataStandard.blank?
+      return if admin_metadata['metadataStandard'].blank?
 
-      admin_metadata.metadataStandard.each do |standard|
-        xml.descriptionStandard standard.code || standard.value, with_uri_info(standard)
+      admin_metadata['metadataStandard'].each do |standard|
+        xml.descriptionStandard standard['code'] || standard['value'], with_uri_info(standard)
       end
     end
 
@@ -73,50 +73,50 @@ module ToMods
     end
 
     def build_event_for(type, tag)
-      Array(admin_metadata.event).select { |note| note.type == type }.each do |event|
-        event.date.each do |date|
+      Array(admin_metadata['event']).select { |note| note['type'] == type }.each do |event|
+        Array(event['date']).each do |date|
           attributes = {}.tap do |attrs|
-            attrs[:encoding] = date.encoding&.code
+            attrs[:encoding] = date.dig('encoding', 'code')
           end.compact
 
-          xml.public_send(tag, date.value, attributes)
+          xml.public_send(tag, date['value'], attributes)
         end
       end
     end
 
     def build_identifier
-      Array(admin_metadata.identifier).each do |identifier|
+      Array(admin_metadata['identifier']).each do |identifier|
         id_attributes = {
-          displayLabel: identifier.displayLabel,
-          source: identifier.uri ? 'uri' : Cocina::Models::Mapping::FromMods::IdentifierType.mods_type_for_cocina_type(identifier.type)
+          displayLabel: identifier['displayLabel'],
+          source: identifier['uri'] ? 'uri' : IdentifierType.mods_type_for_cocina_type(identifier['type'])
         }.tap do |attrs|
-          attrs[:invalid] = 'yes' if identifier.status == 'invalid'
+          attrs[:invalid] = 'yes' if identifier['status'] == 'invalid'
         end.compact
-        xml.recordIdentifier identifier.value || identifier.uri, id_attributes
+        xml.recordIdentifier identifier['value'] || identifier['uri'], id_attributes
       end
     end
 
     def build_language
-      Array(admin_metadata.language).each do |language|
+      Array(admin_metadata['language']).each do |language|
         language_of_cataloging_attrs = {}
-        language_of_cataloging_attrs[:usage] = language.status if language.status
+        language_of_cataloging_attrs[:usage] = language['status'] if language['status']
         xml.languageOfCataloging language_of_cataloging_attrs do
           language_attrs = with_uri_info(language, {})
-          xml.languageTerm language.value, language_attrs.merge(type: 'text') if language.value
-          xml.languageTerm language.code, language_attrs.merge(type: 'code') if language.code
-          if language.script
-            script_attrs = with_uri_info(language.script, {})
-            xml.scriptTerm language.script.value, script_attrs.merge(type: 'text')
-            xml.scriptTerm language.script.code, script_attrs.merge(type: 'code')
+          xml.languageTerm language['value'], language_attrs.merge(type: 'text') if language['value']
+          xml.languageTerm language['code'], language_attrs.merge(type: 'code') if language['code']
+          if language['script']
+            script_attrs = with_uri_info(language['script'], {})
+            xml.scriptTerm language.dig('script', 'value'), script_attrs.merge(type: 'text')
+            xml.scriptTerm language.dig('script', 'code'), script_attrs.merge(type: 'code')
           end
         end
       end
     end
 
     def with_uri_info(cocina, xml_attrs = {})
-      xml_attrs[:valueURI] = cocina.uri
-      xml_attrs[:authorityURI] = cocina.source&.uri
-      xml_attrs[:authority] = cocina.source&.code
+      xml_attrs[:valueURI] = cocina['uri']
+      xml_attrs[:authorityURI] = cocina.dig('source', 'uri')
+      xml_attrs[:authority] = cocina.dig('source', 'code')
       xml_attrs.compact
     end
   end

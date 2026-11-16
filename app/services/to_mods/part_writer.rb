@@ -3,9 +3,10 @@
 module ToMods
   # Maps parts from cocina to MODS XML
   class PartWriter
+    DETAIL_TYPES = %w[number caption title].freeze
+
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::DescriptiveValue>] part_note
-    # @params [IdGenerator] id_generator
+    # @params [Hash] part_note
     def self.write(xml:, part_note:)
       new(xml: xml, part_note: part_note).write
     end
@@ -16,7 +17,7 @@ module ToMods
     end
 
     def write
-      if note.groupedValue.present?
+      if note['groupedValue'].present?
         write_grouped_value
       else
         write_structured_value
@@ -30,7 +31,7 @@ module ToMods
     def write_grouped_value
       xml.part do
         attrs = {
-          type: find_value(note.groupedValue, 'detail type')
+          type: find_value(note['groupedValue'], 'detail type')
         }.compact
 
         detail_values = detail_values_for(note)
@@ -46,9 +47,9 @@ module ToMods
 
     def write_structured_value
       xml.part do
-        note.structuredValue.each do |note_value|
+        Array(note['structuredValue']).each do |note_value|
           attrs = {
-            type: find_value(note_value.groupedValue, 'detail type')
+            type: find_value(note_value['groupedValue'], 'detail type')
           }.compact
 
           detail_values = detail_values_for(note_value)
@@ -64,10 +65,10 @@ module ToMods
     end
 
     def write_extent_for(note_value)
-      list_value = find_value(note_value.groupedValue, 'list')
-      structured_values = note_value.groupedValue&.find do |value|
-                            value.structuredValue.present?
-                          end&.structuredValue
+      list_value = find_value(note_value['groupedValue'], 'list')
+      structured_values = Array(note_value['groupedValue']).find do |value|
+                            value['structuredValue'].present?
+                          end&.dig('structuredValue')
       if structured_values
         start_value = find_value(structured_values, 'start')
         end_value = find_value(structured_values, 'end')
@@ -75,7 +76,7 @@ module ToMods
       return unless list_value || start_value || end_value
 
       extent_attrs = {
-        unit: find_value(note_value.groupedValue, 'extent unit')
+        unit: find_value(note_value['groupedValue'], 'extent unit')
       }.compact
 
       xml.extent extent_attrs do
@@ -86,24 +87,24 @@ module ToMods
     end
 
     def find_value(values, type)
-      values&.find { |value| value.type == type }&.value
+      Array(values).find { |value| value['type'] == type }&.dig('value')
     end
 
     def detail_values_for(note_value)
-      note_value.groupedValue&.select { |value| %w[number caption title].include?(value.type) }
+      Array(note_value['groupedValue']).select { |value| DETAIL_TYPES.include?(value['type']) }
     end
 
     def other_note_values_for(note_value)
-      note_value.groupedValue&.select { |value| other_note?(value) }
+      Array(note_value['groupedValue']).select { |value| other_note?(value) }
     end
 
     def other_note?(value)
-      %w[text date].include?(value.type)
+      %w[text date].include?(value['type'])
     end
 
     def write_part_note_value(value)
       # One of the tag names is "text". Since this is also a method name, normal magic doesn't work.
-      xml.method_missing value.type, value.value
+      xml.method_missing value['type'], value['value']
     end
   end
 end

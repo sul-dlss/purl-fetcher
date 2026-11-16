@@ -8,12 +8,10 @@ RSpec.describe ToMods::Description do
   context 'with a minimal description' do
     let(:druid) { 'druid:aa666bb1234' }
     let(:descriptive) do
-      Cocina::Models::Description.new(
-        title: [
+      { title: [
           { value: 'Gaudy night' }
         ],
-        purl: 'https://purl.stanford.edu/aa666bb1234'
-      )
+        purl: 'https://purl.stanford.edu/aa666bb1234' }
     end
 
     it 'builds the xml' do
@@ -35,8 +33,7 @@ RSpec.describe ToMods::Description do
   context 'when it has an abstract and frequency' do
     let(:druid) { 'druid:aa666bb1234' }
     let(:descriptive) do
-      Cocina::Models::Description.new(
-        title: [
+      { title: [
           { value: 'Gaudy night' }
         ],
         purl: 'https://purl.stanford.edu/aa666bb1234',
@@ -89,8 +86,7 @@ RSpec.describe ToMods::Description do
               }
             ]
           }
-        ]
-      )
+        ] }
     end
 
     it 'builds the xml' do
@@ -129,19 +125,16 @@ RSpec.describe ToMods::Description do
 
     let(:druid) { 'druid:aa666bb1234' }
     let(:descriptive) do
-      Cocina::Models::Description.new(
-        title: [
+      { title: [
           { structuredValue: [
             { value: 'Gaudy night',
               type: 'main title' }
           ] }
         ],
-        purl: 'https://purl.stanford.edu/aa666bb1234'
-      )
+        purl: 'https://purl.stanford.edu/aa666bb1234' }
     end
     let(:identification) do
-      Cocina::Models::Identification.new(
-        catalogLinks: [
+      { catalogLinks: [
           {
             catalog: 'folio',
             catalogRecordId: 'a1234567',
@@ -149,8 +142,7 @@ RSpec.describe ToMods::Description do
             refresh: true
           }
         ],
-        sourceId: 'sul:source_id'
-      )
+        sourceId: 'sul:source_id' }
     end
 
     it 'builds the xml' do
@@ -173,8 +165,7 @@ RSpec.describe ToMods::Description do
   context 'with a MODS version specified in note' do
     let(:druid) { 'druid:aa666bb1234' }
     let(:descriptive) do
-      Cocina::Models::Description.new(
-        title: [
+      { title: [
           { value: 'Gaudy night' }
         ],
         purl: 'https://purl.stanford.edu/aa666bb1234',
@@ -186,8 +177,7 @@ RSpec.describe ToMods::Description do
               type: 'record origin'
             }
           ]
-        }
-      )
+        } }
     end
 
     it 'builds the xml' do

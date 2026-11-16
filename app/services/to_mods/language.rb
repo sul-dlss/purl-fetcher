@@ -4,7 +4,7 @@ module ToMods
   # Maps languages from cocina to MODS XML
   class Language
     # @params [Nokogiri::XML::Builder] xml
-    # @params [Array<Cocina::Models::Language>] languages
+    # @params [Array<Hash>] languages
     def self.write(xml:, languages:)
       new(xml: xml, languages: languages).write
     end
@@ -27,50 +27,50 @@ module ToMods
     # rubocop:disable Metrics/AbcSize
     def write_basic(language)
       top_attributes = {}
-      top_attributes[:displayLabel] = language.displayLabel if language.displayLabel
-      applies_to = applies_to_first_value(language.appliesTo)
+      top_attributes[:displayLabel] = language['displayLabel'] if language['displayLabel']
+      applies_to = applies_to_first_value(language['appliesTo'])
       top_attributes[:objectPart] = applies_to if applies_to
-      top_attributes[:usage] = language.status if language.status
+      top_attributes[:usage] = language['status'] if language['status']
       xml.language top_attributes do
         attributes = {}
-        attributes[:valueURI] = language.uri if language.uri
-        attributes[:authorityURI] = language.source.uri if language.source&.uri
-        attributes[:authority] = language.source.code if language.source&.code
+        attributes[:valueURI] = language['uri'] if language['uri']
+        attributes[:authorityURI] = language.dig('source', 'uri') if language.dig('source', 'uri')
+        attributes[:authority] = language.dig('source', 'code') if language.dig('source', 'code')
 
-        if language.value
+        if language['value']
           attributes[:type] = 'text'
-          xml.languageTerm language.value, attributes
+          xml.languageTerm language['value'], attributes
         end
 
-        if language.code
+        if language['code']
           attributes[:type] = 'code'
-          xml.languageTerm language.code, attributes
+          xml.languageTerm language['code'], attributes
         end
 
-        write_script(language.script) if language.script
+        write_script(language['script']) if language['script']
       end
     end
     # rubocop:enable Metrics/AbcSize
 
     def write_script(script)
       attributes = {}
-      attributes[:authority] = script.source.code if script.source&.code
+      attributes[:authority] = script.dig('source', 'code') if script.dig('source', 'code')
 
-      if script.value
+      if script['value']
         attributes[:type] = 'text'
-        xml.scriptTerm script.value, attributes
+        xml.scriptTerm script['value'], attributes
       end
 
-      return unless script.code
+      return unless script['code']
 
       attributes[:type] = 'code'
-      xml.scriptTerm script.code, attributes
+      xml.scriptTerm script['code'], attributes
     end
 
     # NOTE: appliesTo is an array in cocina model, but it is an xml attribute (thus single value) in MODS ...
-    # get value from DescriptiveBasicValue
+    # get value from the first DescriptiveBasicValue
     def applies_to_first_value(applies_to)
-      applies_to&.first&.value
+      Array(applies_to).first&.dig('value')
     end
   end
 end

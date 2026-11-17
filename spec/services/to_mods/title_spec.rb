@@ -256,6 +256,41 @@ RSpec.describe ToMods::Title do
       end
     end
 
+    # Based on tx875wq7748
+    context 'when it is a parallel title with a transliterated value without a standard' do
+      let(:titles) do
+        [
+          Cocina::Models::Title.new(
+            parallelValue: [
+              {
+                value: 'مصاحبه با ملا واحد توحیدی',
+                status: 'primary'
+              },
+              {
+                value: 'Mosāheba bā Mollā Vāhed Towhidi',
+                type: 'transliterated'
+              }
+            ]
+          )
+        ]
+      end
+
+      it 'creates the equivalent MODS without a transliteration attribute' do
+        expect(xml).to be_equivalent_to <<~XML
+          <mods xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://www.loc.gov/mods/v3" version="3.6"
+            xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd">
+            <titleInfo usage="primary" altRepGroup="1">
+              <title>مصاحبه با ملا واحد توحیدی</title>
+            </titleInfo>
+            <titleInfo type="translated" altRepGroup="1">
+              <title>Mosāheba bā Mollā Vāhed Towhidi</title>
+            </titleInfo>
+          </mods>
+        XML
+      end
+    end
+
     context 'when it is a title and contributor have same value' do
       let(:titles) do
         [

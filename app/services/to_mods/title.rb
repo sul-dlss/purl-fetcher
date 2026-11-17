@@ -113,7 +113,7 @@ module ToMods
           end
         elsif parallel_title.type == 'transliterated'
           parallel_attrs[:type] = 'translated'
-          parallel_attrs[:transliteration] = parallel_title.standard.value
+          parallel_attrs[:transliteration] = parallel_title.standard&.value
         elsif title.parallelValue.any? { |parallel_value| parallel_value.status == 'primary' }
           if parallel_title.status == 'primary'
             parallel_attrs[:usage] = 'primary'

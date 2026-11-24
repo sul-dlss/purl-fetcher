@@ -71,16 +71,16 @@ RSpec.describe 'Publish a DRO' do
   context 'when a cocina object is received' do
     let(:transfer_dir) { Rails.root + 'tmp/transfer' }
 
-    before do
+    around do |example|
       FileUtils.rm_rf(transfer_dir)
       FileUtils.rm_rf(Settings.filesystems.stacks_root)
 
       FileUtils.mkdir_p(transfer_dir)
       File.write(transfer_dir + 'd7e54aed-c0c4-48af-af93-bc673f079f9a', "Hello world")
       File.write(transfer_dir + '7f807e3c-4cde-4b6d-8e76-f24455316a01', "The other one")
-    end
 
-    after do
+      example.run
+
       FileUtils.rm_rf(transfer_dir)
       FileUtils.rm_rf(Settings.filesystems.stacks_root)
     end
@@ -212,11 +212,12 @@ RSpec.describe 'Publish a DRO' do
     end
 
     context 'when the object is locked' do
-      before do
+      around do |example|
         FileUtils.mkdir_p('tmp/stacks/bc/123/df/4567/bc123df4567/versions')
-
-        f = File.open("tmp/stacks/bc/123/df/4567/bc123df4567/versions/.lock", File::RDWR | File::CREAT) # rubocop:disable Style/FileOpen
-        f.flock(File::LOCK_EX)
+        File.open('tmp/stacks/bc/123/df/4567/bc123df4567/versions/.lock', File::RDWR | File::CREAT) do |lock_file|
+          lock_file.flock(File::LOCK_EX)
+          example.run
+        end
       end
 
       it 'returns an HTTP 423 ("Locked") error' do
